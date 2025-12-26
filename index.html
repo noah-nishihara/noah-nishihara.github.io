@@ -1,672 +1,724 @@
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Plain-language Legal Guides — Australia</title>
-  <meta name="description" content="Plain-language legal guides for everyday Australians. Practical steps, checklists, and templates—written clearly." />
-
-  <!--
-    Homepage layout (Concept 2): Homepage + Guides list
-    - Editorial look and readability first
-    - Works as a clean landing page for GitHub Pages + future legal topics
-    - Includes a featured guide + cards for other guides
-  -->
-
-  <style>
-    /* =========================
-       Design tokens
-       ========================= */
-    :root{
-      --bg: #fbfaf7;
-      --surface: #ffffff;
-      --surface-2: #f5f2ea;
-      --text: #1f2328;
-      --muted: #5b6470;
-      --border: #e6e1d8;
-
-      --accent: #0b5fff;        /* trust blue */
-      --accent-2: #083d9b;
-      --success: #1a7f37;
-      --warning: #b54708;
-
-      --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-
-      --radius: 16px;
-      --shadow: 0 12px 35px rgba(10, 20, 40, 0.10);
-
-      --max: 1160px;
-      --measure: 74ch;
-
-      --s-1: 6px;
-      --s0: 10px;
-      --s1: 14px;
-      --s2: 18px;
-      --s3: 24px;
-      --s4: 32px;
-      --s5: 44px;
-      --s6: 64px;
-    }
-
-    @media (prefers-color-scheme: dark){
-      :root{
-        --bg: #0b0f14;
-        --surface: #0f1620;
-        --surface-2: #101b28;
-        --text: #e6edf3;
-        --muted: #a7b0ba;
-        --border: #233043;
-        --accent: #6aa6ff;
-        --accent-2: #9fc2ff;
-        --success: #2ea043;
-        --warning: #ff9b50;
-        --shadow: 0 16px 44px rgba(0,0,0,0.35);
-      }
-    }
-
-    /* =========================
-       Base styles
-       ========================= */
-    *{ box-sizing: border-box; }
-    html{ scroll-behavior: smooth; }
-    body{
-      margin: 0;
-      font-family: var(--font-sans);
-      line-height: 1.65;
-      color: var(--text);
-      background:
-        radial-gradient(1100px 720px at 18% -10%, rgba(11,95,255,0.10), transparent 60%),
-        radial-gradient(900px 650px at 90% 0%, rgba(26,127,55,0.08), transparent 55%),
-        var(--bg);
-    }
-    a{ color: var(--accent); text-decoration: none; }
-    a:hover{ text-decoration: underline; }
-    :focus-visible{ outline: 3px solid rgba(11,95,255,0.45); outline-offset: 3px; border-radius: 10px; }
-
-    .skip{
-      position: absolute;
-      left: -999px;
-      top: 10px;
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 10px 14px;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-      z-index: 999;
-    }
-    .skip:focus{ left: 12px; }
-
-    .page{
-      max-width: var(--max);
-      margin: 0 auto;
-      padding: var(--s4) var(--s3) var(--s6);
-    }
-
-    /* =========================
-       Topbar / nav
-       ========================= */
-    .topbar{
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--s2);
-      padding: var(--s3);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.70);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-    }
-    @media (prefers-color-scheme: dark){
-      .topbar{ background: rgba(15,22,32,0.65); }
-    }
-
-    .brand{
-      display: grid;
-      gap: 2px;
-    }
-    .brand strong{
-      letter-spacing: 0.2px;
-      font-size: 1.05rem;
-    }
-    .brand span{
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-
-    .nav{
-      display: flex;
-      gap: var(--s2);
-      flex-wrap: wrap;
-      font-size: 0.95rem;
-      color: var(--muted);
-      align-items: center;
-      justify-content: flex-end;
-    }
-    .nav a{
-      padding: 8px 10px;
-      border-radius: 12px;
-      border: 1px solid transparent;
-      color: var(--text);
-      text-decoration: none;
-    }
-    .nav a:hover{
-      background: var(--surface-2);
-      border-color: var(--border);
-    }
-    .nav .cta{
-      background: var(--accent);
-      color: white;
-      border-color: rgba(255,255,255,0.0);
-    }
-    .nav .cta:hover{
-      background: var(--accent-2);
-      border-color: transparent;
-    }
-
-    /* =========================
-       Hero
-       ========================= */
-    .hero{
-      margin-top: var(--s4);
-      padding: var(--s5) var(--s4);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-    .hero h1{
-      margin: 0 0 var(--s1);
-      font-size: clamp(1.9rem, 3.3vw, 2.8rem);
-      letter-spacing: -0.02em;
-    }
-    .hero p{
-      margin: 0 0 var(--s3);
-      color: var(--muted);
-      max-width: var(--measure);
-      font-size: 1.08rem;
-    }
-
-    .meta{
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-    .pill{
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: var(--surface-2);
-    }
-
-    /* =========================
-       Layout blocks
-       ========================= */
-    .grid{
-      margin-top: var(--s4);
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: var(--s4);
-      align-items: start;
-    }
-    @media (max-width: 980px){
-      .grid{ grid-template-columns: 1fr; }
-    }
-
-    .card{
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .card__pad{ padding: var(--s4); }
-    .card__title{
-      margin: 0 0 var(--s1);
-      font-size: 1.4rem;
-      letter-spacing: -0.01em;
-    }
-    .card__text{
-      margin: 0 0 var(--s2);
-      color: var(--muted);
-      max-width: var(--measure);
-    }
-
-    .section{
-      margin-top: var(--s4);
-      padding: var(--s4);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    /* =========================
-       Guide cards
-       ========================= */
-    .guides{
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: var(--s3);
-      margin-top: var(--s2);
-    }
-    @media (max-width: 700px){
-      .guides{ grid-template-columns: 1fr; }
-    }
-
-    .guide{
-      padding: var(--s3);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(11,95,255,0.06) 0%, transparent 80%), var(--surface);
-      transition: transform 160ms ease, border-color 160ms ease;
-    }
-    .guide:hover{
-      transform: translateY(-2px);
-      border-color: rgba(11,95,255,0.35);
-    }
-
-    .guide h3{
-      margin: 0 0 6px;
-      font-size: 1.15rem;
-      letter-spacing: -0.01em;
-    }
-    .guide p{
-      margin: 0 0 var(--s2);
-      color: var(--muted);
-    }
-    .guide .row{
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .tag{
-      font-size: 0.9rem;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      padding: 6px 10px;
-      border-radius: 999px;
-    }
-    .btn{
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .btn:hover{
-      background: rgba(11,95,255,0.10);
-      border-color: rgba(11,95,255,0.35);
-      text-decoration: none;
-    }
-    .btn.primary{
-      background: var(--accent);
-      border-color: transparent;
-      color: white;
-    }
-    .btn.primary:hover{
-      background: var(--accent-2);
-    }
-
-    /* =========================
-       Callouts + disclaimer
-       ========================= */
-    .callout{
-      padding: var(--s3);
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      margin-top: var(--s3);
-    }
-    .callout strong{ display: block; margin-bottom: 6px; }
-    .callout.tip{
-      border-color: rgba(11,95,255,0.28);
-      background: rgba(11,95,255,0.08);
-    }
-    .callout.warn{
-      border-color: rgba(181,71,8,0.35);
-      background: rgba(181,71,8,0.10);
-    }
-    .fineprint{
-      color: var(--muted);
-      font-size: 0.95rem;
-      max-width: var(--measure);
-    }
-
-    /* =========================
-       Copy blocks (real buttons)
-       ========================= */
-    .pre{
-      margin-top: var(--s2);
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      overflow: hidden;
-      background: #0b1220;
-    }
-    .pre__top{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 12px;
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.78);
-      font-size: 0.92rem;
-    }
-    .copybtn{
-      appearance: none;
-      border: 1px solid rgba(255,255,255,0.22);
-      background: rgba(255,255,255,0.08);
-      color: white;
-      padding: 7px 10px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-    .copybtn:hover{ background: rgba(255,255,255,0.14); }
-    .copybtn:active{ transform: translateY(1px); }
-    pre code{
-      display:block;
-      padding: 14px 12px 16px;
-      font-family: var(--font-mono);
-      font-size: 0.95rem;
-      color: rgba(255,255,255,0.92);
-      overflow-x: auto;
-      white-space: pre;
-    }
-
-    /* =========================
-       Footer
-       ========================= */
-    footer{
-      margin-top: var(--s5);
-      padding: var(--s4);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.55);
-      box-shadow: var(--shadow);
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-    @media (prefers-color-scheme: dark){
-      footer{ background: rgba(15,22,32,0.55); }
-    }
-    footer .cols{
-      display:grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: var(--s4);
-      align-items:start;
-    }
-    @media (max-width: 900px){
-      footer .cols{ grid-template-columns: 1fr; }
-    }
-
-    .list{
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 8px;
-    }
-
-    /* Tiny divider */
-    .hr{
-      height: 1px;
-      background: var(--border);
-      margin: var(--s3) 0;
-      border: 0;
-    }
-  </style>
-</head>
-
-<body>
-  #mainSkip to content</a>
-
-  <div class="page">
-    <!-- Topbar -->
-    <header class="topbar" role="banner">
-      <div class="brand">
-        <strong>Plain-language Legal Guides</strong>
-        <span>Clear, practical steps for everyday Australians</span>
-      </div>
-
-      <nav class="nav" aria-label="Primary navigation">
-        #guidesGuides</a>
-        #aboutAbout</a>
-        #disclaimerDisclaimer</a>
-        #startStart here</a>
-      </nav>
-    </header>
-
-    <!-- Hero -->
-    <section class="hero" aria-labelledby="title">
-      <h1 id="title">Make law easier to understand.</h1>
-      <p>
-        Short, plain-language guides with checklists and examples—built for real life.
-        Start with the “Publish your site” guide, then add topics like NDIS rights and mental health law.
-      </p>
-
-      <div class="meta" aria-label="Site metadata">
-        <span class="pill">🧭 Beginner-friendly</span>
-        <span class="pill">🧾 Checklists + templates</span>
-        <span class="pill">🇦🇺 Australia-focused</span>
-        <span class="pill">🗓️ Updated: <time datetime="2025-12-26">26 Dec 2025</time></span>
-      </div>
-    </section>
-
-    <main id="main" class="grid" aria-label="Homepage content">
-      <!-- Left: Featured guide -->
-      <section class="card" id="start" aria-label="Featured guide">
-        <div class="card__pad">
-          <h2 class="card__title">Featured: Publish your site (GitHub Pages)</h2>
-          <p class="card__text">
-            A plain-English, step-by-step guide to create your GitHub Pages site at
-            <strong>https://noah-nishihara.github.io</strong>.
-            Perfect first step for hosting your guides publicly.
-          </p>
-
-          <div class="callout tip">
-            <strong>Why this first?</strong>
-            <div class="fineprint">
-              Once your site is live, adding new guides is as simple as creating another HTML file
-              (for example <code>ndis-rights.html</code>) and linking to it from the homepage.
-            </div>
-          </div>
-
-          <div class="pre" data-copy>
-            <div class="pre__top">
-              <span>Repository name (user site)</span>
-              <button class="copybtn" type="button">Copy</button>
-            </div>
-            <pre><code>noah-nishihara.github.io</code></pre>
-          </div>
-
-          <div class="pre" data-copy>
-            <div class="pre__top">
-              <span>Your site URL</span>
-              <button class="copybtn" type="button">Copy</button>
-            </div>
-            <pre><code>https://noah-nishihara.github.io</code></pre>
-          </div>
-
-          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top: var(--s3);">
-            <!-- Create this file next if you want; link is ready either way -->
-            github-pages.html
-              Read the guide →
-            </a>
-            #guides
-              Browse all guides
-            </a>
-          </div>
-
-          <div class="callout warn" style="margin-top: var(--s3);">
-            <strong>Quick note</strong>
-            <div class="fineprint">
-              If you haven’t created <code>github-pages.html</code> yet, the “Read the guide” link will 404.
-              That’s normal—create the file when you’re ready.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Right: About / positioning -->
-      <aside class="card" id="about" aria-label="About this site">
-        <div class="card__pad">
-          <h2 class="card__title">About</h2>
-          <p class="card__text">
-            This project turns complex legal topics into clear, practical guides. The goal is to help people
-            understand options, rights, and next steps—without needing to decode legal jargon first.
-          </p>
-
-          <div class="callout">
-            <strong>What you’ll find here</strong>
-            <ul class="fineprint" style="margin: 0; padding-left: 18px;">
-              <li>Plain-language explanations</li>
-              <li>Step-by-step checklists</li>
-              <li>Common pitfalls and “what to do if…” sections</li>
-              <li>Links to official sources</li>
-            </ul>
-          </div>
-
-          <div class="callout tip">
-            <strong>Suggested next guides</strong>
-            <div class="fineprint">
-              Start with 2–3 high-impact pages:
-              <code>ndis-rights.html</code>, <code>mental-health-law.html</code>, and a short “Where to get help” page.
-            </div>
-          </div>
-        </div>
-      </aside>
-    </main>
-
-    <!-- Guides list -->
-    <section class="section" id="guides" aria-label="Guides list">
-      <h2 style="margin:0 0 var(--s2); font-size: 1.6rem; letter-spacing:-0.01em;">Guides</h2>
-      <p class="fineprint" style="margin-top:0;">
-        Each guide is a standalone page. Create the file in your repository root and it will publish automatically.
-      </p>
-
-      <div class="guides" role="list">
-        <article class="guide" role="listitem">
-          <h3>Publish your site (GitHub Pages)</h3>
-          <p>Set up your <code>noah-nishihara.github.io</code> site step-by-step, in plain English.</p>
-          <div class="row">
-            <span class="tag">⏱️ 5–10 min</span>
-            github-pages.htmlOpen →</a>
-          </div>
-        </article>
-
-        <article class="guide" role="listitem">
-          <h3>NDIS rights (starter)</h3>
-          <p>A practical overview of common rights and review pathways—written simply.</p>
-          <div class="row">
-            <span class="tag">Draft template</span>
-            ndis-rights.htmlOpen →</a>
-          </div>
-        </article>
-
-        <article class="guide" role="listitem">
-          <h3>Mental health law (starter)</h3>
-          <p>How decision-making and review processes work—plain-language, careful tone.</p>
-          <div class="row">
-            <span class="tag">Draft template</span>
-            mental-health-law.htmlOpen →</a>
-          </div>
-        </article>
-
-        <article class="guide" role="listitem">
-          <h3>Fines & review options (starter)</h3>
-          <p>When a fine arrives: what to check, what deadlines matter, and where to appeal.</p>
-          <div class="row">
-            <span class="tag">Draft template</span>
-            fines-and-review.htmlOpen →</a>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- Disclaimer -->
-    <section class="section" id="disclaimer" aria-label="Disclaimer">
-      <h2 style="margin:0 0 var(--s2); font-size: 1.6rem; letter-spacing:-0.01em;">Disclaimer</h2>
-      <div class="callout warn">
-        <strong>Not legal advice</strong>
-        <div class="fineprint">
-          This website provides general information only. It is not legal advice and may not apply to your circumstances.
-          If you need advice, consider speaking with a qualified professional or relevant service.
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer role="contentinfo">
-      <div class="cols">
-        <div>
-          <strong style="color: var(--text);">Plain-language Legal Guides</strong>
-          <p class="fineprint" style="margin-top: 10px;">
-            Built to make complex topics understandable and actionable.
-            If you’re expanding this site, keep guides short, structured, and link to official sources.
-          </p>
-          <hr class="hr" />
-          <p class="fineprint" style="margin:0;">
-            © <span id="year"></span> • Last updated: <time datetime="2025-12-26">26 Dec 2025</time>
-          </p>
-        </div>
-
-        <div>
-          <strong style="color: var(--text);">Quick links</strong>
-          <ul class="list" style="margin-top: 10px;">
-            <li>#startStart here</a></li>
-            <li>#guidesGuides</a></li>
-            <li>#disclaimerDisclaimer</a></li>
-            <li>mailto:you@example.comContact (update email)</a></li>
-          </ul>
-        </div>
-      </div>
-    </footer>
-  </div>
-
-  <script>
-    // Update footer year
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Copy buttons
-    document.querySelectorAll('[data-copy]').forEach(block => {
-      const btn = block.querySelector('.copybtn');
-      const code = block.querySelector('code');
-      if (!btn || !code) return;
-
-      btn.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(code.textContent.trim());
-          const old = btn.textContent;
-          btn.textContent = 'Copied ✓';
-          setTimeout(() => (btn.textContent = old), 1200);
-        } catch (e) {
-          btn.textContent = 'Copy failed';
-          setTimeout(() => (btn.textContent = 'Copy'), 1200);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noah Nishihara | Making Law Accessible</title>
+    <meta name="description" content="Plain-language legal guides for everyday Australians by Noah Nishihara, compliance officer and legal educator.">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      });
-    });
-  </script>
+        
+        :root {
+            --bg: #0a0e27;
+            --surface: #151b3d;
+            --accent: #00f5ff;
+            --accent-2: #7c3aed;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --success: #10b981;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.4;
+        }
+        
+        .gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+            top: -10%;
+            right: -10%;
+            animation-delay: 0s;
+        }
+        
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent-2) 0%, transparent 70%);
+            bottom: -15%;
+            left: -10%;
+            animation-delay: -10s;
+        }
+        
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--success) 0%, transparent 70%);
+            top: 40%;
+            left: 30%;
+            animation-delay: -5s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.1); }
+            50% { transform: translate(-30px, 30px) scale(0.9); }
+            75% { transform: translate(40px, 20px) scale(1.05); }
+        }
+        
+        /* Content wrapper */
+        .content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+        
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 60px;
+        }
+        
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+        }
+        
+        .nav-links a:hover {
+            color: var(--text);
+        }
+        
+        /* Hero section */
+        .hero {
+            margin: 100px 0 120px;
+            text-align: center;
+        }
+        
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 245, 255, 0.1);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+        
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            color: var(--muted);
+            max-width: 700px;
+            margin: 0 auto 40px;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: var(--bg);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0, 245, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* About section */
+        .about {
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 60px 40px;
+            margin: 80px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .about-text h2 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .about-text p {
+            color: var(--muted);
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+        }
+        
+        .credentials {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .credential-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .credential-item strong {
+            display: block;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .credential-item span {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+        /* Guides section */
+        .guides-section {
+            margin: 100px 0;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-header p {
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+        
+        .guides-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        
+        .guide-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .guide-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        
+        .guide-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 245, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 245, 255, 0.1);
+        }
+        
+        .guide-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .guide-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        
+        .guide-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        
+        .guide-card p {
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+        
+        .guide-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-live {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .status-coming {
+            background: rgba(124, 58, 237, 0.2);
+            color: var(--accent-2);
+        }
+        
+        /* Mission section */
+        .mission {
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(124, 58, 237, 0.1) 100%);
+            border-radius: 24px;
+            padding: 80px 40px;
+            text-align: center;
+            margin: 100px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .mission h2 {
+            font-size: 2.5rem;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .mission p {
+            font-size: 1.2rem;
+            color: var(--muted);
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+        
+        .mission ul {
+            list-style-type: none;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: left;
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+        
+        .mission li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .mission li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+        
+        /* Footer */
+        footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 60px 0 40px;
+            margin-top: 100px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+        }
+        
+        .footer-brand h3 {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+        }
+        
+        .footer-brand p {
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .social-links a:hover {
+            background: rgba(0, 245, 255, 0.2);
+            color: var(--accent);
+        }
+        
+        .footer-links h4 {
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+        
+        .footer-links ul {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--text);
+        }
+        
+        .footer-bottom {
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+        .disclaimer {
+            background: rgba(255, 107, 0, 0.1);
+            border: 1px solid rgba(255, 107, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 60px 0;
+        }
+        
+        .disclaimer strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #ff6b00;
+        }
+        
+        .disclaimer p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+    
+    <div class="content">
+        <nav>
+            <div class="logo">Noah Nishihara</div>
+            <div class="nav-links">
+                <a href="#about">About</a>
+                <a href="#guides">Guides</a>
+                <a href="#mission">Mission</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </nav>
+        
+        <section class="hero">
+            <div class="hero-badge">
+                <span class="status-dot"></span>
+                Barrister &amp; Solicitor (Admitted in South Australia) | Legal Educator
+            </div>
+            <h1>Making Law Understandable</h1>
+            <p class="hero-subtitle">
+                Plain-language legal guides for everyday Australians.<br>
+                Legal problems are stressful enough — finding clear information shouldn’t be another hurdle.<br>
+                These guides aim to explain rights, options, and next steps in a way that’s practical and easy to follow.
+            </p>
+            <div class="cta-group">
+                <a href="#guides" class="btn btn-primary">
+                    Browse Guides →
+                </a>
+                <a href="#about" class="btn btn-secondary">
+                    Learn More
+                </a>
+            </div>
+        </section>
+        
+        <section class="about" id="about">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>Who I Am</h2>
+                    <p>
+                        I’m Noah Nishihara — an admitted legal practitioner in South Australia.
+                    </p>
+                    <p>
+                        I work at the intersection of law, public policy, and technology, and I’m building this website to share a range of legal materials, tools, and plain-language guides that explain legal topics without the jargon.
+                    </p>
+                    <p>
+                        The aim is simple: help people understand their options and what to do next — with clear steps, examples, and links to official resources.
+                    </p>
+                </div>
+                <div class="credentials">
+                    <div class="credential-item">
+                        <strong>🎓 Admitted</strong>
+                        <span>Supreme Court of South Australia (Oct 2025)</span>
+                    </div>
+                    <div class="credential-item">
+                        <strong>🤖 Focus Areas</strong>
+                        <span>Legal tech • AI & law • Environmental law • Access to justice</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="guides-section" id="guides">
+            <div class="section-header">
+                <h2>Legal Guides</h2>
+                <p>Clear, practical information for real situations</p>
+            </div>
+            <div class="guides-grid">
+                <div class="guide-card">
+                    <div class="guide-icon">🚀</div>
+                    <h3>GitHub Pages Setup</h3>
+                    <p>Step-by-step guide to publishing your legal education site using GitHub Pages (free hosting).</p>
+                    <span class="guide-status status-live">Available now</span>
+                </div>
+                
+                <div class="guide-card">
+                    <div class="guide-icon">🏥</div>
+                    <h3>NDIS Rights</h3>
+                    <p>Understanding key rights under the NDIS and how to navigate common review pathways.</p>
+                    <span class="guide-status status-coming">Coming soon</span>
+                </div>
+                
+                <div class="guide-card">
+                    <div class="guide-icon">🧠</div>
+                    <h3>Mental Health Law</h3>
+                    <p>Plain-language guidance on rights in mental health care settings, including involuntary treatment and advocacy options.</p>
+                    <span class="guide-status status-coming">Coming soon</span>
+                </div>
+                
+                <div class="guide-card">
+                    <div class="guide-icon">⚖️</div>
+                    <h3>Unfair Dismissal</h3>
+                    <p>What to do after losing your job — eligibility, deadlines, and the Fair Work Commission process.</p>
+                    <span class="guide-status status-coming">Coming soon</span>
+                </div>
+                
+                <div class="guide-card">
+                    <div class="guide-icon">🌱</div>
+                    <h3>Environmental Law Basics</h3>
+                    <p>Community rights in environmental decisions, EPA processes, and how to participate in consultations.</p>
+                    <span class="guide-status status-coming">Coming soon</span>
+                </div>
+                
+                <div class="guide-card">
+                    <div class="guide-icon">🤖</div>
+                    <h3>AI & Your Rights</h3>
+                    <p>Emerging issues around automated decisions, privacy, and accountability in Australia.</p>
+                    <span class="guide-status status-coming">Coming soon</span>
+                </div>
+            </div>
+        </section>
+        
+        <section class="mission" id="mission">
+            <h2>The Mission</h2>
+            <p>
+                Legal information should empower people, not confuse them.
+            </p>
+            <p>
+                Too many people face legal problems without understanding their options because the information is technical, scattered, or hard to access.
+            </p>
+            <p>
+                This project aims to change that — one clear guide at a time.
+            </p>
+        </section>
+        
+        <div class="disclaimer">
+            <strong>⚠️ Legal Disclaimer</strong>
+            <p>
+                This website provides general information only and is not legal advice. Laws and policies change, and your situation may be different. If you need advice for your circumstances, consider speaking with a qualified lawyer or contacting a community legal centre. Jurisdiction note: Australia (with a focus on South Australia where relevant).
+            </p>
+        </div>
+        
+        <footer id="contact">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>Noah Nishihara</h3>
+                    <p>
+                        Barrister &amp; solicitor (admitted in South Australia) focused on making Australian law more accessible through plain-language guides and legal education.
+                    </p>
+                    <div class="social-links">
+                        <a href="https://linkedin.com/in/noah-nishihara" target="_blank" aria-label="LinkedIn">in</a>
+                        <a href="https://github.com/noah-nishihara" target="_blank" aria-label="GitHub">gh</a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#guides">Guides</a></li>
+                        <li><a href="#mission">Mission</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://justicenet.org.au" target="_blank">JusticeNet SA</a></li>
+                        <li><a href="https://www.lawsocietysa.asn.au" target="_blank">Law Society SA</a></li>
+                        <li><a href="https://www.clcsa.org.au" target="_blank">Community Legal Centres SA</a></li>
+                        <li><a href="https://www.lawhandbook.sa.gov.au/" target="_blank">Law Handbook SA</a></li>
+                        <li><a href="https://www.probonocentre.org.au/legal-help/individual/sa/" target="_blank">Pro Bono Centre SA</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2025 Noah Nishihara. Built to make law accessible. Last updated: 26 Dec 2025</p>
+            </div>
+        </footer>
+    </div>
 </body>
 </html>
-
