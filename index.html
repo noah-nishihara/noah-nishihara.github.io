@@ -1,644 +1,672 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Pages Setup - 5 Minute Guide</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #24292e;
-            background: #f6f8fa;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #24292e 0%, #40444b 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        
-        header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-        
-        .timer {
-            background: #28a745;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 1.3em;
-            font-weight: bold;
-        }
-        
-        .content {
-            padding: 40px;
-        }
-        
-        .method-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        
-        .method-card {
-            border: 3px solid #e1e4e8;
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .method-card:hover {
-            border-color: #0366d6;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(3,102,214,0.2);
-        }
-        
-        .method-card.active {
-            border-color: #0366d6;
-            background: #f1f8ff;
-        }
-        
-        .method-card h3 {
-            font-size: 1.5em;
-            margin: 15px 0;
-            color: #0366d6;
-        }
-        
-        .method-card .icon {
-            font-size: 3em;
-        }
-        
-        .badge {
-            display: inline-block;
-            background: #28a745;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            margin-top: 10px;
-        }
-        
-        .method-content {
-            display: none;
-        }
-        
-        .method-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .step {
-            background: #f6f8fa;
-            border-left: 4px solid #0366d6;
-            padding: 25px;
-            margin: 25px 0;
-            border-radius: 6px;
-            position: relative;
-        }
-        
-        .step-number {
-            position: absolute;
-            top: -15px;
-            left: 20px;
-            background: #0366d6;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2em;
-            box-shadow: 0 2px 8px rgba(3,102,214,0.3);
-        }
-        
-        .step h3 {
-            color: #0366d6;
-            margin-bottom: 15px;
-            padding-top: 10px;
-        }
-        
-        .code-block {
-            background: #24292e;
-            color: #e1e4e8;
-            padding: 20px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.95em;
-            overflow-x: auto;
-            margin: 15px 0;
-            position: relative;
-        }
-        
-        .code-block::before {
-            content: 'Copy';
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #0366d6;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            cursor: pointer;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        .screenshot-placeholder {
-            background: #e1e4e8;
-            border: 2px dashed #959da5;
-            border-radius: 8px;
-            padding: 60px 20px;
-            text-align: center;
-            color: #586069;
-            margin: 20px 0;
-        }
-        
-        .info-box {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 6px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .info-box.success {
-            background: #d4edda;
-            border-color: #28a745;
-        }
-        
-        .info-box.tip {
-            background: #d1ecf1;
-            border-color: #17a2b8;
-        }
-        
-        .info-box h4 {
-            margin-bottom: 10px;
-        }
-        
-        .checklist {
-            background: white;
-            border: 2px solid #e1e4e8;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .checklist-item {
-            padding: 12px;
-            border-bottom: 1px solid #e1e4e8;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-        
-        .checklist-item:last-child {
-            border-bottom: none;
-        }
-        
-        .checklist-item:hover {
-            background: #f6f8fa;
-        }
-        
-        .checklist-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-right: 15px;
-            cursor: pointer;
-        }
-        
-        .next-steps {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-top: 40px;
-        }
-        
-        .next-steps h3 {
-            font-size: 1.8em;
-            margin-bottom: 20px;
-        }
-        
-        .next-steps ul {
-            list-style: none;
-        }
-        
-        .next-steps li {
-            padding: 10px 0;
-            padding-left: 30px;
-            position: relative;
-        }
-        
-        .next-steps li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            font-weight: bold;
-            font-size: 1.3em;
-        }
-        
-        .resources {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 30px 0;
-        }
-        
-        .resource-link {
-            background: #0366d6;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            text-align: center;
-            transition: all 0.3s ease;
-            display: block;
-        }
-        
-        .resource-link:hover {
-            background: #0256c7;
-            transform: scale(1.05);
-        }
-        
-        footer {
-            background: #24292e;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            font-size: 0.9em;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Plain-language Legal Guides — Australia</title>
+  <meta name="description" content="Plain-language legal guides for everyday Australians. Practical steps, checklists, and templates—written clearly." />
+
+  <!--
+    Homepage layout (Concept 2): Homepage + Guides list
+    - Editorial look and readability first
+    - Works as a clean landing page for GitHub Pages + future legal topics
+    - Includes a featured guide + cards for other guides
+  -->
+
+  <style>
+    /* =========================
+       Design tokens
+       ========================= */
+    :root{
+      --bg: #fbfaf7;
+      --surface: #ffffff;
+      --surface-2: #f5f2ea;
+      --text: #1f2328;
+      --muted: #5b6470;
+      --border: #e6e1d8;
+
+      --accent: #0b5fff;        /* trust blue */
+      --accent-2: #083d9b;
+      --success: #1a7f37;
+      --warning: #b54708;
+
+      --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+      --radius: 16px;
+      --shadow: 0 12px 35px rgba(10, 20, 40, 0.10);
+
+      --max: 1160px;
+      --measure: 74ch;
+
+      --s-1: 6px;
+      --s0: 10px;
+      --s1: 14px;
+      --s2: 18px;
+      --s3: 24px;
+      --s4: 32px;
+      --s5: 44px;
+      --s6: 64px;
+    }
+
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg: #0b0f14;
+        --surface: #0f1620;
+        --surface-2: #101b28;
+        --text: #e6edf3;
+        --muted: #a7b0ba;
+        --border: #233043;
+        --accent: #6aa6ff;
+        --accent-2: #9fc2ff;
+        --success: #2ea043;
+        --warning: #ff9b50;
+        --shadow: 0 16px 44px rgba(0,0,0,0.35);
+      }
+    }
+
+    /* =========================
+       Base styles
+       ========================= */
+    *{ box-sizing: border-box; }
+    html{ scroll-behavior: smooth; }
+    body{
+      margin: 0;
+      font-family: var(--font-sans);
+      line-height: 1.65;
+      color: var(--text);
+      background:
+        radial-gradient(1100px 720px at 18% -10%, rgba(11,95,255,0.10), transparent 60%),
+        radial-gradient(900px 650px at 90% 0%, rgba(26,127,55,0.08), transparent 55%),
+        var(--bg);
+    }
+    a{ color: var(--accent); text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+    :focus-visible{ outline: 3px solid rgba(11,95,255,0.45); outline-offset: 3px; border-radius: 10px; }
+
+    .skip{
+      position: absolute;
+      left: -999px;
+      top: 10px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      z-index: 999;
+    }
+    .skip:focus{ left: 12px; }
+
+    .page{
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: var(--s4) var(--s3) var(--s6);
+    }
+
+    /* =========================
+       Topbar / nav
+       ========================= */
+    .topbar{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s2);
+      padding: var(--s3);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.70);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    @media (prefers-color-scheme: dark){
+      .topbar{ background: rgba(15,22,32,0.65); }
+    }
+
+    .brand{
+      display: grid;
+      gap: 2px;
+    }
+    .brand strong{
+      letter-spacing: 0.2px;
+      font-size: 1.05rem;
+    }
+    .brand span{
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav{
+      display: flex;
+      gap: var(--s2);
+      flex-wrap: wrap;
+      font-size: 0.95rem;
+      color: var(--muted);
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .nav a{
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav a:hover{
+      background: var(--surface-2);
+      border-color: var(--border);
+    }
+    .nav .cta{
+      background: var(--accent);
+      color: white;
+      border-color: rgba(255,255,255,0.0);
+    }
+    .nav .cta:hover{
+      background: var(--accent-2);
+      border-color: transparent;
+    }
+
+    /* =========================
+       Hero
+       ========================= */
+    .hero{
+      margin-top: var(--s4);
+      padding: var(--s5) var(--s4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero h1{
+      margin: 0 0 var(--s1);
+      font-size: clamp(1.9rem, 3.3vw, 2.8rem);
+      letter-spacing: -0.02em;
+    }
+    .hero p{
+      margin: 0 0 var(--s3);
+      color: var(--muted);
+      max-width: var(--measure);
+      font-size: 1.08rem;
+    }
+
+    .meta{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .pill{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface-2);
+    }
+
+    /* =========================
+       Layout blocks
+       ========================= */
+    .grid{
+      margin-top: var(--s4);
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: var(--s4);
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card__pad{ padding: var(--s4); }
+    .card__title{
+      margin: 0 0 var(--s1);
+      font-size: 1.4rem;
+      letter-spacing: -0.01em;
+    }
+    .card__text{
+      margin: 0 0 var(--s2);
+      color: var(--muted);
+      max-width: var(--measure);
+    }
+
+    .section{
+      margin-top: var(--s4);
+      padding: var(--s4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    /* =========================
+       Guide cards
+       ========================= */
+    .guides{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--s3);
+      margin-top: var(--s2);
+    }
+    @media (max-width: 700px){
+      .guides{ grid-template-columns: 1fr; }
+    }
+
+    .guide{
+      padding: var(--s3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(11,95,255,0.06) 0%, transparent 80%), var(--surface);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+    .guide:hover{
+      transform: translateY(-2px);
+      border-color: rgba(11,95,255,0.35);
+    }
+
+    .guide h3{
+      margin: 0 0 6px;
+      font-size: 1.15rem;
+      letter-spacing: -0.01em;
+    }
+    .guide p{
+      margin: 0 0 var(--s2);
+      color: var(--muted);
+    }
+    .guide .row{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tag{
+      font-size: 0.9rem;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+    .btn{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover{
+      background: rgba(11,95,255,0.10);
+      border-color: rgba(11,95,255,0.35);
+      text-decoration: none;
+    }
+    .btn.primary{
+      background: var(--accent);
+      border-color: transparent;
+      color: white;
+    }
+    .btn.primary:hover{
+      background: var(--accent-2);
+    }
+
+    /* =========================
+       Callouts + disclaimer
+       ========================= */
+    .callout{
+      padding: var(--s3);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      margin-top: var(--s3);
+    }
+    .callout strong{ display: block; margin-bottom: 6px; }
+    .callout.tip{
+      border-color: rgba(11,95,255,0.28);
+      background: rgba(11,95,255,0.08);
+    }
+    .callout.warn{
+      border-color: rgba(181,71,8,0.35);
+      background: rgba(181,71,8,0.10);
+    }
+    .fineprint{
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: var(--measure);
+    }
+
+    /* =========================
+       Copy blocks (real buttons)
+       ========================= */
+    .pre{
+      margin-top: var(--s2);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: #0b1220;
+    }
+    .pre__top{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.78);
+      font-size: 0.92rem;
+    }
+    .copybtn{
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      padding: 7px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .copybtn:hover{ background: rgba(255,255,255,0.14); }
+    .copybtn:active{ transform: translateY(1px); }
+    pre code{
+      display:block;
+      padding: 14px 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.92);
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* =========================
+       Footer
+       ========================= */
+    footer{
+      margin-top: var(--s5);
+      padding: var(--s4);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.55);
+      box-shadow: var(--shadow);
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    @media (prefers-color-scheme: dark){
+      footer{ background: rgba(15,22,32,0.55); }
+    }
+    footer .cols{
+      display:grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: var(--s4);
+      align-items:start;
+    }
+    @media (max-width: 900px){
+      footer .cols{ grid-template-columns: 1fr; }
+    }
+
+    .list{
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    /* Tiny divider */
+    .hr{
+      height: 1px;
+      background: var(--border);
+      margin: var(--s3) 0;
+      border: 0;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <header>
-            <h1>🚀 GitHub Pages Setup</h1>
-            <p>Get your legal education site live in 5 minutes</p>
-        </header>
-        
-        <div class="timer">
-            ⏱️ Total Time: 5 Minutes | Cost: $0
+  #mainSkip to content</a>
+
+  <div class="page">
+    <!-- Topbar -->
+    <header class="topbar" role="banner">
+      <div class="brand">
+        <strong>Plain-language Legal Guides</strong>
+        <span>Clear, practical steps for everyday Australians</span>
+      </div>
+
+      <nav class="nav" aria-label="Primary navigation">
+        #guidesGuides</a>
+        #aboutAbout</a>
+        #disclaimerDisclaimer</a>
+        #startStart here</a>
+      </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="title">
+      <h1 id="title">Make law easier to understand.</h1>
+      <p>
+        Short, plain-language guides with checklists and examples—built for real life.
+        Start with the “Publish your site” guide, then add topics like NDIS rights and mental health law.
+      </p>
+
+      <div class="meta" aria-label="Site metadata">
+        <span class="pill">🧭 Beginner-friendly</span>
+        <span class="pill">🧾 Checklists + templates</span>
+        <span class="pill">🇦🇺 Australia-focused</span>
+        <span class="pill">🗓️ Updated: <time datetime="2025-12-26">26 Dec 2025</time></span>
+      </div>
+    </section>
+
+    <main id="main" class="grid" aria-label="Homepage content">
+      <!-- Left: Featured guide -->
+      <section class="card" id="start" aria-label="Featured guide">
+        <div class="card__pad">
+          <h2 class="card__title">Featured: Publish your site (GitHub Pages)</h2>
+          <p class="card__text">
+            A plain-English, step-by-step guide to create your GitHub Pages site at
+            <strong>https://noah-nishihara.github.io</strong>.
+            Perfect first step for hosting your guides publicly.
+          </p>
+
+          <div class="callout tip">
+            <strong>Why this first?</strong>
+            <div class="fineprint">
+              Once your site is live, adding new guides is as simple as creating another HTML file
+              (for example <code>ndis-rights.html</code>) and linking to it from the homepage.
+            </div>
+          </div>
+
+          <div class="pre" data-copy>
+            <div class="pre__top">
+              <span>Repository name (user site)</span>
+              <button class="copybtn" type="button">Copy</button>
+            </div>
+            <pre><code>noah-nishihara.github.io</code></pre>
+          </div>
+
+          <div class="pre" data-copy>
+            <div class="pre__top">
+              <span>Your site URL</span>
+              <button class="copybtn" type="button">Copy</button>
+            </div>
+            <pre><code>https://noah-nishihara.github.io</code></pre>
+          </div>
+
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top: var(--s3);">
+            <!-- Create this file next if you want; link is ready either way -->
+            github-pages.html
+              Read the guide →
+            </a>
+            #guides
+              Browse all guides
+            </a>
+          </div>
+
+          <div class="callout warn" style="margin-top: var(--s3);">
+            <strong>Quick note</strong>
+            <div class="fineprint">
+              If you haven’t created <code>github-pages.html</code> yet, the “Read the guide” link will 404.
+              That’s normal—create the file when you’re ready.
+            </div>
+          </div>
         </div>
-        
-        <div class="content">
-            <h2 style="margin-bottom: 20px;">Choose Your Method</h2>
-            
-            <div class="method-selector">
-                <div class="method-card active" onclick="showMethod('web')">
-                    <div class="icon">🌐</div>
-                    <h3>Web Interface</h3>
-                    <p>No software needed - just your browser</p>
-                    <span class="badge">EASIEST</span>
-                </div>
-                
-                <div class="method-card" onclick="showMethod('desktop')">
-                    <div class="icon">💻</div>
-                    <h3>GitHub Desktop</h3>
-                    <p>For easier file management</p>
-                    <span class="badge">RECOMMENDED</span>
-                </div>
+      </section>
+
+      <!-- Right: About / positioning -->
+      <aside class="card" id="about" aria-label="About this site">
+        <div class="card__pad">
+          <h2 class="card__title">About</h2>
+          <p class="card__text">
+            This project turns complex legal topics into clear, practical guides. The goal is to help people
+            understand options, rights, and next steps—without needing to decode legal jargon first.
+          </p>
+
+          <div class="callout">
+            <strong>What you’ll find here</strong>
+            <ul class="fineprint" style="margin: 0; padding-left: 18px;">
+              <li>Plain-language explanations</li>
+              <li>Step-by-step checklists</li>
+              <li>Common pitfalls and “what to do if…” sections</li>
+              <li>Links to official sources</li>
+            </ul>
+          </div>
+
+          <div class="callout tip">
+            <strong>Suggested next guides</strong>
+            <div class="fineprint">
+              Start with 2–3 high-impact pages:
+              <code>ndis-rights.html</code>, <code>mental-health-law.html</code>, and a short “Where to get help” page.
             </div>
-            
-            <!-- Web Interface Method -->
-            <div id="web" class="method-content active">
-                <h2>Method 1: Web Interface (Easiest)</h2>
-                
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Create a GitHub Account</h3>
-                    <p>Go to <a href="https://github.com" target="_blank">github.com</a> and sign up (if you don't have an account)</p>
-                    <ul style="margin: 10px 0 10px 20px;">
-                        <li>Choose a professional username (e.g., "noah-nishihara" or "noahnishihara")</li>
-                        <li>Use your professional email</li>
-                        <li>Verify your email address</li>
-                    </ul>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Create a New Repository</h3>
-                    <p>Once logged in, click the "+" icon in top right → "New repository"</p>
-                    
-                    <div class="info-box tip">
-                        <h4>📋 Repository Settings:</h4>
-                        <ul style="margin: 10px 0 0 20px;">
-                            <li><strong>Repository name:</strong> your-username.github.io (e.g., "noah-nishihara.github.io")</li>
-                            <li><strong>Description:</strong> "Plain language legal guides for everyday Australians"</li>
-                            <li><strong>Public:</strong> ✅ Must be public (required for free GitHub Pages)</li>
-                            <li><strong>Initialize with README:</strong> ✅ Check this box</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="screenshot-placeholder">
-                        Screenshot: New repository form with settings filled in
-                    </div>
-                    
-                    <p>Click <strong>"Create repository"</strong></p>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Add Your HTML File</h3>
-                    <p>In your new repository:</p>
-                    <ol style="margin: 10px 0 10px 20px;">
-                        <li>Click "Add file" → "Create new file"</li>
-                        <li>Name it: <code>index.html</code></li>
-                        <li>Copy and paste the HTML template I created earlier</li>
-                        <li>Scroll down and click "Commit new file"</li>
-                    </ol>
-                    
-                    <div class="info-box">
-                        <h4>⚠️ Important:</h4>
-                        <p>The file MUST be named <strong>index.html</strong> - this is the default homepage GitHub Pages looks for.</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Enable GitHub Pages</h3>
-                    <ol style="margin: 10px 0 10px 20px;">
-                        <li>Click on "Settings" tab in your repository</li>
-                        <li>Scroll down to "Pages" in the left sidebar</li>
-                        <li>Under "Source", select <strong>"Deploy from a branch"</strong></li>
-                        <li>Select branch: <strong>"main"</strong></li>
-                        <li>Select folder: <strong>"/ (root)"</strong></li>
-                        <li>Click <strong>"Save"</strong></li>
-                    </ol>
-                    
-                    <div class="screenshot-placeholder">
-                        Screenshot: GitHub Pages settings showing the configuration
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">5</div>
-                    <h3>Wait 1-2 Minutes and Visit Your Site!</h3>
-                    <p>Your site will be live at:</p>
-                    <div class="code-block">
-https://your-username.github.io
-                    </div>
-                    
-                    <div class="info-box success">
-                        <h4>🎉 Congratulations!</h4>
-                        <p>Your website is now live and accessible to anyone on the internet!</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Desktop Method -->
-            <div id="desktop" class="method-content">
-                <h2>Method 2: GitHub Desktop (Recommended for Multiple Pages)</h2>
-                
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Download GitHub Desktop</h3>
-                    <p>Download from: <a href="https://desktop.github.com" target="_blank">desktop.github.com</a></p>
-                    <ul style="margin: 10px 0 10px 20px;">
-                        <li>Available for Windows and Mac</li>
-                        <li>Install and sign in with your GitHub account</li>
-                    </ul>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Create Repository</h3>
-                    <p>In GitHub Desktop:</p>
-                    <ol style="margin: 10px 0 10px 20px;">
-                        <li>File → New Repository</li>
-                        <li>Name: <strong>your-username.github.io</strong></li>
-                        <li>Choose a local path (e.g., Documents/GitHub/)</li>
-                        <li>Check "Initialize this repository with a README"</li>
-                        <li>Click "Create Repository"</li>
-                    </ol>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Add Your Files</h3>
-                    <ol style="margin: 10px 0 10px 20px;">
-                        <li>Click "Show in Explorer" (Windows) or "Show in Finder" (Mac)</li>
-                        <li>Create a file named <code>index.html</code></li>
-                        <li>Paste in your HTML code and save</li>
-                        <li>Return to GitHub Desktop</li>
-                    </ol>
-                    
-                    <div class="info-box tip">
-                        <h4>💡 Pro Tip:</h4>
-                        <p>You can now drag and drop files directly into this folder! Add CSS files, images, additional HTML pages - they'll all appear in GitHub Desktop ready to publish.</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Commit and Push</h3>
-                    <ol style="margin: 10px 0 10px 20px;">
-                        <li>In GitHub Desktop, you'll see your changes listed</li>
-                        <li>Add a commit message: "Initial site launch"</li>
-                        <li>Click "Commit to main"</li>
-                        <li>Click "Publish repository" (top right)</li>
-                        <li>Make sure "Keep this code private" is UNCHECKED</li>
-                        <li>Click "Publish repository"</li>
-                    </ol>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">5</div>
-                    <h3>Enable GitHub Pages</h3>
-                    <ol style="margin: 10px 0 10px 20px;">
-                        <li>Click "View on GitHub" in GitHub Desktop</li>
-                        <li>In your browser, go to Settings → Pages</li>
-                        <li>Source: "Deploy from a branch"</li>
-                        <li>Branch: "main", Folder: "/ (root)"</li>
-                        <li>Click "Save"</li>
-                    </ol>
-                    
-                    <div class="info-box success">
-                        <h4>🎉 Done!</h4>
-                        <p>Your site is live at: https://your-username.github.io</p>
-                        <p><strong>Future updates:</strong> Just edit files locally, commit in GitHub Desktop, and click "Push origin" - changes go live in seconds!</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Completion Checklist -->
-            <div class="checklist">
-                <h3 style="margin-bottom: 15px;">✅ Completion Checklist</h3>
-                
-                <label class="checklist-item">
-                    <input type="checkbox" onclick="updateProgress()">
-                    <span>GitHub account created</span>
-                </label>
-                
-                <label class="checklist-item">
-                    <input type="checkbox" onclick="updateProgress()">
-                    <span>Repository created with correct name</span>
-                </label>
-                
-                <label class="checklist-item">
-                    <input type="checkbox" onclick="updateProgress()">
-                    <span>index.html file uploaded</span>
-                </label>
-                
-                <label class="checklist-item">
-                    <input type="checkbox" onclick="updateProgress()">
-                    <span>GitHub Pages enabled in Settings</span>
-                </label>
-                
-                <label class="checklist-item">
-                    <input type="checkbox" onclick="updateProgress()">
-                    <span>Site is live and loading correctly</span>
-                </label>
-                
-                <div id="progress" style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #e1e4e8; font-weight: bold; color: #0366d6;">
-                    Progress: 0/5 complete
-                </div>
-            </div>
-            
-            <!-- Next Steps -->
-            <div class="next-steps">
-                <h3>🚀 What To Do Next</h3>
-                <ul>
-                    <li>Add 2-3 more topic pages (NDIS rights, mental health law)</li>
-                    <li>Share your site URL on LinkedIn with a post about making law accessible</li>
-                    <li>Get feedback from colleagues at Department for Infrastructure and Transport</li>
-                    <li>Add Google Analytics to track visitors (optional)</li>
-                    <li>Consider a custom domain like "legalguides.com.au" ($15/year)</li>
-                </ul>
-            </div>
-            
-            <!-- Adding More Pages -->
-            <div style="margin-top: 40px;">
-                <h2>📄 How to Add More Pages</h2>
-                
-                <div class="step">
-                    <h3>Simple Method: Web Interface</h3>
-                    <ol style="margin: 10px 0 10px 20px;">
-                        <li>Go to your repository on github.com</li>
-                        <li>Click "Add file" → "Create new file"</li>
-                        <li>Name it: <code>ndis-rights.html</code> or <code>mental-health-law.html</code></li>
-                        <li>Paste your HTML content</li>
-                        <li>Click "Commit new file"</li>
-                        <li>Access at: your-username.github.io/ndis-rights.html</li>
-                    </ol>
-                </div>
-                
-                <div class="step">
-                    <h3>Better Method: Using GitHub Desktop</h3>
-                    <ol style="margin: 10px 0 10px 20px;">
-                        <li>Create new .html files in your local folder</li>
-                        <li>Open GitHub Desktop - it automatically detects changes</li>
-                        <li>Write a commit message: "Added NDIS rights guide"</li>
-                        <li>Click "Commit to main"</li>
-                        <li>Click "Push origin"</li>
-                        <li>Changes are live in 10-30 seconds!</li>
-                    </ol>
-                </div>
-            </div>
-            
-            <!-- Resources -->
-            <div style="margin-top: 40px;">
-                <h2>📚 Helpful Resources</h2>
-                <div class="resources">
-                    <a href="https://docs.github.com/en/pages" class="resource-link" target="_blank">GitHub Pages Docs</a>
-                    <a href="https://desktop.github.com" class="resource-link" target="_blank">GitHub Desktop</a>
-                    <a href="https://www.youtube.com/results?search_query=github+pages+tutorial" class="resource-link" target="_blank">Video Tutorials</a>
-                    <a href="https://pages.github.com" class="resource-link" target="_blank">GitHub Pages Guide</a>
-                </div>
-            </div>
-            
-            <!-- Troubleshooting -->
-            <div style="margin-top: 40px;">
-                <h2>🔧 Common Issues</h2>
-                
-                <div class="info-box">
-                    <h4>Site shows 404 error</h4>
-                    <p><strong>Solution:</strong> Wait 1-2 minutes after enabling Pages. It takes time to build. Check that your file is named exactly <code>index.html</code> (lowercase, no spaces).</p>
-                </div>
-                
-                <div class="info-box">
-                    <h4>Site shows README instead of my page</h4>
-                    <p><strong>Solution:</strong> Make sure you have an <code>index.html</code> file. GitHub Pages prioritizes index.html over README.md</p>
-                </div>
-                
-                <div class="info-box">
-                    <h4>Changes not appearing</h4>
-                    <p><strong>Solution:</strong> Clear your browser cache (Ctrl+Shift+R on Windows, Cmd+Shift+R on Mac). Sometimes changes take 30-60 seconds to propagate.</p>
-                </div>
-            </div>
+          </div>
         </div>
-        
-        <footer>
-            <p>Created for Noah Nishihara's legal education project</p>
-            <p>Need help? Tag me on LinkedIn or check GitHub's documentation</p>
-        </footer>
-    </div>
-    
-    <script>
-        function showMethod(method) {
-            // Hide all methods
-            document.querySelectorAll('.method-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // Remove active class from all cards
-            document.querySelectorAll('.method-card').forEach(card => {
-                card.classList.remove('active');
-            });
-            
-            // Show selected method
-            document.getElementById(method).classList.add('active');
-            
-            // Add active class to clicked card
-            event.currentTarget.classList.add('active');
+      </aside>
+    </main>
+
+    <!-- Guides list -->
+    <section class="section" id="guides" aria-label="Guides list">
+      <h2 style="margin:0 0 var(--s2); font-size: 1.6rem; letter-spacing:-0.01em;">Guides</h2>
+      <p class="fineprint" style="margin-top:0;">
+        Each guide is a standalone page. Create the file in your repository root and it will publish automatically.
+      </p>
+
+      <div class="guides" role="list">
+        <article class="guide" role="listitem">
+          <h3>Publish your site (GitHub Pages)</h3>
+          <p>Set up your <code>noah-nishihara.github.io</code> site step-by-step, in plain English.</p>
+          <div class="row">
+            <span class="tag">⏱️ 5–10 min</span>
+            github-pages.htmlOpen →</a>
+          </div>
+        </article>
+
+        <article class="guide" role="listitem">
+          <h3>NDIS rights (starter)</h3>
+          <p>A practical overview of common rights and review pathways—written simply.</p>
+          <div class="row">
+            <span class="tag">Draft template</span>
+            ndis-rights.htmlOpen →</a>
+          </div>
+        </article>
+
+        <article class="guide" role="listitem">
+          <h3>Mental health law (starter)</h3>
+          <p>How decision-making and review processes work—plain-language, careful tone.</p>
+          <div class="row">
+            <span class="tag">Draft template</span>
+            mental-health-law.htmlOpen →</a>
+          </div>
+        </article>
+
+        <article class="guide" role="listitem">
+          <h3>Fines & review options (starter)</h3>
+          <p>When a fine arrives: what to check, what deadlines matter, and where to appeal.</p>
+          <div class="row">
+            <span class="tag">Draft template</span>
+            fines-and-review.htmlOpen →</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Disclaimer -->
+    <section class="section" id="disclaimer" aria-label="Disclaimer">
+      <h2 style="margin:0 0 var(--s2); font-size: 1.6rem; letter-spacing:-0.01em;">Disclaimer</h2>
+      <div class="callout warn">
+        <strong>Not legal advice</strong>
+        <div class="fineprint">
+          This website provides general information only. It is not legal advice and may not apply to your circumstances.
+          If you need advice, consider speaking with a qualified professional or relevant service.
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer role="contentinfo">
+      <div class="cols">
+        <div>
+          <strong style="color: var(--text);">Plain-language Legal Guides</strong>
+          <p class="fineprint" style="margin-top: 10px;">
+            Built to make complex topics understandable and actionable.
+            If you’re expanding this site, keep guides short, structured, and link to official sources.
+          </p>
+          <hr class="hr" />
+          <p class="fineprint" style="margin:0;">
+            © <span id="year"></span> • Last updated: <time datetime="2025-12-26">26 Dec 2025</time>
+          </p>
+        </div>
+
+        <div>
+          <strong style="color: var(--text);">Quick links</strong>
+          <ul class="list" style="margin-top: 10px;">
+            <li>#startStart here</a></li>
+            <li>#guidesGuides</a></li>
+            <li>#disclaimerDisclaimer</a></li>
+            <li>mailto:you@example.comContact (update email)</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Update footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Copy buttons
+    document.querySelectorAll('[data-copy]').forEach(block => {
+      const btn = block.querySelector('.copybtn');
+      const code = block.querySelector('code');
+      if (!btn || !code) return;
+
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(code.textContent.trim());
+          const old = btn.textContent;
+          btn.textContent = 'Copied ✓';
+          setTimeout(() => (btn.textContent = old), 1200);
+        } catch (e) {
+          btn.textContent = 'Copy failed';
+          setTimeout(() => (btn.textContent = 'Copy'), 1200);
         }
-        
-        function updateProgress() {
-            const total = document.querySelectorAll('.checklist-item input[type="checkbox"]').length;
-            const checked = document.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length;
-            const progressDiv = document.getElementById('progress');
-            
-            progressDiv.textContent = `Progress: ${checked}/${total} complete`;
-            
-            if (checked === total) {
-                progressDiv.textContent = '🎉 All done! Your site is live!';
-                progressDiv.style.color = '#28a745';
-            }
-        }
-    </script>
+      });
+    });
+  </script>
 </body>
 </html>
+
