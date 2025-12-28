@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calm GLB Viewer (No Examples)</title>
+  <title>Calm GLB Viewer (Auto-load, Textures, No Ground Circle)</title>
   <style>
     :root{
       --bg0:#06131c; --bg1:#0b2735;
@@ -30,7 +30,7 @@
       position:absolute;
       left: clamp(12px, 2vw, 22px);
       bottom: clamp(12px, 2vw, 22px);
-      width: min(740px, calc(100% - 24px));
+      width: min(780px, calc(100% - 24px));
       padding: 12px;
       border-radius: var(--radius);
       background: linear-gradient(180deg, var(--glass2), var(--glass));
@@ -38,9 +38,7 @@
       box-shadow: 0 18px 60px var(--shadow);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+      display:flex; flex-direction:column; gap:10px;
       user-select:none;
     }
     .title{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
@@ -143,7 +141,7 @@
       background: rgba(0,0,0,.35);
     }
     .fatal .card{
-      width:min(820px, calc(100% - 28px));
+      width:min(860px, calc(100% - 28px));
       padding: 16px 18px;
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,.18);
@@ -163,7 +161,7 @@
   <div class="drop" id="drop">
     <div class="card">
       Drop a <b>.glb</b> here<br/>
-      <span style="color:rgba(255,255,255,.65);font-size:12px">No Three.js examples needed • GLB only</span>
+      <span style="color:rgba(255,255,255,.65);font-size:12px">Auto-load is enabled; drop replaces it</span>
     </div>
   </div>
 
@@ -183,7 +181,8 @@
     </div>
 
     <div class="row">
-      <button id="btnLoad" disabled>Load GLB</button>
+      <button id="btnReload" disabled>Reload default</button>
+      <button id="btnLoad" disabled>Load local GLB</button>
       <button id="btnReset" disabled>Reset</button>
       <button id="btnFocus" disabled>Focus</button>
       <button id="btnFS">Fullscreen</button>
@@ -217,15 +216,18 @@
   const fatal = $("fatal");
   const fatalMsg = $("fatalMsg");
 
+  // ---- CHANGE THIS if needed ----
+  const DEFAULT_MODEL = "./assets/train.glb";
+
   function setStatus(msg){ statusEl.textContent = msg; }
-  function showToast(msg, ms=2000){
+  function showToast(msg, ms=2200){
     toast.textContent = msg;
     toast.classList.add("show");
     clearTimeout(showToast._t);
     showToast._t = setTimeout(()=>toast.classList.remove("show"), ms);
   }
 
-  // --- Load only core three.min.js with CDN fallback ---
+  // --- Load only core three.min.js (no examples) with CDN fallback ---
   function loadScript(url){
     return new Promise((resolve, reject) => {
       const s = document.createElement("script");
@@ -239,8 +241,7 @@
   async function loadFromFallbacks(urls){
     let last;
     for (const u of urls){
-      try { await loadScript(u); return u; }
-      catch(e){ last = e; }
+      try { await loadScript(u); return u; } catch(e){ last = e; }
     }
     throw last || new Error("All fallbacks failed");
   }
@@ -258,23 +259,24 @@
     fatalMsg.innerHTML =
       `Could not load <code>three.min.js</code>.<br><br>
        First failure: <code>${String(e.message).replace(/</g,"&lt;")}</code><br><br>
-       If CDNs are blocked completely, tell me and I’ll give you an offline zip (still local) version.`;
+       If your network blocks CDNs completely, host <code>three.min.js</code> locally in the repo and load it with <code>&lt;script src="lib/three.min.js"&gt;&lt;/script&gt;</code>.`;
     setStatus("Failed to load Three.js");
     return;
   }
 
   // --- Enable UI ---
-  const btnLoad = $("btnLoad");
-  const btnReset = $("btnReset");
-  const btnFocus = $("btnFocus");
-  const btnFS = $("btnFS");
+  const btnReload = $("btnReload");
+  const btnLoad   = $("btnLoad");
+  const btnReset  = $("btnReset");
+  const btnFocus  = $("btnFocus");
+  const btnFS     = $("btnFS");
   const fileInput = $("file");
   const exposureEl = $("exposure");
-  const bloomEl = $("bloom");
+  const bloomEl    = $("bloom");
   const exVal = $("exVal");
   const blVal = $("blVal");
 
-  [btnLoad, btnReset, btnFocus, exposureEl, bloomEl].forEach(el => el.disabled = false);
+  [btnReload, btnLoad, btnReset, btnFocus, exposureEl, bloomEl].forEach(el => el.disabled = false);
   setStatus(`Ready (Three r${THREE.REVISION})`);
 
   // ---------- Renderer / scene ----------
@@ -283,41 +285,25 @@
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
 
-  // We'll do tonemapping + gamma ourselves in the final composite.
+  // We'll do tonemapping + output encoding ourselves in the final composite.
   renderer.toneMapping = THREE.NoToneMapping;
-  renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // we output already encoded
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
   const scene = new THREE.Scene();
 
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.05, 5000);
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.05, 6000);
   camera.position.set(2.2, 1.4, 3.2);
 
-  // Simple calm lighting
+  // Calm lighting (no ground plane / no circle)
   scene.add(new THREE.HemisphereLight(0xaad8ff, 0x06131c, 0.55));
 
   const key = new THREE.DirectionalLight(0xfff2e3, 2.6);
   key.position.set(6, 10, 7);
-  key.castShadow = true;
-  key.shadow.mapSize.set(2048,2048);
-  key.shadow.bias = -0.00015;
   scene.add(key);
-  scene.add(key.target);
 
   const fill = new THREE.DirectionalLight(0xcfe9ff, 0.35);
   fill.position.set(-7, 7, -6);
   scene.add(fill);
-
-  // Ground for shadows
-  const ground = new THREE.Mesh(
-    new THREE.CircleGeometry(40, 96),
-    new THREE.MeshStandardMaterial({ color: 0x081a22, roughness: 0.96, metalness: 0.0 })
-  );
-  ground.rotation.x = -Math.PI/2;
-  ground.position.y = -0.001;
-  ground.receiveShadow = true;
-  scene.add(ground);
 
   // ---------- Custom orbit controls (no OrbitControls.js needed) ----------
   const controls = {
@@ -332,11 +318,13 @@
   };
 
   function updateCamera(){
-    // Damped motion
     controls.spherical.theta += controls.rotVel.x;
     controls.spherical.phi   += controls.rotVel.y;
     controls.spherical.phi = Math.max(0.06, Math.min(Math.PI - 0.06, controls.spherical.phi));
-    controls.spherical.radius = Math.max(controls.minDist, Math.min(controls.maxDist, controls.spherical.radius * (1.0 + controls.zoomVel)));
+    controls.spherical.radius = Math.max(
+      controls.minDist,
+      Math.min(controls.maxDist, controls.spherical.radius * (1.0 + controls.zoomVel))
+    );
 
     controls.rotVel.multiplyScalar(1.0 - controls.damping);
     controls.panVel.multiplyScalar(1.0 - controls.damping);
@@ -357,7 +345,6 @@
       controls.target.addScaledVector(up, y);
     }
 
-    // Apply spherical around target
     const pos = new THREE.Vector3().setFromSpherical(controls.spherical).add(controls.target);
     camera.position.copy(pos);
     camera.lookAt(controls.target);
@@ -365,7 +352,7 @@
   updateCamera();
 
   let isDown = false;
-  let btn = 0; // 0 left, 2 right
+  let btn = 0;
   let lastX=0, lastY=0;
 
   canvas.addEventListener("contextmenu", (e)=>e.preventDefault());
@@ -399,13 +386,10 @@
     controls.zoomVel += s * 0.07;
   }, { passive:false });
 
-  // ---------- Minimal GLB loader (no GLTFLoader.js needed) ----------
-  // Supports: scenes/nodes/meshes, basic PBR metallic-roughness, embedded images, baseColor/normal/occlusion/emissive.
+  // ---------- Minimal GLB loader (enhanced image support) ----------
   function readU32(dv, o){ return dv.getUint32(o, true); }
-  function readU16(dv, o){ return dv.getUint16(o, true); }
 
   function decodeText(u8){
-    // Fast UTF-8 decode
     return new TextDecoder("utf-8").decode(u8);
   }
 
@@ -432,18 +416,12 @@
     }
   }
 
-  async function loadGLB(arrayBuffer){
+  async function loadGLB(arrayBuffer, baseURL){
     const dv = new DataView(arrayBuffer);
     const magic = readU32(dv, 0);
     if (magic !== 0x46546C67) throw new Error("Not a GLB file");
     const version = readU32(dv, 4);
     if (version !== 2) throw new Error("Unsupported glTF version: " + version);
-
-    const length = readU32(dv, 8);
-    if (length !== arrayBuffer.byteLength) {
-      // Not fatal, but suspicious
-      console.warn("GLB length mismatch:", length, arrayBuffer.byteLength);
-    }
 
     let offset = 12;
     let json = null;
@@ -455,17 +433,12 @@
       const chunkData = new Uint8Array(arrayBuffer, offset, chunkLen);
       offset += chunkLen;
 
-      // JSON = 0x4E4F534A, BIN = 0x004E4942
-      if (chunkType === 0x4E4F534A) json = JSON.parse(decodeText(chunkData));
-      else if (chunkType === 0x004E4942) binChunk = chunkData;
+      if (chunkType === 0x4E4F534A) json = JSON.parse(decodeText(chunkData));      // JSON
+      else if (chunkType === 0x004E4942) binChunk = chunkData;                    // BIN
     }
 
     if (!json) throw new Error("Missing JSON chunk");
     if (!binChunk) throw new Error("Missing BIN chunk");
-
-    // --- Images / textures ---
-    const images = new Array(json.images?.length || 0);
-    const textures = new Array(json.textures?.length || 0);
 
     function sliceBufferView(bvIndex){
       const bv = json.bufferViews[bvIndex];
@@ -474,31 +447,60 @@
       return binChunk.slice(byteOffset, byteOffset + byteLength);
     }
 
-    async function loadImageFromBufferView(imageDef){
-      if (imageDef.bufferView === undefined) throw new Error("Only embedded images supported (bufferView)");
-      const bytes = sliceBufferView(imageDef.bufferView);
-      const mime = imageDef.mimeType || "image/png";
-      const blob = new Blob([bytes], { type: mime });
-      const url = URL.createObjectURL(blob);
+    async function loadImage(imageDef){
+      // 1) Embedded in BIN via bufferView (common)
+      if (imageDef.bufferView !== undefined){
+        const bytes = sliceBufferView(imageDef.bufferView);
+        const mime = imageDef.mimeType || "image/png";
+        const blob = new Blob([bytes], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const img = await new Promise((resolve, reject)=>{
+          const i = new Image();
+          i.onload = () => resolve(i);
+          i.onerror = reject;
+          i.src = url;
+        });
+        URL.revokeObjectURL(url);
+        return img;
+      }
 
-      const img = await new Promise((resolve, reject)=>{
-        const i = new Image();
-        i.onload = () => resolve(i);
-        i.onerror = reject;
-        i.src = url;
-      });
-      URL.revokeObjectURL(url);
-      return img;
+      // 2) Data URI (embedded in JSON)
+      if (typeof imageDef.uri === "string" && imageDef.uri.startsWith("data:")){
+        const img = await new Promise((resolve, reject)=>{
+          const i = new Image();
+          i.onload = () => resolve(i);
+          i.onerror = reject;
+          i.src = imageDef.uri;
+        });
+        return img;
+      }
+
+      // 3) External image referenced by URI (rare for GLB, but possible)
+      if (typeof imageDef.uri === "string"){
+        const url = new URL(imageDef.uri, baseURL).toString();
+        const img = await new Promise((resolve, reject)=>{
+          const i = new Image();
+          i.crossOrigin = "anonymous";
+          i.onload = () => resolve(i);
+          i.onerror = reject;
+          i.src = url;
+        });
+        return img;
+      }
+
+      throw new Error("Unsupported image source (no bufferView and no uri)");
     }
 
     // Load images
+    const images = new Array(json.images?.length || 0);
     if (json.images){
       for (let i=0; i<json.images.length; i++){
-        images[i] = await loadImageFromBufferView(json.images[i]);
+        images[i] = await loadImage(json.images[i]);
       }
     }
 
     // Create textures
+    const textures = new Array(json.textures?.length || 0);
     if (json.textures){
       for (let i=0; i<json.textures.length; i++){
         const t = json.textures[i];
@@ -507,35 +509,20 @@
         const tex = new THREE.Texture(images[src]);
         tex.needsUpdate = true;
         tex.flipY = false;
-
-        // Sampler handling (basic)
-        const sampler = (t.sampler !== undefined && json.samplers) ? json.samplers[t.sampler] : null;
-        if (sampler){
-          // wrapS/wrapT 33071 clamp, 33648 mirrored, 10497 repeat
-          const wrapMap = (w)=> (w===33071?THREE.ClampToEdgeWrapping : w===33648?THREE.MirroredRepeatWrapping : THREE.RepeatWrapping);
-          if (sampler.wrapS !== undefined) tex.wrapS = wrapMap(sampler.wrapS);
-          if (sampler.wrapT !== undefined) tex.wrapT = wrapMap(sampler.wrapT);
-          // filters (limited mapping)
-          if (sampler.magFilter === 9729) tex.magFilter = THREE.LinearFilter;
-          if (sampler.magFilter === 9728) tex.magFilter = THREE.NearestFilter;
-          if (sampler.minFilter){
-            // Good defaults; keep LinearMipmapLinear if present
-            tex.minFilter = THREE.LinearMipmapLinearFilter;
-          }
-        }
+        // Default wrapping/filtering is fine for most exports
         textures[i] = tex;
       }
     }
 
-    // --- Materials ---
+    // Materials
     const materials = new Array(json.materials?.length || 0);
+
     function textureInfoToTexture(texInfo, usage){
       if (!texInfo) return null;
       const tex = textures[texInfo.index];
       if (!tex) return null;
-      // Color space: baseColor/emissive are sRGB; others linear.
-      if (usage === "srgb") tex.colorSpace = THREE.SRGBColorSpace;
-      else tex.colorSpace = THREE.LinearSRGBColorSpace;
+      // Color textures (baseColor/emissive) should be sRGB; others linear.
+      tex.colorSpace = (usage === "srgb") ? THREE.SRGBColorSpace : THREE.LinearSRGBColorSpace;
       return tex;
     }
 
@@ -545,30 +532,32 @@
         const pbr = m.pbrMetallicRoughness || {};
         const mat = new THREE.MeshStandardMaterial();
 
-        // base color
+        // base color factor
         if (pbr.baseColorFactor){
           mat.color.fromArray(pbr.baseColorFactor);
           mat.opacity = pbr.baseColorFactor[3] ?? 1.0;
           mat.transparent = mat.opacity < 1.0;
         }
+
+        // base color texture
         const baseTex = textureInfoToTexture(pbr.baseColorTexture, "srgb");
         if (baseTex) mat.map = baseTex;
 
-        // metallic-roughness packed
+        // metallic-roughness texture (packed)
         const mrTex = textureInfoToTexture(pbr.metallicRoughnessTexture, "linear");
         if (mrTex){
-          mat.metalnessMap = mrTex;
-          mat.roughnessMap = mrTex;
+          mat.metalnessMap = mrTex;  // uses B channel
+          mat.roughnessMap = mrTex;  // uses G channel
         }
+
         mat.metalness = (pbr.metallicFactor !== undefined) ? pbr.metallicFactor : 1.0;
         mat.roughness = (pbr.roughnessFactor !== undefined) ? pbr.roughnessFactor : 1.0;
 
         // normal
         const nTex = textureInfoToTexture(m.normalTexture, "linear");
         if (nTex) mat.normalMap = nTex;
-        if (m.normalTexture?.scale !== undefined) mat.normalScale.set(m.normalTexture.scale, m.normalTexture.scale);
 
-        // occlusion
+        // occlusion (AO)
         const oTex = textureInfoToTexture(m.occlusionTexture, "linear");
         if (oTex) mat.aoMap = oTex;
         if (m.occlusionTexture?.strength !== undefined) mat.aoMapIntensity = m.occlusionTexture.strength;
@@ -578,27 +567,29 @@
         const eTex = textureInfoToTexture(m.emissiveTexture, "srgb");
         if (eTex) mat.emissiveMap = eTex;
 
-        // alpha
+        // alpha modes
         if (m.alphaMode === "BLEND"){
           mat.transparent = true;
+          mat.depthWrite = false;
         } else if (m.alphaMode === "MASK"){
           mat.alphaTest = (m.alphaCutoff !== undefined) ? m.alphaCutoff : 0.5;
         }
+
         mat.side = m.doubleSided ? THREE.DoubleSide : THREE.FrontSide;
         mat.needsUpdate = true;
         materials[i] = mat;
       }
     }
 
-    // Default material
     function getMaterial(index){
-      return (index !== undefined && materials[index]) ? materials[index] : new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.9, metalness: 0.0 });
+      return (index !== undefined && materials[index]) ? materials[index] :
+        new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.9, metalness: 0.0 });
     }
 
-    // --- Geometry building ---
     function getAccessorData(accIndex){
       const acc = json.accessors[accIndex];
       const bv = json.bufferViews[acc.bufferView];
+
       const byteOffset = (bv.byteOffset || 0) + (acc.byteOffset || 0);
       const componentCtor = accessorTypedArray(acc.componentType);
       const count = acc.count;
@@ -606,17 +597,18 @@
       const length = count * comps;
 
       const stride = bv.byteStride || 0;
+
+      // Interleaved
       if (stride && stride !== comps * componentCtor.BYTES_PER_ELEMENT){
-        // Interleaved accessor: handle by manual copy
         const out = new componentCtor(length);
         const src = new Uint8Array(binChunk.buffer, binChunk.byteOffset + byteOffset, bv.byteLength - (acc.byteOffset || 0));
         const view = new DataView(src.buffer, src.byteOffset, src.byteLength);
-        const bytesPerComp = componentCtor.BYTES_PER_ELEMENT;
+        const bpc = componentCtor.BYTES_PER_ELEMENT;
+
         for (let i=0; i<count; i++){
           const base = i * stride;
           for (let c=0; c<comps; c++){
-            const off = base + c * bytesPerComp;
-            // read by type
+            const off = base + c * bpc;
             let v;
             if (acc.componentType === 5126) v = view.getFloat32(off, true);
             else if (acc.componentType === 5125) v = view.getUint32(off, true);
@@ -631,8 +623,9 @@
       }
 
       // Non-interleaved
-      const bufferSlice = binChunk.buffer.slice(binChunk.byteOffset + byteOffset, binChunk.byteOffset + byteOffset + length * componentCtor.BYTES_PER_ELEMENT);
-      const arr = new componentCtor(bufferSlice);
+      const bytes = length * componentCtor.BYTES_PER_ELEMENT;
+      const buf = binChunk.buffer.slice(binChunk.byteOffset + byteOffset, binChunk.byteOffset + byteOffset + bytes);
+      const arr = new componentCtor(buf);
       return { array: arr, itemSize: comps, normalized: !!acc.normalized };
     }
 
@@ -641,10 +634,9 @@
       const prims = meshDef.primitives || [];
       for (const prim of prims){
         const geom = new THREE.BufferGeometry();
-
-        // attributes
         const attrs = prim.attributes || {};
         if (attrs.POSITION === undefined) continue;
+
         const pos = getAccessorData(attrs.POSITION);
         geom.setAttribute("position", new THREE.BufferAttribute(pos.array, pos.itemSize, pos.normalized));
 
@@ -660,27 +652,26 @@
           geom.setAttribute("uv", new THREE.BufferAttribute(uv.array, uv.itemSize, uv.normalized));
         }
 
-        // indices
+        if (attrs.TEXCOORD_1 !== undefined){
+          const uv2 = getAccessorData(attrs.TEXCOORD_1);
+          geom.setAttribute("uv2", new THREE.BufferAttribute(uv2.array, uv2.itemSize, uv2.normalized));
+        } else if (geom.getAttribute("uv")){
+          // AO uses uv2; if absent, copy uv as a fallback
+          const uv = geom.getAttribute("uv");
+          geom.setAttribute("uv2", new THREE.BufferAttribute(uv.array, uv.itemSize, uv.normalized));
+        }
+
         if (prim.indices !== undefined){
           const idx = getAccessorData(prim.indices);
           geom.setIndex(new THREE.BufferAttribute(idx.array, 1, idx.normalized));
         }
 
-        // AO requires uv2; if not present, copy uv
-        // (Blender glTF often only has uv)
-        if (!geom.getAttribute("uv2") && geom.getAttribute("uv")){
-          const uv = geom.getAttribute("uv");
-          geom.setAttribute("uv2", new THREE.BufferAttribute(uv.array, uv.itemSize, uv.normalized));
-        }
-
         geom.computeBoundingSphere();
 
         const mat = getMaterial(prim.material);
-
         const mesh = new THREE.Mesh(geom, mat);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
         group.add(mesh);
       }
       return group;
@@ -706,7 +697,7 @@
 
       if (n.mesh !== undefined && json.meshes){
         const m = buildMesh(json.meshes[n.mesh]);
-        m.name = obj.name || m.name;
+        if (!obj.name && n.name) m.name = n.name;
         obj.add(m);
       }
 
@@ -784,7 +775,6 @@
     raycaster.setFromCamera(pointer, camera);
     const hits = raycaster.intersectObject(root, true);
     if (!hits.length) return;
-    // Prefer selecting the mesh
     highlight(hits[0].object);
     showToast(`Selected: ${hits[0].object.name || "mesh"}`, 1400);
   }
@@ -794,7 +784,6 @@
 
   // ---------- Frame / focus ----------
   function frameObject(obj){
-    // Center on bounds and fit camera
     const box = new THREE.Box3().setFromObject(obj);
     const size = new THREE.Vector3(); box.getSize(size);
     const center = new THREE.Vector3(); box.getCenter(center);
@@ -814,17 +803,6 @@
     camera.far  = Math.max(200, dist * 300);
     camera.updateProjectionMatrix();
 
-    // expand shadows
-    const s = Math.max(3, maxDim * 1.2);
-    key.shadow.camera.left = -s;
-    key.shadow.camera.right = s;
-    key.shadow.camera.top = s;
-    key.shadow.camera.bottom = -s;
-    key.shadow.camera.far = Math.max(60, maxDim * 10);
-    key.shadow.camera.updateProjectionMatrix();
-
-    ground.position.y = -Math.max(0.002, size.y * 0.006);
-
     updateCamera();
   }
 
@@ -841,7 +819,7 @@
     showToast("Focused");
   }
 
-  // ---------- Manual bloom + tonemapping pipeline (no EffectComposer) ----------
+  // ---------- Manual bloom + tonemapping pipeline ----------
   let rtScene, rtBright, rtBlurA, rtBlurB;
   let quadScene, quadCam, quadMesh;
 
@@ -870,9 +848,8 @@
     precision highp float;
     varying vec2 vUv;
     uniform sampler2D tIn;
-    uniform vec2 dir;      // (1/width,0) or (0,1/height)
+    uniform vec2 dir;
     void main(){
-      // 5-tap gaussian-ish
       vec3 sum = vec3(0.0);
       sum += texture2D(tIn, vUv - 2.0*dir).rgb * 0.07027;
       sum += texture2D(tIn, vUv - 1.0*dir).rgb * 0.31622;
@@ -892,7 +869,6 @@
     uniform float exposure;
 
     vec3 acesFilm(vec3 x){
-      // Narkowicz 2015
       const float a = 2.51;
       const float b = 0.03;
       const float c = 2.43;
@@ -902,19 +878,16 @@
     }
 
     vec3 linearToSRGB(vec3 c){
-      // simple gamma (good enough for this viewer)
       return pow(max(c, 0.0), vec3(1.0/2.2));
     }
 
     void main(){
       vec3 sceneCol = texture2D(tScene, vUv).rgb;
       vec3 bloomCol = texture2D(tBloom, vUv).rgb;
-
       vec3 c = sceneCol + bloomCol * bloomStrength;
       c *= exposure;
       c = acesFilm(c);
       c = linearToSRGB(c);
-
       gl_FragColor = vec4(c, 1.0);
     }
   `;
@@ -922,112 +895,119 @@
   function makeRT(w,h){
     return new THREE.WebGLRenderTarget(w, h, {
       format: THREE.RGBAFormat,
-      type: THREE.HalfFloatType, // HDR-ish
+      type: THREE.HalfFloatType,
       depthBuffer: true,
       stencilBuffer: false
     });
   }
 
   function rebuildPost(){
-    const w = Math.max(2, Math.floor(window.innerWidth * Math.min(2, window.devicePixelRatio || 1)));
-    const h = Math.max(2, Math.floor(window.innerHeight * Math.min(2, window.devicePixelRatio || 1)));
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.max(2, Math.floor(window.innerWidth * dpr));
+    const h = Math.max(2, Math.floor(window.innerHeight * dpr));
 
     rtScene?.dispose(); rtBright?.dispose(); rtBlurA?.dispose(); rtBlurB?.dispose();
 
     rtScene  = makeRT(w, h);
-
     const hw = Math.max(2, Math.floor(w * 0.5));
     const hh = Math.max(2, Math.floor(h * 0.5));
     rtBright = makeRT(hw, hh);
     rtBlurA  = makeRT(hw, hh);
     rtBlurB  = makeRT(hw, hh);
 
-    // Fullscreen quad
     quadScene = new THREE.Scene();
     quadCam = new THREE.Camera();
-
-    const geo = new THREE.PlaneGeometry(2,2);
-
-    // We'll swap materials per pass
-    quadMesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xff00ff }));
+    quadMesh = new THREE.Mesh(new THREE.PlaneGeometry(2,2), new THREE.MeshBasicMaterial());
     quadScene.add(quadMesh);
   }
 
-  // Materials
   const matBright = new THREE.ShaderMaterial({
     vertexShader: quadVS,
     fragmentShader: brightFS,
-    uniforms: {
-      tScene: { value: null },
-      threshold: { value: 1.0 }
-    }
+    uniforms: { tScene:{value:null}, threshold:{value:1.0} }
   });
 
   const matBlur = new THREE.ShaderMaterial({
     vertexShader: quadVS,
     fragmentShader: blurFS,
-    uniforms: {
-      tIn: { value: null },
-      dir: { value: new THREE.Vector2(0,0) }
-    }
+    uniforms: { tIn:{value:null}, dir:{value:new THREE.Vector2(0,0)} }
   });
 
   const matComposite = new THREE.ShaderMaterial({
     vertexShader: quadVS,
     fragmentShader: compositeFS,
     uniforms: {
-      tScene: { value: null },
-      tBloom: { value: null },
-      bloomStrength: { value: 0.14 },
-      exposure: { value: 1.0 }
+      tScene:{value:null},
+      tBloom:{value:null},
+      bloomStrength:{value:0.14},
+      exposure:{value:1.0}
     }
   });
 
   rebuildPost();
 
-  // ---------- Load / UI wiring ----------
-  async function handleFile(file){
-    if (!file) return;
-    if (!file.name.toLowerCase().endsWith(".glb")){
-      showToast("Please load a .glb file (GLB only).", 2400);
-      return;
+  function syncUI(){
+    matComposite.uniforms.exposure.value = parseFloat(exposureEl.value);
+    matComposite.uniforms.bloomStrength.value = parseFloat(bloomEl.value);
+    exVal.textContent = (+exposureEl.value).toFixed(2);
+    blVal.textContent = (+bloomEl.value).toFixed(2);
+  }
+  exposureEl.addEventListener("input", syncUI);
+  bloomEl.addEventListener("input", syncUI);
+  syncUI();
+
+  // ---------- Model loading (auto + local + dragdrop) ----------
+  async function loadFromURL(url){
+    setStatus("Auto-loading model…");
+    showToast("Loading model…");
+    const resolved = new URL(url, window.location.href).toString();
+    const res = await fetch(resolved, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+    const ab = await res.arrayBuffer();
+
+    // Quick LFS pointer / HTML error page detection
+    if (ab.byteLength < 4000){
+      const text = new TextDecoder().decode(new Uint8Array(ab));
+      if (text.includes("git-lfs.github.com/spec")) throw new Error("This looks like a Git LFS pointer file, not the real GLB binary.");
+      if (text.toLowerCase().includes("<html")) throw new Error("Fetched HTML instead of GLB. Check the path.");
     }
-    setStatus("Loading GLB…");
-    showToast("Loading…");
-    try{
-      const ab = await file.arrayBuffer();
-      const obj = await loadGLB(ab);
 
-      // Remove old model
-      if (root){
-        scene.remove(root);
-        root.traverse((n)=>{
-          if (n.isMesh){
-            n.geometry?.dispose?.();
-            const m = n.material;
-            if (Array.isArray(m)) m.forEach(mm=>mm.dispose?.());
-            else m?.dispose?.();
-          }
-        });
-      }
-      root = obj;
-      root.traverse((n)=>{ if (n.isMesh){ n.castShadow=true; n.receiveShadow=true; }});
-      scene.add(root);
-      clearSelection();
-
-      frameObject(root);
-
-      setStatus(file.name);
-      showToast("Loaded ✔", 1600);
-    } catch (e){
-      console.error(e);
-      setStatus("Load failed (see console)");
-      showToast("Load failed (console)", 2800);
-    }
+    const obj = await loadGLB(ab, resolved);
+    if (root) scene.remove(root);
+    root = obj;
+    scene.add(root);
+    clearSelection();
+    frameObject(root);
+    setStatus(url);
+    showToast("Loaded ✔", 1600);
   }
 
+  async function loadFromFile(file){
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".glb")){
+      showToast("Please choose a .glb file.", 2400);
+      return;
+    }
+    setStatus("Loading local GLB…");
+    showToast("Loading…");
+    const ab = await file.arrayBuffer();
+    const obj = await loadGLB(ab, window.location.href);
+    if (root) scene.remove(root);
+    root = obj;
+    scene.add(root);
+    clearSelection();
+    frameObject(root);
+    setStatus(file.name);
+    showToast("Loaded ✔", 1600);
+  }
+
+  btnReload.addEventListener("click", ()=> loadFromURL(DEFAULT_MODEL).catch(err=>{
+    console.error(err);
+    setStatus("Auto-load failed (see console)");
+    showToast(String(err.message || err), 6000);
+  }));
   btnLoad.addEventListener("click", ()=> fileInput.click());
-  fileInput.addEventListener("change", (e)=> handleFile(e.target.files?.[0]));
+  fileInput.addEventListener("change", (e)=> loadFromFile(e.target.files?.[0]).catch(console.error));
 
   btnReset.addEventListener("click", ()=>{
     if (root) frameObject(root);
@@ -1041,16 +1021,6 @@
     else document.exitFullscreen?.();
   });
 
-  function syncUI(){
-    matComposite.uniforms.exposure.value = parseFloat(exposureEl.value);
-    matComposite.uniforms.bloomStrength.value = parseFloat(bloomEl.value);
-    exVal.textContent = (+exposureEl.value).toFixed(2);
-    blVal.textContent = (+bloomEl.value).toFixed(2);
-  }
-  exposureEl.addEventListener("input", syncUI);
-  bloomEl.addEventListener("input", syncUI);
-  syncUI();
-
   // Drag & drop
   function showDrop(on){ drop.classList.toggle("on", !!on); }
   window.addEventListener("dragenter", (e)=>{ e.preventDefault(); showDrop(true); });
@@ -1061,7 +1031,10 @@
   window.addEventListener("drop", (e)=>{
     e.preventDefault(); showDrop(false);
     const f = e.dataTransfer?.files?.[0];
-    if (f) handleFile(f);
+    if (f) loadFromFile(f).catch(err => {
+      console.error(err);
+      showToast("Load failed (see console)", 4000);
+    });
   });
 
   // Keyboard
@@ -1072,6 +1045,7 @@
     if (k === "escape") clearSelection();
   });
 
+  // Resize
   function onResize(){
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -1081,7 +1055,7 @@
   }
   window.addEventListener("resize", onResize, { passive:true });
 
-  // ---------- Render loop ----------
+  // Render loop
   const clock = new THREE.Clock();
 
   function render(){
@@ -1093,15 +1067,15 @@
 
     updateCamera();
 
-    // 1) render scene to rtScene
+    // 1) scene -> rtScene
     renderer.setRenderTarget(rtScene);
     renderer.clear();
     renderer.render(scene, camera);
 
-    // 2) extract bright -> rtBright
+    // 2) bright extract -> rtBright
     quadMesh.material = matBright;
     matBright.uniforms.tScene.value = rtScene.texture;
-    matBright.uniforms.threshold.value = 1.0; // fixed subtle
+    matBright.uniforms.threshold.value = 1.0;
     renderer.setRenderTarget(rtBright);
     renderer.clear();
     renderer.render(quadScene, quadCam);
@@ -1121,10 +1095,11 @@
     renderer.clear();
     renderer.render(quadScene, quadCam);
 
-    // 5) composite to screen
+    // 5) composite -> screen
     quadMesh.material = matComposite;
     matComposite.uniforms.tScene.value = rtScene.texture;
     matComposite.uniforms.tBloom.value = rtBlurB.texture;
+
     renderer.setRenderTarget(null);
     renderer.clear();
     renderer.render(quadScene, quadCam);
@@ -1132,8 +1107,11 @@
     requestAnimationFrame(render);
   }
 
-  showToast("Click “Load GLB” or drop a .glb here", 2400);
+  // Start
+  showToast("Auto-loading default model…", 2000);
+  btnReload.click();
   render();
+
 })();
 </script>
 </body>
