@@ -189,7 +189,7 @@
 
       <div class="ctl">
         <label>Exposure</label>
-        <input id="exposure" type="range" min="0.3" max="2.2" step="0.01" value="1.00" disabled />
+        <input id="exposure" type="range" min="0.3" max="2.2" step="0.01" value="1.20" disabled />
         <div class="val" id="exVal">1.00</div>
       </div>
 
@@ -284,6 +284,7 @@
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
+  renderer.setClearColor(0x0b2735, 1); // brighter backdrop (canvas covers CSS bg)
 
   // We'll do tonemapping + output encoding ourselves in the final composite.
   renderer.toneMapping = THREE.NoToneMapping;
@@ -295,7 +296,8 @@
   camera.position.set(2.2, 1.4, 3.2);
 
   // Calm lighting (no ground plane / no circle)
-  scene.add(new THREE.HemisphereLight(0xaad8ff, 0x06131c, 0.55));
+  scene.add(new THREE.HemisphereLight(0xaad8ff, 0x06131c, 0.68));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.10)); // lift shadows a touch
 
   const key = new THREE.DirectionalLight(0xfff2e3, 2.6);
   key.position.set(6, 10, 7);
@@ -732,19 +734,39 @@
   let root = null;
   let selected = null;
 
+  // Selection rendering:
+  // - BoxHelper avoids tinting/shrouding the whole mesh.
+  // - You can re-enable emissive tint by flipping this flag.
+  const USE_EMISSIVE_HIGHLIGHT = false;
+  let selectionHelper = null;
+
+  function disposeHelper(){
+    if (!selectionHelper) return;
+    scene.remove(selectionHelper);
+    selectionHelper.geometry?.dispose?.();
+    selectionHelper.material?.dispose?.();
+    selectionHelper = null;
+  }
+
   function clearSelection(){
-    if (!selected) return;
-    const st = selected.userData.__orig;
-    if (st?.materials){
-      st.materials.forEach(({mat, emissive, emissiveIntensity})=>{
-        if (mat?.emissive){
-          mat.emissive.copy(emissive);
-          mat.emissiveIntensity = emissiveIntensity;
-        }
-      });
+    if (!selected && !selectionHelper) return;
+
+    // restore emissive if we used it
+    if (USE_EMISSIVE_HIGHLIGHT && selected){
+      const st = selected.userData.__orig;
+      if (st?.materials){
+        st.materials.forEach(({mat, emissive, emissiveIntensity})=>{
+          if (mat?.emissive){
+            mat.emissive.copy(emissive);
+            mat.emissiveIntensity = emissiveIntensity;
+          }
+        });
+      }
     }
+
+    disposeHelper();
     selected = null;
-    showToast("Selection cleared");
+    showToast("Selection cleared", 900);
     setStatus(root ? "Model loaded" : `Ready (Three r${THREE.REVISION})`);
   }
 
@@ -752,18 +774,30 @@
     clearSelection();
     selected = obj;
 
-    const materials = [];
-    obj.traverse((n)=>{
-      if (!n.isMesh || !n.material) return;
-      const mats = Array.isArray(n.material) ? n.material : [n.material];
-      mats.forEach(mat=>{
-        if (!mat?.emissive) return;
-        materials.push({ mat, emissive: mat.emissive.clone(), emissiveIntensity: mat.emissiveIntensity ?? 1.0 });
-        mat.emissive.setHex(0x224a66);
-        mat.emissiveIntensity = 0.85;
+    if (USE_EMISSIVE_HIGHLIGHT){
+      // Subtle tint (much less 'blue shroud')
+      const materials = [];
+      obj.traverse((n)=>{
+        if (!n.isMesh || !n.material) return;
+        const mats = Array.isArray(n.material) ? n.material : [n.material];
+        mats.forEach(mat=>{
+          if (!mat?.emissive) return;
+          materials.push({ mat, emissive: mat.emissive.clone(), emissiveIntensity: mat.emissiveIntensity ?? 1.0 });
+          mat.emissive.setHex(0x0c1f2a);
+          mat.emissiveIntensity = 0.25;
+        });
       });
-    });
-    obj.userData.__orig = { materials };
+      obj.userData.__orig = { materials };
+    } else {
+      // Non-invasive highlight
+      selectionHelper = new THREE.BoxHelper(obj, 0x88d6ff);
+      selectionHelper.material.transparent = true;
+      selectionHelper.material.opacity = 0.85;
+      selectionHelper.material.depthTest = false; // stays visible
+      selectionHelper.renderOrder = 999;
+      scene.add(selectionHelper);
+    }
+
     setStatus(`Selected: ${obj.name || "mesh"}`);
   }
 
@@ -773,16 +807,31 @@
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
     raycaster.setFromCamera(pointer, camera);
+
     const hits = raycaster.intersectObject(root, true);
-    if (!hits.length) return;
-    highlight(hits[0].object);
-    showToast(`Selected: ${hits[0].object.name || "mesh"}`, 1400);
+
+    // Click empty space = clear selection (no Esc required)
+    if (!hits.length){
+      clearSelection();
+      return;
+    }
+
+    const hit = hits[0].object;
+
+    // Clicking the same mesh toggles selection off
+    if (hit === selected){
+      clearSelection();
+      return;
+    }
+
+    highlight(hit);
+    showToast(`Selected: ${hit.name || "mesh"}`, 1200);
   }
 
   canvas.addEventListener("click", pick);
   canvas.addEventListener("dblclick", (e)=>{ pick(e); focus(selected || root); });
 
-  // ---------- Frame / focus ----------
+// ---------- Frame / focus ----------
   function frameObject(obj){
     const box = new THREE.Box3().setFromObject(obj);
     const size = new THREE.Vector3(); box.getSize(size);
@@ -804,6 +853,8 @@
     camera.updateProjectionMatrix();
 
     updateCamera();
+
+    if (selectionHelper) selectionHelper.update();
   }
 
   function focus(obj){
@@ -816,6 +867,8 @@
     const maxDim = Math.max(size.x, size.y, size.z);
     controls.spherical.radius = Math.max(0.6, maxDim * 1.5);
     updateCamera();
+
+    if (selectionHelper) selectionHelper.update();
     showToast("Focused");
   }
 
@@ -1066,6 +1119,8 @@
     }
 
     updateCamera();
+
+    if (selectionHelper) selectionHelper.update();
 
     // 1) scene -> rtScene
     renderer.setRenderTarget(rtScene);
