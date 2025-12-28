@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calm GLB Viewer (Auto-load, Textures, No Ground Circle)</title>
+  <title>Adelaide Metro 4000 Class</title>
   <style>
     :root{
       --bg0:#06131c; --bg1:#0b2735;
@@ -27,20 +27,57 @@
     canvas{ position:absolute; inset:0; width:100vw; height:100vh; display:block; }
 
     .dock{
-      position:absolute;
-      left: clamp(12px, 2vw, 22px);
-      bottom: clamp(12px, 2vw, 22px);
-      width: min(780px, calc(100% - 24px));
-      padding: 12px;
-      border-radius: var(--radius);
+      position:fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      width: auto;
+      transform: none;
+      padding: 10px 10px;
+      border-radius: 16px;
       background: linear-gradient(180deg, var(--glass2), var(--glass));
       border: 1px solid var(--stroke);
       box-shadow: 0 18px 60px var(--shadow);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      display:flex; flex-direction:column; gap:10px;
+      display:flex; flex-direction:column; gap:8px;
       user-select:none;
     }
+
+    /* dock ui helpers */
+    /* compact bottom bar */
+    .dock.compact{
+      width: auto;
+      padding: 8px 10px;
+    }
+    .dock.compact .ctl,
+    .dock.compact .hint{ display:none !important; }
+    .dock.compact .title{ margin-bottom: -2px; }
+    .dock.compact .row{ flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .dock.compact .row::-webkit-scrollbar{ height: 6px; }
+    .dock.compact .row::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.18); border-radius: 6px; }
+
+    .dock{ opacity: .88; transition: opacity .18s ease, transform .18s ease; }
+    .dock:not(:hover){ opacity: .42; }
+    .dock.collapsed{ width: 260px; max-height: 54px; overflow: hidden; opacity: .65; }
+    .dock.collapsed:not(:hover){ opacity: .55; }
+    .dock.collapsed .row,
+    .dock.collapsed .ctl,
+    .dock.collapsed .hint{ display:none !important; }
+
+    .title .right{ display:flex; align-items:center; gap:10px; }
+    .mini{
+      font: inherit;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.10);
+      color: rgba(255,255,255,.92);
+      border-radius: 10px;
+      padding: 6px 10px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .mini:hover{ background: rgba(255,255,255,.16); }
+
     .title{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
     .title .name{ font-weight:750; font-size:13px; letter-spacing:.2px; }
     .title .status{
@@ -48,7 +85,13 @@
       max-width: 72%;
       overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     }
-    .row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .grp{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+    .grp.center{ flex:1 1 auto; justify-content:center; min-width: 240px; }
+    .grp.left{ justify-content:flex-start; }
+    .grp.right{ justify-content:flex-end; }
+    .row::-webkit-scrollbar{ height: 6px; }
+    .row::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.18); border-radius: 6px; }
 
     button{
       border:1px solid rgba(255,255,255,.18);
@@ -61,6 +104,12 @@
       letter-spacing: .2px;
       transition: background .2s ease, border-color .2s ease, transform .06s ease;
     }
+
+    .presetBtn{ padding: 9px 10px; }
+    .presetBtn.active{ background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.32); }
+    .toolBtn{ padding: 8px 10px; font-weight:650; }
+    .toolBtn.active{ background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.32); }
+
     button:hover{ background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.28); }
     button:active{ transform: translateY(1px); }
     button[disabled]{ opacity:.55; cursor:not-allowed; }
@@ -113,23 +162,23 @@
     .toast.show{ opacity:1; }
 
     .drop{
-      position:absolute; inset:0;
+      position:absolute;
+      top: 14px; left: 50%; transform: translateX(-50%);
       display:flex; align-items:center; justify-content:center;
-      background: rgba(0,0,0,.32);
+      background: transparent;
       opacity:0; pointer-events:none;
-      transition: opacity .15s ease;
+      transition: opacity .18s ease;
+      z-index: 40;
     }
     .drop.on{ opacity:1; pointer-events:auto; }
     .drop .card{
-      border-radius: 18px;
-      border:1px dashed rgba(255,255,255,.30);
-      background: rgba(0,0,0,.22);
-      padding: 18px 20px;
-      color: rgba(255,255,255,.88);
-      box-shadow: 0 20px 60px rgba(0,0,0,.35);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(10, 22, 32, .55);
+      border: 1px solid rgba(255,255,255,.22);
+      box-shadow: 0 12px 40px rgba(0,0,0,.22);
       text-align:center;
+      max-width: min(360px, calc(100vw - 30px));
     }
 
     #file{ display:none; }
@@ -176,27 +225,63 @@
 
   <section class="dock" aria-label="Viewer controls">
     <div class="title">
-      <div class="name">Calm GLB Viewer</div>
-      <div class="status" id="status">Loading Three.js…</div>
+      <div class="name">GLB Viewer</div>
+      <div class="right">
+        <div class="status" id="status">Loading Three.js…</div>
+        <button id="btnSlim" class="mini" title="Show/hide sliders">Sliders</button>
+        <button id="btnDock" class="mini" title="Hide/show panel">▾</button>
+      </div>
     </div>
 
     <div class="row">
-      <button id="btnReload" disabled>Reload default</button>
-      <button id="btnLoad" disabled>Load local GLB</button>
-      <button id="btnReset" disabled>Reset</button>
-      <button id="btnFocus" disabled>Focus</button>
-      <button id="btnFS">Fullscreen</button>
+      <div class="grp left">
+        <button id="btnReload" disabled>Reload default</button>
+        <button id="btnLoad" disabled>Load local GLB</button>
+        <button id="btnReset" disabled>Reset</button>
+        <button id="btnFocus" disabled>Focus</button>
+        <button id="btnFS">Fullscreen</button>
+      </div>
+      <div class="grp center">
+        <button id="btnFront" title="View: Front" class="toolBtn">Front</button>
+        <button id="btnLeft" title="View: Left" class="toolBtn">Left</button>
+        <button id="btnRight" title="View: Right" class="toolBtn">Right</button>
+        <button id="btnTop" title="View: Top" class="toolBtn">Top</button>
+        <button id="btnIso" title="View: Iso" class="toolBtn">Iso</button>
+      </div>
+      <div class="grp right">
+        <button id="btnPreset" title="Cinematic preset tuned for Adelaide Metro 4000 class" class="presetBtn">4000 Class Look</button>
+        <button id="btnSunset" title="Warm sunset lighting preset" class="presetBtn">Sunset</button>
+      </div>
+    </div>
+
+<div class="ctl">
+        <label>Exposure</label>
+        <input id="exposure" type="range" min="0.50" max="2.40" step="0.01" value="1.10" disabled />
+        <div class="val" id="exVal">1.10</div>
+      </div>
 
       <div class="ctl">
-        <label>Exposure</label>
-        <input id="exposure" type="range" min="0.3" max="2.2" step="0.01" value="1.20" disabled />
-        <div class="val" id="exVal">1.00</div>
+        <label>Contrast</label>
+        <input id="contrast" type="range" min="0.80" max="1.50" step="0.01" value="1.16" disabled />
+        <div class="val" id="coVal">1.16</div>
+      </div>
+
+      <div class="ctl">
+        <label>Saturation</label>
+        <input id="saturation" type="range" min="0.70" max="1.35" step="0.01" value="1.10" disabled />
+        <div class="val" id="saVal">1.10</div>
+      </div>      </div>
+
+      <div class="ctl">
+        <label>Sharpness</label>
+        <input id="sharpness" type="range" min="0.00" max="0.80" step="0.01" value="0.35" disabled />
+        <div class="val" id="shVal">0.35</div>
       </div>
 
       <div class="ctl">
         <label>Bloom</label>
-        <input id="bloom" type="range" min="0.0" max="1.0" step="0.01" value="0.14" disabled />
-        <div class="val" id="blVal">0.14</div>
+        <input id="bloom" type="range" min="0.0" max="0.40" step="0.01" value="0.06" disabled />
+        <div class="val" id="blVal">0.06</div>
       </div>
     </div>
 
@@ -270,13 +355,29 @@
   const btnReset  = $("btnReset");
   const btnFocus  = $("btnFocus");
   const btnFS     = $("btnFS");
+  const btnFront  = $("btnFront");
+  const btnLeft   = $("btnLeft");
+  const btnRight  = $("btnRight");
+  const btnTop    = $("btnTop");
+  const btnIso    = $("btnIso");
+  const btnPreset = $("btnPreset");
+  const btnSunset = $("btnSunset");
+  const dock = document.querySelector(".dock");
+  const btnDock = $("btnDock");
+  const btnSlim = $("btnSlim");
   const fileInput = $("file");
   const exposureEl = $("exposure");
   const bloomEl    = $("bloom");
+  const contrastEl = $("contrast");
+  const saturationEl = $("saturation");
+  const sharpnessEl  = $("sharpness");
   const exVal = $("exVal");
   const blVal = $("blVal");
+  const coVal = $("coVal");
+  const saVal = $("saVal");
+  const shVal = $("shVal");
 
-  [btnReload, btnLoad, btnReset, btnFocus, exposureEl, bloomEl].forEach(el => el.disabled = false);
+  [btnReload, btnLoad, btnReset, btnFocus, btnFS, btnFront, btnLeft, btnRight, btnTop, btnIso, btnPreset, btnSunset, btnSlim, exposureEl, contrastEl, saturationEl, sharpnessEl, bloomEl].forEach(el => el.disabled = false);
   setStatus(`Ready (Three r${THREE.REVISION})`);
 
   // ---------- Renderer / scene ----------
@@ -284,7 +385,11 @@
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
-  renderer.setClearColor(0x0b2735, 1); // brighter backdrop (canvas covers CSS bg)
+  renderer.setClearColor(0xa9c9df, 1); // mid sky backdrop
+
+  // Softer self-shadowing helps depth without needing a ground plane
+  renderer.shadowMap.enabled = false;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   // We'll do tonemapping + output encoding ourselves in the final composite.
   renderer.toneMapping = THREE.NoToneMapping;
@@ -292,26 +397,337 @@
 
   const scene = new THREE.Scene();
 
+
+  // ---------- Simple studio environment (procedural IBL) ----------
+  // This dramatically improves readability on PBR materials without relying on external HDR files.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+
+  
+function makeStudioEnv(theme='day'){
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 256;
+    const ctx = c.getContext('2d');
+
+    // Base gradients tuned per theme
+    const g = ctx.createLinearGradient(0, 0, 0, c.height);
+    if (theme === 'night'){
+      g.addColorStop(0.00, '#07121d');
+      g.addColorStop(0.55, '#0a1a28');
+      g.addColorStop(1.00, '#020408');
+    } else if (theme === 'sunset'){
+      g.addColorStop(0.00, '#ffe7d6');
+      g.addColorStop(0.45, '#f2b48f');
+      g.addColorStop(0.72, '#7aa9d4');
+      g.addColorStop(1.00, '#20344a');
+    } else {
+      g.addColorStop(0.00, '#cfe7ff');
+      g.addColorStop(0.55, '#7fb4d9');
+      g.addColorStop(1.00, '#4e6f86');
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    // Light strips / reflections
+    ctx.save();
+    ctx.translate(c.width*0.55, c.height*0.52);
+    ctx.rotate(-0.22);
+    ctx.globalCompositeOperation = 'screen';
+
+    const redA  = (theme==='night') ? 'rgba(255,180,90,0.26)' : 'rgba(255,40,60,0.35)';
+    const redB  = (theme==='night') ? 'rgba(255,180,90,0.0)'  : 'rgba(255,40,60,0.0)';
+    const blueA = (theme==='sunset') ? 'rgba(80,140,255,0.22)' : 'rgba(60,140,255,0.30)';
+    const blueB = 'rgba(60,140,255,0.0)';
+
+    let r1 = ctx.createRadialGradient(0, 0, 0, 0, 0, c.height*0.60);
+    r1.addColorStop(0.0, redA);
+    r1.addColorStop(1.0, redB);
+    ctx.fillStyle = r1;
+    ctx.fillRect(-c.width, -c.height, c.width*2, c.height*2);
+
+    let r2 = ctx.createRadialGradient(-c.width*0.25, c.height*0.05, 0, -c.width*0.25, c.height*0.05, c.height*0.60);
+    r2.addColorStop(0.0, blueA);
+    r2.addColorStop(1.0, blueB);
+    ctx.fillStyle = r2;
+    ctx.fillRect(-c.width, -c.height, c.width*2, c.height*2);
+    ctx.restore();
+
+    // Soft highlight / "sun" patch
+    const sx = (theme==='sunset') ? 0.68 : 0.18;
+    const sy = (theme==='night') ? 0.20 : 0.30;
+    const sr = (theme==='night') ? 0.22 : 0.30;
+    const sun = ctx.createRadialGradient(c.width*sx, c.height*sy, 0, c.width*sx, c.height*sy, c.height*sr);
+    sun.addColorStop(0.0, (theme==='night') ? 'rgba(255,240,210,0.40)' : 'rgba(255,255,255,0.70)');
+    sun.addColorStop(1.0, 'rgba(255,255,255,0.0)');
+    ctx.globalCompositeOperation = 'screen';
+    ctx.fillStyle = sun;
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    tex.needsUpdate = true;
+
+    const envRT = pmrem.fromEquirectangular(tex);
+    tex.dispose();
+    return envRT.texture;
+  }
+
+  const envMap = {
+    day:    makeStudioEnv('day'),
+    sunset: makeStudioEnv('sunset'),
+    night:  makeStudioEnv('night')
+  };
+  let currentTheme = 'day';
+  scene.environment = envMap[currentTheme];
+
+
+  
+  // ---------- Scenery + themes (Day / Sunset / ) ----------
+  // The ground is a shadow-catcher only (invisible), and all visible geometry is kept OFF the model to avoid slicing.
+  let skyTex = null;
+  let ground, cityGroup, stationGroup;
+  const stationLights = [];
+  let stationPlatform, stationCanopy;
+
+  function makeSkyTexture(theme){
+    const c = document.createElement('canvas');
+    c.width = 1024; c.height = 512;
+    const ctx = c.getContext('2d');
+
+    const g = ctx.createLinearGradient(0, 0, 0, c.height);
+    if (theme === 'night'){
+      g.addColorStop(0.00, '#04070d');
+      g.addColorStop(0.55, '#07121d');
+      g.addColorStop(1.00, '#020307');
+    } else if (theme === 'sunset'){
+      g.addColorStop(0.00, '#fff0e3');
+      g.addColorStop(0.42, '#f5b48c');
+      g.addColorStop(0.72, '#7db0db');
+      g.addColorStop(1.00, '#2b3f57');
+    } else {
+      // "in between" day
+      g.addColorStop(0.00, '#cfe7ff');
+      g.addColorStop(0.55, '#a9c9df');
+      g.addColorStop(0.72, '#f2d2bb');
+      g.addColorStop(1.00, '#8fb3c9');
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    if (theme === 'night'){
+      // Subtle stars
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      for (let i=0;i<140;i++){
+        const x = Math.random()*c.width;
+        const y = Math.random()*c.height*0.55;
+        const r = Math.random()*1.4;
+        ctx.globalAlpha = 0.10 + Math.random()*0.20;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha = 1.0;
+    } else {
+      // Soft sun / bright patch
+      const sun = ctx.createRadialGradient(c.width*0.72, c.height*0.60, 0, c.width*0.72, c.height*0.60, c.height*(theme==='sunset'?0.36:0.28));
+      sun.addColorStop(0.0, theme==='sunset' ? 'rgba(255,235,210,0.55)' : 'rgba(255,255,255,0.35)');
+      sun.addColorStop(1.0, 'rgba(255,255,255,0.0)');
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = sun;
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  function setBackdrop(theme){
+    if (skyTex){ skyTex.dispose(); skyTex = null; }
+    skyTex = makeSkyTexture(theme);
+    scene.background = skyTex;
+    if (theme === 'night') scene.fog = new THREE.Fog(0x04070d, 90, 1200);
+    else if (theme === 'sunset') scene.fog = new THREE.Fog(0xf0c2a4, 90, 1200);
+    else scene.fog = new THREE.Fog(0xa9c9df, 90, 1200);
+  }
+
+  setBackdrop(currentTheme);
+
+  // Shadow-catcher ground (invisible plane that ONLY shows shadows)
+  ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
+    new THREE.ShadowMaterial({ opacity: 0.0 })
+  );
+  ground.rotation.x = -Math.PI * 0.5;
+  ground.receiveShadow = false;
+  ground.visible = false;
+  ground.position.y = -9999;
+  scene.add(ground);
+
+  // Distant low-contrast city blocks
+  cityGroup = new THREE.Group();
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+  for (let i=0;i<80;i++){
+    const w = 6 + Math.random()*18;
+    const h = 10 + Math.random()*55;
+    const d = 6 + Math.random()*18;
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color().setHSL(0.58 + Math.random()*0.06, 0.08, 0.40 + Math.random()*0.16),
+      roughness: 0.96,
+      metalness: 0.0
+    });
+    const b = new THREE.Mesh(boxGeo, mat);
+    b.scale.set(w, h, d);
+    b.castShadow = false;
+    b.receiveShadow = false;
+    cityGroup.add(b);
+  }
+  scene.add(cityGroup);
+
+  // Night-time station set (platform + canopy + warm lights). Hidden unless theme === 'night'.
+  stationGroup = new THREE.Group();
+  stationPlatform = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 0.14, 1),
+    new THREE.MeshStandardMaterial({ color: 0x737b84, roughness: 0.92, metalness: 0.0 })
+  );
+  stationPlatform.receiveShadow = true;
+  stationPlatform.castShadow = false;
+  stationGroup.add(stationPlatform);
+
+  stationCanopy = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 0.10, 1),
+    new THREE.MeshStandardMaterial({ color: 0x3b4048, roughness: 0.85, metalness: 0.05 })
+  );
+  stationCanopy.receiveShadow = false;
+  stationCanopy.castShadow = true;
+  stationGroup.add(stationCanopy);
+
+  const poleGeo = new THREE.CylinderGeometry(0.06, 0.08, 1, 10);
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0x2f353d, roughness: 0.7, metalness: 0.2 });
+  const bulbGeo = new THREE.SphereGeometry(0.12, 12, 10);
+  const bulbMat = new THREE.MeshStandardMaterial({
+    color: 0xfff2dd,
+    emissive: 0xffd4a3,
+    emissiveIntensity: 0.0,
+    roughness: 0.1,
+    metalness: 0.0
+  });
+
+  for (let i=0;i<6;i++){
+    const pole = new THREE.Mesh(poleGeo, poleMat);
+    const bulb = new THREE.Mesh(bulbGeo, bulbMat.clone());
+    const light = new THREE.PointLight(0xffd1a1, 0, 0, 2);
+    light.userData.baseIntensity = 55;
+    light.castShadow = true;
+    light.shadow.mapSize.set(1024,1024);
+
+    stationGroup.add(pole);
+    stationGroup.add(bulb);
+    stationGroup.add(light);
+
+    stationLights.push({ pole, bulb, light });
+  }
+
+  stationGroup.visible = false;
+  scene.add(stationGroup);
+
+  function setStationMode(on){
+    stationGroup.visible = !!on;
+    stationLights.forEach(({bulb, light})=>{
+      bulb.material.emissiveIntensity = on ? 1.8 : 0.0;
+      light.intensity = on ? light.userData.baseIntensity : 0.0;
+    });
+  }
+  setStationMode(currentTheme === 'night');
+
+  function fitSceneryToModel(obj){
+    if (!obj) return;
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = new THREE.Vector3(); box.getSize(size);
+    const center = new THREE.Vector3(); box.getCenter(center);
+    const maxDim = Math.max(size.x, size.y, size.z);
+
+    // Ground just below the model's lowest point
+    ground.position.set(center.x, box.min.y - 0.02, center.z);
+    ground.scale.set(maxDim * 40.0, maxDim * 40.0, 1);
+
+    // Fog scales with model
+    scene.fog.near = Math.max(60, maxDim * 2.2);
+    scene.fog.far  = Math.max(380, maxDim * 18.0);
+
+    // City behind
+    cityGroup.position.set(center.x, ground.position.y, center.z - (maxDim * 12.0));
+    let idx = 0;
+    cityGroup.children.forEach((b)=>{
+      const h = b.scale.y;
+      const angle = (idx/ cityGroup.children.length) * Math.PI * 0.9 - Math.PI*0.45;
+      const radius = maxDim * (10.0 + Math.random()*5.5);
+      b.position.set(Math.sin(angle)*radius, h*0.5, -Math.random()*maxDim*6.0);
+      idx++;
+    });
+
+    // Station platform sits to the side (prevents it cutting through the train)
+    const platformLen = maxDim * 12.0;
+    const platformWid = maxDim * 2.6;
+    stationPlatform.scale.set(platformWid, 1.0, platformLen);
+    stationPlatform.position.set(center.x + maxDim*0.85, box.min.y - 0.01 + 0.07, center.z);
+
+    stationCanopy.scale.set(platformWid*0.98, 1.0, platformLen*0.42);
+    stationCanopy.position.set(stationPlatform.position.x, box.min.y + maxDim*0.55, center.z - maxDim*0.25);
+
+    // Light poles along the platform
+    const poleH = maxDim * 1.05;
+    for (let i=0;i<stationLights.length;i++){
+      const t = (i/(stationLights.length-1)) * 2 - 1; // -1..1
+      const z = center.z + t * (platformLen*0.40);
+      const x = stationPlatform.position.x - platformWid*0.40;
+      const y0 = box.min.y - 0.01;
+
+      const {pole, bulb, light} = stationLights[i];
+      pole.scale.set(1, poleH, 1);
+      pole.position.set(x, y0 + poleH*0.5, z);
+
+      bulb.position.set(x, y0 + poleH + maxDim*0.08, z);
+      bulb.scale.setScalar(maxDim*0.55);
+
+      light.position.set(x, y0 + poleH + maxDim*0.10, z);
+      light.distance = maxDim*6.0;
+      light.userData.baseIntensity = Math.max(25, maxDim*20.0);
+    }
+  }
   const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.05, 6000);
   camera.position.set(2.2, 1.4, 3.2);
 
   // Calm lighting (no ground plane / no circle)
-  scene.add(new THREE.HemisphereLight(0xaad8ff, 0x06131c, 0.68));
-  scene.add(new THREE.AmbientLight(0xffffff, 0.10)); // lift shadows a touch
+  // Cinematic lighting tuned for the A-City / 4000 class: glossy red/blue panels read best with a strong key + cool rim,
+  // but restrained ambient so it doesn't wash out.
+  const hemi = new THREE.HemisphereLight(0x9fd7ff, 0x06131c, 0.85);
+  scene.add(hemi);
+  const amb  = new THREE.AmbientLight(0xffffff, 0.18);
+  scene.add(amb);
 
-  const key = new THREE.DirectionalLight(0xfff2e3, 2.6);
-  key.position.set(6, 10, 7);
+  const key = new THREE.DirectionalLight(0xffffff, 3.10);
+  key.position.set(8, 10, 6);
+  key.castShadow = false;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.bias = -0.00006;
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xcfe9ff, 0.35);
-  fill.position.set(-7, 7, -6);
+  const fill = new THREE.DirectionalLight(0xbad8ff, 0.65);
+  fill.position.set(-9, 5, -8);
   scene.add(fill);
+
+  const rim = new THREE.DirectionalLight(0x77bfff, 1.35);
+  rim.position.set(-3, 3.5, 12);
+  scene.add(rim);
 
   // ---------- Custom orbit controls (no OrbitControls.js needed) ----------
   const controls = {
     target: new THREE.Vector3(0, 0.6, 0),
     spherical: new THREE.Spherical(3.8, 1.15, 0.85),
-    damping: 0.10,
+    damping: 0.14,
     rotVel: new THREE.Vector2(0,0),
     panVel: new THREE.Vector2(0,0),
     zoomVel: 0,
@@ -334,7 +750,7 @@
 
     // Pan in camera plane
     if (controls.panVel.lengthSq() > 1e-12){
-      const panSpeed = controls.spherical.radius * 0.0022;
+      const panSpeed = controls.spherical.radius * 0.0015;
       const x = -controls.panVel.x * panSpeed;
       const y =  controls.panVel.y * panSpeed;
 
@@ -368,27 +784,45 @@
     isDown = false;
     canvas.releasePointerCapture(e.pointerId);
   });
-  canvas.addEventListener("pointermove", (e)=>{
+  
+  
+canvas.addEventListener("pointermove", (e)=>{
     if (!isDown) return;
-    const dx = e.clientX - lastX;
-    const dy = e.clientY - lastY;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    let dx = e.clientX - lastX;
+    let dy = e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
 
-    if (btn === 2) { // right = pan
-      controls.panVel.x += dx;
-      controls.panVel.y += dy;
-    } else { // left = rotate
-      controls.rotVel.x += -dx * 0.0042;
-      controls.rotVel.y += -dy * 0.0042;
+    dx = Math.max(-60, Math.min(60, dx));
+    dy = Math.max(-60, Math.min(60, dy));
+
+    const wantPan = (btn === 2) || (btn === 1);
+
+    if (wantPan){
+      const panScale = 0.85 / dpr;
+      controls.panVel.x += dx * panScale;
+      controls.panVel.y += dy * panScale;
+    } else {
+      const rotScale = 0.0024 / dpr;
+      controls.rotVel.x += -dx * rotScale;
+      controls.rotVel.y += -dy * rotScale;
+      controls.rotVel.x = Math.max(-0.25, Math.min(0.25, controls.rotVel.x));
+      controls.rotVel.y = Math.max(-0.25, Math.min(0.25, controls.rotVel.y));
     }
   });
+  canvas.addEventListener("pointerleave", ()=>{ isDown = false; });
+
   canvas.addEventListener("wheel", (e)=>{
     e.preventDefault();
-    const s = Math.sign(e.deltaY);
-    controls.zoomVel += s * 0.07;
+    const d = Math.max(-120, Math.min(120, e.deltaY));
+    const s = d / 120.0;
+    controls.zoomVel += s * 0.045;
   }, { passive:false });
 
   // ---------- Minimal GLB loader (enhanced image support) ----------
+
+
   function readU32(dv, o){ return dv.getUint32(o, true); }
 
   function decodeText(u8){
@@ -865,7 +1299,15 @@
 
     controls.target.copy(center);
     const maxDim = Math.max(size.x, size.y, size.z);
-    controls.spherical.radius = Math.max(0.6, maxDim * 1.5);
+
+    // Fit to camera FOV (better for long trains than radius = maxDim*1.5)
+    const fov = THREE.MathUtils.degToRad(camera.fov);
+    const fitDist = (maxDim * 0.5) / Math.tan(fov * 0.5);
+    controls.spherical.radius = Math.max(0.8, fitDist * 1.15);
+
+    // A nice 3/4 angle for trains
+    controls.spherical.theta = 0.85;
+    controls.spherical.phi = 1.08;
     updateCamera();
 
     if (selectionHelper) selectionHelper.update();
@@ -920,6 +1362,10 @@
     uniform sampler2D tBloom;
     uniform float bloomStrength;
     uniform float exposure;
+    uniform float contrast;
+    uniform float saturation;
+    uniform float sharpness;
+    uniform vec2 texelSize;
 
     vec3 acesFilm(vec3 x){
       const float a = 2.51;
@@ -931,15 +1377,34 @@
     }
 
     vec3 linearToSRGB(vec3 c){
-      return pow(max(c, 0.0), vec3(1.0/2.2));
+      c = max(c, 0.0);
+      vec3 a = 12.92 * c;
+      vec3 b = 1.055 * pow(c, vec3(1.0/2.4)) - 0.055;
+      return mix(a, b, step(vec3(0.0031308), c));
     }
 
     void main(){
-      vec3 sceneCol = texture2D(tScene, vUv).rgb;
+      // Sharpen scene a touch (keeps decals/panels crisp)
+      vec3 s0 = texture2D(tScene, vUv).rgb;
+      vec3 s1 = texture2D(tScene, vUv + vec2(texelSize.x, 0.0)).rgb;
+      vec3 s2 = texture2D(tScene, vUv - vec2(texelSize.x, 0.0)).rgb;
+      vec3 s3 = texture2D(tScene, vUv + vec2(0.0, texelSize.y)).rgb;
+      vec3 s4 = texture2D(tScene, vUv - vec2(0.0, texelSize.y)).rgb;
+      vec3 blur = (s1 + s2 + s3 + s4) * 0.25;
+      vec3 sceneCol = s0 + (s0 - blur) * sharpness;
+
       vec3 bloomCol = texture2D(tBloom, vUv).rgb;
       vec3 c = sceneCol + bloomCol * bloomStrength;
+
       c *= exposure;
       c = acesFilm(c);
+      // Contrast around mid-grey (helps small details pop)
+      c = clamp((c - 0.5) * contrast + 0.5, 0.0, 1.0);
+
+      // Saturation
+      float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+      c = mix(vec3(l), c, saturation);
+
       c = linearToSRGB(c);
       gl_FragColor = vec4(c, 1.0);
     }
@@ -977,7 +1442,7 @@
   const matBright = new THREE.ShaderMaterial({
     vertexShader: quadVS,
     fragmentShader: brightFS,
-    uniforms: { tScene:{value:null}, threshold:{value:1.0} }
+    uniforms: { tScene:{value:null}, threshold:{value:1.15} }
   });
 
   const matBlur = new THREE.ShaderMaterial({
@@ -992,8 +1457,12 @@
     uniforms: {
       tScene:{value:null},
       tBloom:{value:null},
-      bloomStrength:{value:0.14},
-      exposure:{value:1.0}
+      bloomStrength:{value:0.06},
+      exposure:{value:1.10},
+      contrast:{value:1.16},
+      saturation:{value:1.10},
+      sharpness:{value:0.35},
+      texelSize:{value:new THREE.Vector2(1/512,1/512)}
     }
   });
 
@@ -1001,13 +1470,157 @@
 
   function syncUI(){
     matComposite.uniforms.exposure.value = parseFloat(exposureEl.value);
+    matComposite.uniforms.contrast.value = parseFloat(contrastEl.value);
+    matComposite.uniforms.saturation.value = parseFloat(saturationEl.value);
+    matComposite.uniforms.sharpness.value = parseFloat(sharpnessEl.value);
     matComposite.uniforms.bloomStrength.value = parseFloat(bloomEl.value);
+
     exVal.textContent = (+exposureEl.value).toFixed(2);
+    coVal.textContent = (+contrastEl.value).toFixed(2);
+    saVal.textContent = (+saturationEl.value).toFixed(2);
+    shVal.textContent = (+sharpnessEl.value).toFixed(2);
     blVal.textContent = (+bloomEl.value).toFixed(2);
   }
   exposureEl.addEventListener("input", syncUI);
+  contrastEl.addEventListener("input", syncUI);
+  saturationEl.addEventListener("input", syncUI);
+  sharpnessEl.addEventListener("input", syncUI);
   bloomEl.addEventListener("input", syncUI);
   syncUI();
+
+
+
+
+  // ---------- Theme control (Day / Sunset / ) ----------
+  function setActivePreset(btn){
+    [btnPreset, btnSunset].forEach(b=> b?.classList?.remove('active'));
+    btn?.classList?.add('active');
+  }
+
+  function applyTheme(theme){
+    currentTheme = theme;
+    scene.environment = envMap[theme] || envMap.day;
+    if (typeof setBackdrop === 'function') setBackdrop(theme);
+    if (typeof setStationMode === 'function') setStationMode(theme === 'night');
+
+    // Lighting tweaks per theme
+    if (theme === 'night'){
+      hemi.color.setHex(0x0b1a2a);
+      hemi.groundColor.setHex(0x020307);
+      hemi.intensity = 0.25;
+      amb.intensity = 0.06;
+
+      key.color.setHex(0xcfe3ff);
+      key.intensity = 0.85;
+      fill.color.setHex(0x3a6fa6);
+      fill.intensity = 0.25;
+      rim.color.setHex(0x6fb8ff);
+      rim.intensity = 0.65;
+    } else if (theme === 'sunset'){
+      hemi.color.setHex(0xffe3c9);
+      hemi.groundColor.setHex(0x2b3f57);
+      hemi.intensity = 0.75;
+      amb.intensity = 0.16;
+
+      key.color.setHex(0xffd2aa);
+      key.intensity = 2.35;
+      fill.color.setHex(0x8bbcff);
+      fill.intensity = 0.55;
+      rim.color.setHex(0xffb07a);
+      rim.intensity = 1.10;
+    } else {
+      // day / neutral
+      hemi.color.setHex(0x9fd7ff);
+      hemi.groundColor.setHex(0x06131c);
+      hemi.intensity = 0.85;
+      amb.intensity = 0.18;
+
+      key.color.setHex(0xffffff);
+      key.intensity = 3.10;
+      fill.color.setHex(0xbad8ff);
+      fill.intensity = 0.65;
+      rim.color.setHex(0x77bfff);
+      rim.intensity = 1.35;
+    }
+
+    if (root && typeof fitSceneryToModel === 'function') fitSceneryToModel(root);
+  }
+
+
+  // 4000 Class cinematic preset (punchy reds/blues, not washed out)
+  function apply4000Preset(){
+    applyTheme('day');
+    exposureEl.value   = 1.10;
+    contrastEl.value   = 1.16;
+    saturationEl.value = 1.10;
+    sharpnessEl.value  = 0.35;
+    bloomEl.value      = 0.06;
+    syncUI();
+    setActivePreset(btnPreset);
+    showToast('4000 Class Look applied', 1200);
+  }
+  btnPreset.addEventListener('click', apply4000Preset);
+  btnSunset.addEventListener('click', applySunsetPreset);
+
+  function applySunsetPreset(){
+    applyTheme('sunset');
+    exposureEl.value   = 1.05;
+    contrastEl.value   = 1.18;
+    saturationEl.value = 1.12;
+    sharpnessEl.value  = 0.33;
+    bloomEl.value      = 0.05;
+    syncUI();
+    setActivePreset(btnSunset);
+    showToast('Sunset preset applied', 1200);
+  }
+
+
+  // Dock toggle (prevents panel blocking the view)
+  function syncDockButton(){
+    const collapsed = dock.classList.contains('collapsed');
+    btnDock.textContent = collapsed ? '▸' : '▾';
+  }
+  btnDock.addEventListener('click', ()=>{
+    dock.classList.toggle('collapsed');
+    syncDockButton();
+  });
+  syncDockButton();
+
+  // Sliders toggle (compact bottom bar)
+  dock.classList.add('compact');
+  function syncSlimButton(){
+    const compact = dock.classList.contains('compact');
+    btnSlim.textContent = compact ? 'Sliders' : 'Sliders ✕';
+  }
+  btnSlim.addEventListener('click', ()=>{
+    dock.classList.toggle('compact');
+    syncSlimButton();
+  });
+  syncSlimButton();
+
+function applyMaterialBoost(obj){
+    const maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
+    obj.traverse((n)=>{
+      if (n.isMesh){
+        n.castShadow = true;
+        n.receiveShadow = true;
+      }
+      if (!n.material) return;
+      const mats = Array.isArray(n.material) ? n.material : [n.material];
+      mats.forEach((mat)=>{
+        if (!mat) return;
+        // Make PBR materials respond strongly to the studio environment
+        if ('envMapIntensity' in mat) mat.envMapIntensity = Math.max(mat.envMapIntensity ?? 1.0, 1.25);
+        // Sharper textures at glancing angles
+        ['map','normalMap','roughnessMap','metalnessMap','aoMap','emissiveMap'].forEach((k)=>{
+          const t = mat[k];
+          if (t && 'anisotropy' in t) t.anisotropy = maxAniso;
+        });
+        mat.needsUpdate = true;
+      });
+    });
+  }
+
 
   // ---------- Model loading (auto + local + dragdrop) ----------
   async function loadFromURL(url){
@@ -1029,6 +1642,10 @@
     if (root) scene.remove(root);
     root = obj;
     scene.add(root);
+    applyMaterialBoost(root);
+    focus(root);
+    if (typeof fitSceneryToModel === "function") fitSceneryToModel(root);
+    showDrop(false);
     clearSelection();
     frameObject(root);
     setStatus(url);
@@ -1048,6 +1665,10 @@
     if (root) scene.remove(root);
     root = obj;
     scene.add(root);
+    applyMaterialBoost(root);
+    focus(root);
+    if (typeof fitSceneryToModel === "function") fitSceneryToModel(root);
+    showDrop(false);
     clearSelection();
     frameObject(root);
     setStatus(file.name);
@@ -1074,8 +1695,30 @@
     else document.exitFullscreen?.();
   });
 
+  // ---------- Orientation views ----------
+  function setView(theta, phi){
+    controls.rotVel.set(0,0);
+    controls.zoomVel = 0;
+    controls.spherical.theta = theta;
+    controls.spherical.phi = phi;
+    updateCamera();
+    if (selectionHelper) selectionHelper.update();
+  }
+  btnFront.addEventListener('click', ()=> setView(0.0, 1.08));
+  btnLeft.addEventListener('click',  ()=> setView(-Math.PI/2, 1.08));
+  btnRight.addEventListener('click', ()=> setView(Math.PI/2, 1.08));
+  btnTop.addEventListener('click',   ()=> setView(0.0, 0.40));
+  btnIso.addEventListener('click',   ()=> setView(0.85, 1.08));
+
   // Drag & drop
-  function showDrop(on){ drop.classList.toggle("on", !!on); }
+  let dropTimer = 0;
+  function showDrop(on){
+    drop.classList.toggle("on", !!on);
+    if (on){
+      clearTimeout(dropTimer);
+      dropTimer = setTimeout(()=> drop.classList.remove("on"), 1600);
+    }
+  }
   window.addEventListener("dragenter", (e)=>{ e.preventDefault(); showDrop(true); });
   window.addEventListener("dragover",  (e)=>{ e.preventDefault(); showDrop(true); });
   window.addEventListener("dragleave", (e)=>{
@@ -1130,7 +1773,7 @@
     // 2) bright extract -> rtBright
     quadMesh.material = matBright;
     matBright.uniforms.tScene.value = rtScene.texture;
-    matBright.uniforms.threshold.value = 1.0;
+    matBright.uniforms.threshold.value = 1.25;
     renderer.setRenderTarget(rtBright);
     renderer.clear();
     renderer.render(quadScene, quadCam);
@@ -1154,6 +1797,7 @@
     quadMesh.material = matComposite;
     matComposite.uniforms.tScene.value = rtScene.texture;
     matComposite.uniforms.tBloom.value = rtBlurB.texture;
+    matComposite.uniforms.texelSize.value.set(1.0/rtScene.width, 1.0/rtScene.height);
 
     renderer.setRenderTarget(null);
     renderer.clear();
