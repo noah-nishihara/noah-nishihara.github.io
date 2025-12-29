@@ -22,9 +22,12 @@
       background: radial-gradient(1200px 900px at 70% 10%, #164356 0%, var(--bg1) 35%, var(--bg0) 100%);
       color:var(--text);
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      overscroll-behavior: none;
     }
     #app{ position:fixed; inset:0; }
-    canvas{ position:absolute; inset:0; width:100vw; height:100vh; display:block; }
+    canvas{ position:absolute; inset:0; width:100vw; height:100vh; display:block;   touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     .dock{
       position:fixed;
@@ -65,7 +68,9 @@
     .dock.collapsed .ctl,
     .dock.collapsed .hint{ display:none !important; }
 
-    .title .right{ display:flex; align-items:center; gap:10px; }
+    .title .right{ display:flex; align-items:center; gap:10px; 
+      min-width: 0;
+    }
     .mini{
       font: inherit;
       border: 1px solid rgba(255,255,255,.22);
@@ -82,8 +87,11 @@
     .title .name{ font-weight:750; font-size:13px; letter-spacing:.2px; }
     .title .status{
       font-size:12px; color:var(--muted);
-      max-width: 72%;
-      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: min(72%, 420px);
     }
     .row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
     .grp{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
@@ -200,7 +208,87 @@
     .fatal h2{ margin:0 0 8px; font-size:14px; }
     .fatal p{ margin:0; font-size:12px; color: rgba(255,255,255,.72); line-height:1.45; }
     .fatal code{ color:#9fe2ff; }
-  </style>
+  
+
+    /* --- Mobile / touch helpers --- */
+    .mobileBar{
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 30;
+      display: none;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.10));
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .mobileBar .mgrp{ display:flex; gap:10px; align-items:center; }
+    .mBtn{
+      min-width: 52px;
+      height: 52px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(255,255,255,.10);
+      color: rgba(255,255,255,.92);
+      font-weight: 650;
+      font-size: 14px;
+      letter-spacing: .2px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+      user-select:none;
+      -webkit-user-select:none;
+    }
+    .mBtn:active{ transform: translateY(1px); }
+    .mBtn.primary{ background: rgba(136,214,255,.18); border-color: rgba(136,214,255,.35); }
+    .mBtn.icon{ width: 52px; padding:0; font-size:18px; }
+    .mBtn.small{ height: 44px; min-width: 44px; border-radius: 12px; }
+
+    @media (pointer: coarse), (max-width: 720px){
+      .mobileBar{ display:flex; }
+      .dock{ bottom: 78px; }
+    }
+
+    .gestureOverlay{
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      padding: 18px;
+    }
+    .gestureCard{
+      width: min(520px, 92vw);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(20,35,45,.96), rgba(10,18,26,.92));
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 30px 90px rgba(0,0,0,.55);
+      padding: 16px 16px 14px;
+    }
+    .gestureCard h3{ margin: 0 0 10px; font-size: 16px; }
+    .gestureGrid{ display: grid; grid-template-columns: 1fr; gap: 10px; margin: 10px 0 14px; }
+    .gestureItem{ display:flex; gap: 12px; align-items:flex-start; padding: 10px 12px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); }
+    .gestureIcon{ width: 34px; height:34px; border-radius: 10px; display:flex; align-items:center; justify-content:center;
+      background: rgba(136,214,255,.16); border:1px solid rgba(136,214,255,.25); font-size: 18px; }
+    .gestureText{ font-size: 13px; color: rgba(255,255,255,.82); line-height: 1.35; }
+    .gestureText b{ color: rgba(255,255,255,.95); }
+    .gestureActions{ display:flex; gap:10px; justify-content:flex-end; }
+
+</style>
 </head>
 <body>
 <div id="app">
@@ -286,13 +374,13 @@
     </div>
 
     <div class="hint">
-      Left-drag rotate • Wheel zoom • Right-drag pan • Click select • Double‑click focus<br/>
+      Drag to rotate • Pinch to zoom • Two-finger drag to pan • Tap to select • Double‑tap to focus<br/>
       Keys: <span class="kbd">R</span> reset • <span class="kbd">F</span> fullscreen • <span class="kbd">Esc</span> clear selection
     </div>
   </section>
 </div>
 
-<script>
+<script type="module">
 (async () => {
   const $ = (id) => document.getElementById(id);
   const statusEl = $("status");
@@ -302,9 +390,28 @@
   const fatalMsg = $("fatalMsg");
 
   // ---- CHANGE THIS if needed ----
-  const DEFAULT_MODEL = "https://cdn.jsdelivr.net/gh/noah-nishihara/noah-nishihara.github.io@main/4000class.glb";
+  const DEFAULT_MODEL = "https://raw.githubusercontent.com/noah-nishihara/noah-nishihara.github.io/main/4000class.glb";
 
-  function setStatus(msg){ statusEl.textContent = msg; }
+  function humanizeURL(u){
+    try{
+      const url = new URL(u, window.location.href);
+      const parts = url.pathname.split('/').filter(Boolean);
+      const name = parts[parts.length-1] || url.hostname;
+      return decodeURIComponent(name);
+    } catch {
+      return u;
+    }
+  }
+  function setStatus(msg){
+    // Prevent long URLs from blowing up the top bar layout.
+    if (typeof msg === 'string' && msg.includes('://') && msg.length > 60){
+      statusEl.textContent = humanizeURL(msg);
+      statusEl.title = msg;
+    } else {
+      statusEl.textContent = msg;
+      statusEl.title = '';
+    }
+  }
   function showToast(msg, ms=2200){
     toast.textContent = msg;
     toast.classList.add("show");
@@ -312,44 +419,35 @@
     showToast._t = setTimeout(()=>toast.classList.remove("show"), ms);
   }
 
-  // --- Load only core three.min.js (no examples) with CDN fallback ---
-  function loadScript(url){
-    return new Promise((resolve, reject) => {
-      const s = document.createElement("script");
-      s.src = url;
-      s.async = true;
-      s.onload = () => resolve(url);
-      s.onerror = () => reject(new Error("Failed: " + url));
-      document.head.appendChild(s);
-    });
-  }
-  async function loadFromFallbacks(urls){
+  // --- Load Three.js as ES Module (replaces deprecated build/three(.min).js) ---
+  async function importFromFallbacks(urls){
     let last;
     for (const u of urls){
-      try { await loadScript(u); return u; } catch(e){ last = e; }
+      try { return await import(u); } catch(e){ last = e; }
     }
     throw last || new Error("All fallbacks failed");
   }
 
+  let THREE;
   try{
-    setStatus("Loading Three.js…");
-    await loadFromFallbacks([
-      "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js",
-      "https://unpkg.com/three@0.160.0/build/three.min.js"
+    setStatus("Loading Three.js (ESM)…");
+    THREE = await importFromFallbacks([
+      "./lib/three.module.js",
+      "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "https://unpkg.com/three@0.160.0/build/three.module.js"
     ]);
-    if (!window.THREE) throw new Error("THREE missing after load");
   } catch (e){
     console.error(e);
     fatal.style.display = "grid";
     fatalMsg.innerHTML =
-      `Could not load <code>three.min.js</code>.<br><br>
+      `Could not load <code>three.module.js</code>.<br><br>
        First failure: <code>${String(e.message).replace(/</g,"&lt;")}</code><br><br>
-       If your network blocks CDNs completely, host <code>three.min.js</code> locally in the repo and load it with <code>&lt;script src="lib/three.min.js"&gt;&lt;/script&gt;</code>.`;
+       If your network blocks CDNs completely, host <code>three.module.js</code> locally (recommended) at <code>./lib/three.module.js</code>, or update the URLs above.`;
     setStatus("Failed to load Three.js");
     return;
   }
 
-  // --- Enable UI ---
+// --- Enable UI ---
   const btnReload = $("btnReload");
   const btnLoad   = $("btnLoad");
   const btnReset  = $("btnReset");
@@ -378,6 +476,54 @@
   const shVal = $("shVal");
 
   [btnReload, btnLoad, btnReset, btnFocus, btnFS, btnFront, btnLeft, btnRight, btnTop, btnIso, btnPreset, btnSunset, btnSlim, exposureEl, contrastEl, saturationEl, sharpnessEl, bloomEl].forEach(el => el.disabled = false);
+
+
+  // --- Mobile quick controls (big thumb-friendly buttons) ---
+  const mReset = $("mReset");
+  const mFocus = $("mFocus");
+  const mZoomIn = $("mZoomIn");
+  const mZoomOut = $("mZoomOut");
+  const mHelp = $("mHelp");
+  const gestureOverlay = $("gestureOverlay");
+  const gestureClose = $("gestureClose");
+  const gestureGotIt = $("gestureGotIt");
+
+  function showGestures(){
+    if (!gestureOverlay) return;
+    gestureOverlay.style.display = "flex";
+  }
+  function hideGestures(setSeen=true){
+    if (!gestureOverlay) return;
+    gestureOverlay.style.display = "none";
+    if (setSeen){
+      try { localStorage.setItem('glbViewerGestureHintSeen','1'); } catch {}
+    }
+  }
+
+  if (mReset) mReset.addEventListener('click', ()=> btnReset.click());
+  if (mFocus) mFocus.addEventListener('click', ()=> btnFocus.click());
+  if (mZoomIn) mZoomIn.addEventListener('click', ()=> { controls.zoomVel += -0.08; });
+  if (mZoomOut) mZoomOut.addEventListener('click', ()=> { controls.zoomVel +=  0.08; });
+  if (mHelp) mHelp.addEventListener('click', ()=> showGestures());
+
+  if (gestureOverlay){
+    gestureOverlay.addEventListener('click', (e)=>{
+      if (e.target === gestureOverlay) hideGestures(false);
+    });
+  }
+  if (gestureClose) gestureClose.addEventListener('click', ()=> hideGestures(false));
+  if (gestureGotIt) gestureGotIt.addEventListener('click', ()=> hideGestures(true));
+
+  // First-run gesture overlay (touch devices)
+  const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  if (isCoarse){
+    let seen = false;
+    try { seen = localStorage.getItem('glbViewerGestureHintSeen') === '1'; } catch {}
+    if (!seen){
+      setTimeout(()=> showGestures(), 650);
+    }
+  }
+
   setStatus(`Ready (Three r${THREE.REVISION})`);
 
   // ---------- Renderer / scene ----------
@@ -769,27 +915,138 @@ function makeStudioEnv(theme='day'){
   }
   updateCamera();
 
+  // --- Input state (mouse + touch) ---
+  const pointers = new Map(); // pointerId -> {x,y}
   let isDown = false;
   let btn = 0;
-  let lastX=0, lastY=0;
+  let lastX = 0, lastY = 0;
+  let gestureMoved = false;
+
+  function getTouchPair(){
+    const arr = Array.from(pointers.values());
+    return arr.length >= 2 ? [arr[0], arr[1]] : null;
+  }
+  function dist(a,b){
+    const dx=a.x-b.x, dy=a.y-b.y;
+    return Math.hypot(dx,dy);
+  }
+  function mid(a,b){
+    return { x:(a.x+b.x)/2, y:(a.y+b.y)/2 };
+  }
+
+  // Track last 2-finger metrics
+  let lastPinchDist = 0;
+  let lastMid = {x:0,y:0};
 
   canvas.addEventListener("contextmenu", (e)=>e.preventDefault());
+
   canvas.addEventListener("pointerdown", (e)=>{
-    isDown = true;
-    btn = e.button;
-    lastX = e.clientX; lastY = e.clientY;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     canvas.setPointerCapture(e.pointerId);
-  });
+
+    // Mouse: preserve existing button behavior
+    if (e.pointerType === 'mouse'){
+      isDown = true;
+      btn = e.button;
+      lastX = e.clientX; lastY = e.clientY;
+      gestureMoved = false;
+      return;
+    }
+
+    // Touch / pen: 1 finger = rotate, 2 fingers = pan+zoom
+    isDown = true;
+    gestureMoved = false;
+
+    const pair = getTouchPair();
+    if (pair){
+      lastPinchDist = dist(pair[0], pair[1]);
+      lastMid = mid(pair[0], pair[1]);
+    } else {
+      lastX = e.clientX; lastY = e.clientY;
+    }
+  }, { passive: true });
+
   canvas.addEventListener("pointerup", (e)=>{
-    isDown = false;
-    canvas.releasePointerCapture(e.pointerId);
-  });
-  
-  
-canvas.addEventListener("pointermove", (e)=>{
+    pointers.delete(e.pointerId);
+    isDown = pointers.size > 0;
+
+    // When leaving a 2-finger gesture, reset metrics
+    if (pointers.size < 2){
+      lastPinchDist = 0;
+    }
+
+    try { canvas.releasePointerCapture(e.pointerId); } catch {}
+  }, { passive: true });
+
+  canvas.addEventListener("pointercancel", (e)=>{
+    pointers.delete(e.pointerId);
+    isDown = pointers.size > 0;
+    lastPinchDist = 0;
+  }, { passive: true });
+
+  canvas.addEventListener("pointermove", (e)=>{
     if (!isDown) return;
+
+    // Update pointer record
+    if (pointers.has(e.pointerId)){
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
     const dpr = Math.max(1, window.devicePixelRatio || 1);
 
+    // Touch gestures
+    if (e.pointerType !== 'mouse'){
+      const pair = getTouchPair();
+
+      // Two-finger: pan + pinch zoom
+      if (pair){
+        const newDist = dist(pair[0], pair[1]);
+        const newMid  = mid(pair[0], pair[1]);
+
+        // Pan: move midpoint
+        let dx = newMid.x - lastMid.x;
+        let dy = newMid.y - lastMid.y;
+
+        // Zoom: change in distance
+        if (lastPinchDist > 0){
+          const dd = (newDist - lastPinchDist);
+          const norm = dd / Math.max(240, Math.min(window.innerWidth, window.innerHeight));
+          controls.zoomVel += -norm * 0.55; // pinch out -> zoom in
+        }
+
+        dx = Math.max(-80, Math.min(80, dx));
+        dy = Math.max(-80, Math.min(80, dy));
+
+        const panScale = 0.95 / dpr;
+        controls.panVel.x += dx * panScale;
+        controls.panVel.y += dy * panScale;
+
+        if (Math.abs(dx) + Math.abs(dy) + Math.abs(newDist - lastPinchDist) > 2) gestureMoved = true;
+
+        lastPinchDist = newDist;
+        lastMid = newMid;
+        return;
+      }
+
+      // One-finger: rotate
+      let dx = e.clientX - lastX;
+      let dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+
+      dx = Math.max(-60, Math.min(60, dx));
+      dy = Math.max(-60, Math.min(60, dy));
+
+      const rotScale = 0.0028 / dpr;
+      controls.rotVel.x += -dx * rotScale;
+      controls.rotVel.y += -dy * rotScale;
+      controls.rotVel.x = Math.max(-0.25, Math.min(0.25, controls.rotVel.x));
+      controls.rotVel.y = Math.max(-0.25, Math.min(0.25, controls.rotVel.y));
+
+      if (Math.abs(dx) + Math.abs(dy) > 2) gestureMoved = true;
+      return;
+    }
+
+    // Mouse behavior (unchanged)
     let dx = e.clientX - lastX;
     let dy = e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
@@ -810,8 +1067,11 @@ canvas.addEventListener("pointermove", (e)=>{
       controls.rotVel.x = Math.max(-0.25, Math.min(0.25, controls.rotVel.x));
       controls.rotVel.y = Math.max(-0.25, Math.min(0.25, controls.rotVel.y));
     }
-  });
-  canvas.addEventListener("pointerleave", ()=>{ isDown = false; });
+
+    if (Math.abs(dx) + Math.abs(dy) > 2) gestureMoved = true;
+  }, { passive: true });
+
+  canvas.addEventListener("pointerleave", ()=>{ isDown = false; pointers.clear(); lastPinchDist = 0; });
 
   canvas.addEventListener("wheel", (e)=>{
     e.preventDefault();
@@ -1264,6 +1524,39 @@ canvas.addEventListener("pointermove", (e)=>{
 
   canvas.addEventListener("click", pick);
   canvas.addEventListener("dblclick", (e)=>{ pick(e); focus(selected || root); });
+
+
+  // --- Touch helper: double-tap to focus (mobile) ---
+  // Browsers don't reliably fire dblclick for touch, so we implement a light-weight double-tap.
+  let _lastTapT = 0;
+  let _lastTapX = 0;
+  let _lastTapY = 0;
+  canvas.addEventListener("pointerup", (e)=>{
+    if (e.pointerType !== 'touch') return;
+
+    // Ignore if this was part of a drag/pinch gesture
+    if (gestureMoved){
+      gestureMoved = false;
+      _lastTapT = 0;
+      return;
+    }
+
+    const now = performance.now();
+    const dt = now - _lastTapT;
+    const dx = e.clientX - _lastTapX;
+    const dy = e.clientY - _lastTapY;
+
+    // 2 taps within ~300ms and within ~24px
+    if (dt > 40 && dt < 300 && (dx*dx + dy*dy) < (24*24)){
+      pick(e);
+      focus(selected || root);
+      _lastTapT = 0;
+    } else {
+      _lastTapT = now;
+      _lastTapX = e.clientX;
+      _lastTapY = e.clientY;
+    }
+  }, { passive: true });
 
 // ---------- Frame / focus ----------
   function frameObject(obj){
@@ -1813,5 +2106,39 @@ function applyMaterialBoost(obj){
 
 })();
 </script>
+
+
+  <!-- Mobile quick controls (touch-friendly) -->
+  <nav class="mobileBar" aria-label="Quick controls">
+    <div class="mgrp">
+      <button id="mReset" class="mBtn" title="Reset view">Reset</button>
+      <button id="mFocus" class="mBtn primary" title="Focus selection / model">Focus</button>
+    </div>
+    <div class="mgrp">
+      <button id="mZoomOut" class="mBtn icon" title="Zoom out">−</button>
+      <button id="mZoomIn" class="mBtn icon" title="Zoom in">+</button>
+      <button id="mHelp" class="mBtn icon" title="Show gestures">?</button>
+    </div>
+  </nav>
+
+  <!-- First-run gesture help -->
+  <div id="gestureOverlay" class="gestureOverlay" role="dialog" aria-modal="true" aria-label="Touch gestures help">
+    <div class="gestureCard">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <h3>Touch gestures</h3>
+        <button id="gestureClose" class="mBtn small" title="Close">Close</button>
+      </div>
+      <div class="gestureGrid">
+        <div class="gestureItem"><div class="gestureIcon">☝️</div><div class="gestureText"><b>Drag</b> to rotate</div></div>
+        <div class="gestureItem"><div class="gestureIcon">🤏</div><div class="gestureText"><b>Pinch</b> to zoom</div></div>
+        <div class="gestureItem"><div class="gestureIcon">✌️</div><div class="gestureText"><b>Two-finger drag</b> to pan</div></div>
+        <div class="gestureItem"><div class="gestureIcon">👆</div><div class="gestureText"><b>Tap</b> to select • <b>Double-tap</b> to focus</div></div>
+      </div>
+      <div class="gestureActions">
+        <button id="gestureGotIt" class="mBtn primary">Got it</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
