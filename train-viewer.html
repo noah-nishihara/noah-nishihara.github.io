@@ -288,6 +288,34 @@ overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     .gestureText b{ color: rgba(255,255,255,.95); }
     .gestureActions{ display:flex; gap:10px; justify-content:flex-end; }
 
+
+    /* --- Credits modal (CC BY-NC-SA 4.0 attribution) --- */
+    .creditsOverlay{
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      padding: 18px;
+    }
+    .creditsCard{
+      width: min(560px, 94vw);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(20,35,45,.96), rgba(10,18,26,.92));
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 30px 90px rgba(0,0,0,.55);
+      padding: 16px 16px 14px;
+    }
+    .creditsCard h3{ margin: 0 0 10px; font-size: 16px; }
+    .creditsBody{ font-size: 13px; color: rgba(255,255,255,.82); line-height: 1.5; }
+    .creditsBody a{ color: var(--accent); text-decoration: none; }
+    .creditsBody a:hover{ text-decoration: underline; }
+    .creditsActions{ display:flex; justify-content:flex-end; margin-top: 14px; }
+
 </style>
 </head>
 <body>
@@ -317,6 +345,7 @@ overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
       <div class="right">
         <div class="status" id="status">Loading Three.js…</div>
         <button id="btnSlim" class="mini" title="Show/hide sliders">Sliders</button>
+        <button id="btnCredits" class="mini" title="Attribution / license">Credits</button>
         <button id="btnDock" class="mini" title="Hide/show panel">▾</button>
       </div>
     </div>
@@ -391,6 +420,51 @@ overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 
   // ---- CHANGE THIS if needed ----
   const DEFAULT_MODEL = "https://raw.githubusercontent.com/noah-nishihara/noah-nishihara.github.io/main/4000class.glb";
+
+  // --- Attribution (CC BY-NC-SA 4.0): credit + license link + indicate changes ---
+  const ATTR_TITLE = "Adelaide Metro 4000 Class";
+  const ATTR_AUTHOR = "meshd (Ahmes Syahda)";
+  const ATTR_AUTHOR_URL = "https://meshd.art/";
+  const ATTR_SOURCE_URL = "https://steamcommunity.com/sharedfiles/filedetails/?id=2209986489";
+  const ATTR_LICENSE_NAME = "CC BY-NC-SA 4.0";
+  const ATTR_LICENSE_URL = "https://creativecommons.org/licenses/by-nc-sa/4.0/";
+  const ATTR_CHANGES = "Exported to .glb (no other changes).";
+
+  function buildCreditsHTML(){
+    return `
+      <p style="margin:0 0 10px;"><b>${ATTR_TITLE}</b> (3D model)</p>
+      <p style="margin:0 0 10px;">By: <a href="${ATTR_AUTHOR_URL}" target="_blank" rel="noopener">${ATTR_AUTHOR}</a></p>
+      <p style="margin:0 0 10px;">Source: <a href="${ATTR_SOURCE_URL}" target="_blank" rel="noopener">Steam Workshop item</a></p>
+      <p style="margin:0 0 10px;">License: <a href="${ATTR_LICENSE_URL}" target="_blank" rel="noopener">${ATTR_LICENSE_NAME}</a> (commercial use excluded)</p>
+      <p style="margin:0;">Changes: ${ATTR_CHANGES}</p>
+    `;
+  }
+
+  // Credits modal wiring
+  const btnCredits = document.getElementById('btnCredits');
+  const creditsOverlay = document.getElementById('creditsOverlay');
+  const creditsBody = document.getElementById('creditsBody');
+  const creditsClose = document.getElementById('creditsClose');
+  const creditsOk = document.getElementById('creditsOk');
+
+  function openCredits(){
+    if(!creditsOverlay) return;
+    if(creditsBody) creditsBody.innerHTML = buildCreditsHTML();
+    creditsOverlay.style.display = 'flex';
+  }
+  function closeCredits(){
+    if(!creditsOverlay) return;
+    creditsOverlay.style.display = 'none';
+  }
+
+  if(btnCredits) btnCredits.addEventListener('click', openCredits);
+  if(creditsClose) creditsClose.addEventListener('click', closeCredits);
+  if(creditsOk) creditsOk.addEventListener('click', closeCredits);
+  // Escape closes credits
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeCredits(); });
+
+  if(creditsOverlay) creditsOverlay.addEventListener('click', (e)=>{ if(e.target===creditsOverlay) closeCredits(); });
+
 
   function humanizeURL(u){
     try{
@@ -2136,6 +2210,22 @@ function applyMaterialBoost(obj){
       </div>
       <div class="gestureActions">
         <button id="gestureGotIt" class="mBtn primary">Got it</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Credits / Attribution -->
+  <div id="creditsOverlay" class="creditsOverlay" role="dialog" aria-modal="true" aria-label="Credits and license">
+    <div class="creditsCard">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <h3>Credits</h3>
+        <button id="creditsClose" class="mBtn small" title="Close">Close</button>
+      </div>
+      <div class="creditsBody" id="creditsBody"></div>
+      <div class="creditsActions">
+        <button id="creditsOk" class="mBtn primary">OK</button>
       </div>
     </div>
   </div>
