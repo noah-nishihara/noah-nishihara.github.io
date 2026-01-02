@@ -1,0 +1,1537 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LexiLaw — Legal Glossary Trainer</title>
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    /* =========================================
+       LEXILAW — “Glass + Study Dashboard” theme
+       - Adaptive nav: bottom on mobile, rail on desktop (Material pattern) [1](https://m3.material.io/components/navigation-rail/guidelines)[3](https://m2.material.io/components/navigation-rail)
+       - Content-first hierarchy (Apple HIG principle) [4](https://developer.apple.com/design/human-interface-guidelines/)
+       ========================================= */
+
+    :root{
+      /* core */
+      --bg0: #070A12;
+      --bg1: #0B1020;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.085);
+      --stroke: rgba(255,255,255,.10);
+      --stroke2: rgba(255,255,255,.16);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+
+      /* accents */
+      --a1: #7C5CFF; /* violet */
+      --a2: #26E5FF; /* cyan */
+      --a3: #4ADE80; /* green */
+      --a4: #FBBF24; /* amber */
+      --a5: #FB7185; /* pink */
+
+      /* radii */
+      --r1: 14px;
+      --r2: 18px;
+      --r3: 22px;
+
+      /* typography */
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+      /* layout */
+      --max: 1120px;
+      --navW: 92px;
+      --navWExpanded: 220px;
+      --topH: 64px;
+      --bottomH: 72px;
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --shadow2: 0 12px 24px rgba(0,0,0,.32);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 8%, rgba(124,92,255,.22), transparent 60%),
+        radial-gradient(900px 600px at 80% 22%, rgba(38,229,255,.18), transparent 55%),
+        radial-gradient(1000px 700px at 60% 90%, rgba(74,222,128,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    /* subtle noise overlay for “premium” feel */
+    body:before{
+      content:"";
+      position:fixed; inset:0;
+      pointer-events:none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+      opacity:.55;
+    }
+
+    a { color: inherit; }
+    .muted { color: var(--muted); }
+
+    /* App shell: top bar + content + nav */
+    .app{
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: var(--topH) 1fr var(--bottomH);
+    }
+
+    /* Top bar */
+    .topbar{
+      position: sticky; top: 0;
+      z-index: 50;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      backdrop-filter: blur(14px);
+      background: rgba(10,14,28,.52);
+      border-bottom: 1px solid var(--stroke);
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 210px;
+    }
+    .logo{
+      width:34px; height:34px;
+      border-radius: 12px;
+      background:
+        radial-gradient(10px 10px at 30% 30%, rgba(255,255,255,.75), transparent 60%),
+        linear-gradient(135deg, rgba(124,92,255,.95), rgba(38,229,255,.85));
+      box-shadow: 0 14px 28px rgba(124,92,255,.22);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+    .brand h1{
+      margin:0;
+      font-size: 15px;
+      letter-spacing: .2px;
+      line-height:1.1;
+    }
+    .brand .sub{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top:2px;
+    }
+
+    .top-actions{
+      display:flex; align-items:center; gap:10px;
+      flex: 1;
+      justify-content: flex-end;
+    }
+    .searchwrap{
+      flex: 1;
+      max-width: 520px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--stroke);
+      box-shadow: 0 10px 30px rgba(0,0,0,.22);
+    }
+    .searchwrap input{
+      width:100%;
+      border:none; outline:none;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,.55);
+      border: 1px solid rgba(255,255,255,.16);
+      padding: 4px 6px;
+      border-radius: 8px;
+    }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.78);
+      font-size: 12px;
+      user-select:none;
+    }
+    .pill strong{ color: var(--text); font-weight:700; }
+
+    .btn{
+      border:none;
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      border: 1px solid var(--stroke);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      box-shadow: 0 10px 26px rgba(0,0,0,.18);
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+    }
+    .btn:hover{ background: rgba(255,255,255,.095); border-color: var(--stroke2); }
+    .btn:active{ transform: translateY(1px); }
+
+    /* Content area */
+    .content{
+      padding: 18px 14px 22px 14px;
+      display:flex;
+      justify-content: center;
+    }
+    .wrap{
+      width: min(var(--max), 100%);
+      display:grid;
+      gap: 14px;
+    }
+
+    /* Panels */
+    .panel{
+      background: rgba(255,255,255,.055);
+      border: 1px solid var(--stroke);
+      border-radius: var(--r3);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(14px);
+    }
+    .panel-head{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--stroke);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(255,255,255,.03);
+    }
+    .panel-head h2{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.2px;
+    }
+    .panel-body{ padding: 14px 16px 16px 16px; }
+
+    /* Cards & layout blocks */
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 960px){
+      .grid2{ grid-template-columns: 1.08fr .92fr; }
+    }
+
+    .card{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      border-radius: var(--r2);
+      box-shadow: var(--shadow2);
+      padding: 14px;
+    }
+
+    .hero{
+      padding: 16px;
+      border-radius: var(--r2);
+      background:
+        radial-gradient(800px 220px at 30% 0%, rgba(124,92,255,.26), transparent 60%),
+        radial-gradient(700px 240px at 70% 30%, rgba(38,229,255,.18), transparent 60%),
+        rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow2);
+    }
+    .hero h3{
+      margin:0 0 6px 0;
+      font-size: 16px;
+      letter-spacing:.1px;
+    }
+    .hero p{ margin:0; color: var(--muted); font-size: 13px; line-height:1.45; }
+
+    .chips{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin-top: 10px;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      font-size: 12px;
+      color: rgba(255,255,255,.80);
+      cursor:pointer;
+      user-select:none;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .chip:hover{ background: rgba(255,255,255,.08); border-color: var(--stroke2); }
+    .chip.active{
+      background: rgba(38,229,255,.12);
+      border-color: rgba(38,229,255,.35);
+      color: var(--text);
+    }
+
+    .list{
+      display:grid;
+      gap:10px;
+    }
+    .item{
+      padding: 12px;
+      border-radius: var(--r2);
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.035);
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+    }
+    .item:hover{ border-color: var(--stroke2); background: rgba(255,255,255,.05); }
+    .item:active{ transform: translateY(1px); }
+    .item .t{ font-weight:800; font-size: 14px; }
+    .item .d{ margin-top:4px; color: var(--muted); font-size: 12.5px; line-height:1.35; }
+    .meta{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin-top: 10px;
+      color: rgba(255,255,255,.72);
+      font-size: 12px;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+    }
+    .badge.good{ border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.10); }
+    .badge.warn{ border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.10); }
+    .badge.info{ border-color: rgba(38,229,255,.35); background: rgba(38,229,255,.10); }
+
+    /* Learn card */
+    .focusCard{
+      min-height: 240px;
+      display:flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .focusTop .term{
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: .2px;
+      margin: 0 0 8px 0;
+    }
+    .focusTop .prompt{
+      margin:0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 13.5px;
+    }
+
+    .gradeRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .gbtn{
+      flex: 1;
+      min-width: 140px;
+      border:none;
+      cursor:pointer;
+      padding: 11px 12px;
+      border-radius: 14px;
+      font-weight: 800;
+      letter-spacing:.2px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--stroke);
+      color: var(--text);
+      transition: transform .08s ease, filter .15s ease, border-color .15s ease;
+    }
+    .gbtn:hover{ filter: brightness(1.08); border-color: var(--stroke2); }
+    .gbtn:active{ transform: translateY(1px); }
+
+    .again{ border-color: rgba(251,113,133,.35); background: rgba(251,113,133,.12); }
+    .hard{  border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.12); }
+    .good{  border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.10); }
+    .easy{  border-color: rgba(38,229,255,.35); background: rgba(38,229,255,.10); }
+
+    /* Quiz */
+    .choices{ display:grid; gap:10px; margin-top: 12px; }
+    .choice{
+      text-align:left;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      cursor:pointer;
+      transition: background .15s ease, border-color .15s ease, transform .08s ease;
+    }
+    .choice:hover{ background: rgba(255,255,255,.06); border-color: var(--stroke2); }
+    .choice:active{ transform: translateY(1px); }
+
+    /* Progress ring */
+    .ring{
+      width: 64px; height: 64px; border-radius: 50%;
+      display:grid; place-items:center;
+      background:
+        conic-gradient(var(--a2) calc(var(--p)*1%), rgba(255,255,255,.10) 0);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 12px 26px rgba(0,0,0,.28);
+    }
+    .ring .inner{
+      width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(10,14,28,.65);
+      border: 1px solid rgba(255,255,255,.10);
+      display:grid; place-items:center;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    /* NAV: bottom on mobile */
+    .bottomNav{
+      position: sticky;
+      bottom: 0;
+      z-index: 60;
+      display:flex;
+      justify-content: space-around;
+      align-items:center;
+      gap: 8px;
+      padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+      backdrop-filter: blur(14px);
+      background: rgba(10,14,28,.58);
+      border-top: 1px solid var(--stroke);
+    }
+    .navItem{
+      width: 20%;
+      border:none;
+      background: transparent;
+      color: rgba(255,255,255,.72);
+      cursor:pointer;
+      padding: 10px 8px;
+      border-radius: 14px;
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      gap: 6px;
+      font-size: 11px;
+      transition: background .15s ease, color .15s ease;
+    }
+    .navItem svg{ opacity:.9; }
+    .navItem.active{
+      background: rgba(38,229,255,.12);
+      color: var(--text);
+      border: 1px solid rgba(38,229,255,.25);
+    }
+
+    /* Desktop nav rail */
+    @media (min-width: 980px){
+      .app{
+        grid-template-rows: var(--topH) 1fr;
+        grid-template-columns: var(--navW) 1fr;
+        grid-template-areas:
+          "rail top"
+          "rail main";
+      }
+      .topbar{ grid-area: top; }
+      .content{ grid-area: main; padding: 20px 18px 26px 18px; }
+      .bottomNav{ display:none; }
+
+      .rail{
+        grid-area: rail;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 12px 10px;
+        border-right: 1px solid var(--stroke);
+        background: rgba(10,14,28,.55);
+        backdrop-filter: blur(14px);
+        display:flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+      }
+      .rail .railBtn{
+        width: 100%;
+        border: 1px solid transparent;
+        background: transparent;
+        color: rgba(255,255,255,.75);
+        cursor:pointer;
+        padding: 12px 10px;
+        border-radius: 16px;
+        display:flex;
+        align-items:center;
+        justify-content: center;
+        gap: 10px;
+        transition: background .15s ease, border-color .15s ease, color .15s ease;
+      }
+      .rail .railBtn:hover{ background: rgba(255,255,255,.06); }
+      .rail .railBtn.active{
+        background: rgba(38,229,255,.12);
+        border-color: rgba(38,229,255,.25);
+        color: var(--text);
+      }
+      .rail small{
+        display:none; /* collapsed rail look */
+      }
+      .rail .spacer{ flex:1; }
+    }
+
+    /* Small UI helpers */
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    select{
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline:none;
+    }
+    option{ background:#11162a; }
+    .hr{ height:1px; background: var(--stroke); margin: 12px 0; }
+    .ok{ color: var(--a3); }
+    .bad{ color: var(--a5); }
+    .tiny{ font-size: 12px; }
+    .mono{ font-family: var(--mono); }
+
+    /* Hide native focus outlines but keep accessibility */
+    :focus-visible{ outline: 2px solid rgba(38,229,255,.55); outline-offset: 2px; border-radius: 12px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+</head>
+
+<body>
+<div class="app">
+  <!-- Desktop rail (shown on wide screens) -->
+  <nav class="rail" aria-label="Primary navigation" style="display:none;">
+    <button class="railBtn active" data-tab="home" title="Home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="railBtn" data-tab="glossary" title="Glossary">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 4h10a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="M7 18h10" stroke="currentColor" stroke-width="1.8"/></svg>
+    </button>
+    <button class="railBtn" data-tab="learn" title="Learn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7l8-4 8 4-8 4-8-4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="railBtn" data-tab="quiz" title="Quiz">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 7h10M7 12h6M7 17h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/></svg>
+    </button>
+    <button class="railBtn" data-tab="progress" title="Progress">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19V5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 16l4-5 4 3 5-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="spacer"></div>
+    <button class="railBtn" data-tab="data" title="Data">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3l8 5v8l-8 5-8-5V8l8-5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12v9" stroke="currentColor" stroke-width="1.8"/></svg>
+    </button>
+  </nav>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>LexiLaw</h1>
+        <div class="sub">Interactive legal glossary & spaced review</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <div class="searchwrap" title="Search (works from any screen)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <input id="globalSearch" type="search" placeholder="Search terms (e.g., estoppel, mens rea…)"/>
+        <span class="kbd">/</span>
+      </div>
+
+      <span class="pill" id="streakPill" title="Local-only streak & XP (optional habit cue)"></span>
+      <button class="btn" id="resetProgressBtn" title="Clears local learning progress on this device.">Reset</button>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="content">
+    <div class="wrap">
+      <!-- HOME / DASHBOARD -->
+      <section class="panel" id="tab-home">
+        <div class="panel-head">
+          <h2>Today</h2>
+          <div class="row tiny muted" id="homeMeta"></div>
+        </div>
+        <div class="panel-body">
+          <div class="grid2">
+            <div class="hero">
+              <h3>Small sessions. Real retention.</h3>
+              <p>
+                Review what’s due, learn new terms, and test yourself. Everything stays on your device —
+                no account, no backend.
+              </p>
+              <div class="chips" id="homeQuickChips"></div>
+            </div>
+
+            <div class="card">
+              <div class="row" style="justify-content:space-between;">
+                <div>
+                  <div class="muted tiny">Daily progress</div>
+                  <div style="font-size:16px;font-weight:900;margin-top:2px;" id="homeProgressHeadline"></div>
+                  <div class="muted tiny" id="homeProgressSub"></div>
+                </div>
+                <div class="ring" id="homeRing" style="--p:0;">
+                  <div class="inner" id="homeRingInner">0%</div>
+                </div>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="row">
+                <button class="btn" id="goLearnBtn">Start Daily Review</button>
+                <button class="btn" id="goQuizBtn">Quick Quiz</button>
+                <button class="btn" id="goGlossaryBtn">Browse Glossary</button>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="muted tiny">Due today</div>
+              <div class="list" id="homeDueList" style="margin-top:10px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GLOSSARY -->
+      <section class="panel" id="tab-glossary" style="display:none;">
+        <div class="panel-head">
+          <h2>Glossary</h2>
+          <div class="row">
+            <select id="tagFilter"></select>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="grid2">
+            <div>
+              <div class="muted tiny" id="glossaryMeta"></div>
+              <div class="hr"></div>
+              <div class="list" id="glossaryList"></div>
+            </div>
+            <div class="card" id="glossaryDetail">
+              <div class="muted">Select a term to view details.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LEARN -->
+      <section class="panel" id="tab-learn" style="display:none;">
+        <div class="panel-head">
+          <h2>Learn</h2>
+          <div class="row">
+            <button class="btn" id="startSessionBtn">Start Daily Review</button>
+            <button class="btn" id="newCardBtn">Next</button>
+            <button class="btn" id="flipBtn">Flip</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="card focusCard" id="learnCard">
+            <div class="muted">Click “Start Daily Review” to begin.</div>
+          </div>
+          <div class="gradeRow" id="gradeRow" style="display:none;">
+            <button class="gbtn again" data-grade="again">Again</button>
+            <button class="gbtn hard"  data-grade="hard">Hard</button>
+            <button class="gbtn good"  data-grade="good">Good</button>
+            <button class="gbtn easy"  data-grade="easy">Easy</button>
+          </div>
+          <div class="muted tiny" style="margin-top:10px;" id="learnMeta"></div>
+        </div>
+      </section>
+
+      <!-- QUIZ -->
+      <section class="panel" id="tab-quiz" style="display:none;">
+        <div class="panel-head">
+          <h2>Quiz</h2>
+          <div class="row">
+            <select id="quizMode">
+              <option value="termToDef">Term → Meaning</option>
+              <option value="defToTerm">Meaning → Term</option>
+            </select>
+            <select id="quizTag"></select>
+            <button class="btn" id="quizStartBtn">Start</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="card" id="quizCard">
+            <div class="muted">Start a quiz to practice recognition.</div>
+          </div>
+          <div class="muted tiny" style="margin-top:10px;" id="quizMeta"></div>
+        </div>
+      </section>
+
+      <!-- PROGRESS -->
+      <section class="panel" id="tab-progress" style="display:none;">
+        <div class="panel-head">
+          <h2>Progress</h2>
+          <div class="row muted tiny" id="progressMeta"></div>
+        </div>
+        <div class="panel-body">
+          <div class="grid2">
+            <div class="card">
+              <div style="font-weight:900;font-size:16px;">Overview</div>
+              <div class="muted tiny" id="progressSummary" style="margin-top:4px;"></div>
+              <div class="hr"></div>
+              <div id="progressBreakdown" class="list"></div>
+            </div>
+            <div class="card">
+              <div style="font-weight:900;font-size:16px;">Due today</div>
+              <div class="muted tiny" style="margin-top:4px;">Work through these in Learn mode.</div>
+              <div class="hr"></div>
+              <div id="dueList" class="list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DATA -->
+      <section class="panel" id="tab-data" style="display:none;">
+        <div class="panel-head">
+          <h2>Data</h2>
+          <div class="row">
+            <button class="btn" id="exportProgressBtn">Export progress</button>
+            <button class="btn" id="exportGlossaryBtn">Export glossary</button>
+            <label class="btn" style="display:inline-flex;align-items:center;gap:8px;">
+              Import JSON <input type="file" id="importFile" accept="application/json" style="display:none;">
+            </label>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="card">
+            <div style="font-weight:900;font-size:16px;">Replace glossary (advanced)</div>
+            <p class="muted tiny" style="margin-top:6px;line-height:1.5;">
+              Paste an array of glossary entries. This replaces the glossary stored locally on this device.
+            </p>
+            <textarea id="glossaryPaste" rows="10" style="width:100%;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.05);color:var(--text);padding:12px;outline:none;"></textarea>
+            <div class="row" style="margin-top:10px;">
+              <button class="btn" id="applyGlossaryBtn">Apply glossary JSON</button>
+              <span class="muted tiny" id="dataMsg"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Bottom nav (shown on small screens) -->
+  <nav class="bottomNav" aria-label="Primary navigation">
+    <button class="navItem active" data-tab="home">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      Home
+    </button>
+    <button class="navItem" data-tab="glossary">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 4h10a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="M7 18h10" stroke="currentColor" stroke-width="1.8"/></svg>
+      Glossary
+    </button>
+    <button class="navItem" data-tab="learn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 7l8-4 8 4-8 4-8-4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      Learn
+    </button>
+    <button class="navItem" data-tab="quiz">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 7h10M7 12h6M7 17h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/></svg>
+      Quiz
+    </button>
+    <button class="navItem" data-tab="progress">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 19V5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 16l4-5 4 3 5-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Stats
+    </button>
+  </nav>
+</div>
+
+<script>
+/* =========================================
+   DATA + STORAGE
+   ========================================= */
+
+const BUILTIN_GLOSSARY = [
+  {id:"mens-rea", term:"Mens rea", tags:["Criminal"], level:1,
+    plain:"The mental element (intention/knowledge/recklessness) required for an offence.",
+    definition:"The state of mind required to establish criminal liability, distinct from the physical act (actus reus).",
+    example:"To prove theft, the prosecution must show the accused intended to permanently deprive the owner."
+  },
+  {id:"actus-reus", term:"Actus reus", tags:["Criminal"], level:1,
+    plain:"The physical element of an offence (act/omission + circumstances).",
+    definition:"The external element of an offence: conduct, result, and circumstances required by the offence definition.",
+    example:"Assault requires an act that causes another to apprehend imminent unlawful violence."
+  },
+  {id:"ratio-decidendi", term:"Ratio decidendi", tags:["Case law"], level:2,
+    plain:"The binding legal reasoning essential to a decision.",
+    definition:"The principle of law that forms the basis of a judicial decision and is binding under precedent.",
+    example:"The ratio is the rule necessary to reach the outcome, not every observation in the judgment."
+  },
+  {id:"obiter-dicta", term:"Obiter dicta", tags:["Case law"], level:2,
+    plain:"Non-binding comments made ‘by the way’.",
+    definition:"Statements in a judgment not essential to the decision; persuasive but not binding.",
+    example:"A judge’s hypothetical scenario may be obiter rather than ratio."
+  },
+  {id:"estoppel", term:"Estoppel", tags:["Equity","Contract"], level:3,
+    plain:"Stops someone going back on a representation when it would be unfair.",
+    definition:"A doctrine preventing a party from denying something contrary to what is established by their own representations or conduct.",
+    example:"If A induces B to rely on a promise and B changes position, A may be estopped from reneging."
+  },
+  {id:"consideration", term:"Consideration", tags:["Contract"], level:1,
+    plain:"Something of value exchanged, required for most enforceable contracts.",
+    definition:"A benefit to the promisor or detriment to the promisee bargained for as the price of the promise.",
+    example:"Payment, services, or a promise to do (or not do) something can be consideration."
+  },
+  {id:"offer", term:"Offer", tags:["Contract"], level:1,
+    plain:"A clear proposal capable of acceptance.",
+    definition:"An expression of willingness to contract on specified terms, intended to be binding upon acceptance.",
+    example:"A signed quote ‘subject to contract’ may not be an offer."
+  },
+  {id:"acceptance", term:"Acceptance", tags:["Contract"], level:1,
+    plain:"Unqualified agreement to the offer’s terms.",
+    definition:"A final and unqualified assent to the terms of an offer, communicated in the manner prescribed or implied.",
+    example:"‘I accept, but only if…’ is usually a counter-offer, not acceptance."
+  },
+  {id:"burden-of-proof", term:"Burden of proof", tags:["Evidence"], level:1,
+    plain:"Who must prove a fact in issue.",
+    definition:"The obligation to prove a fact; includes the legal burden (ultimate) and evidential burden (raising an issue).",
+    example:"In criminal trials, the prosecution bears the legal burden to prove guilt beyond reasonable doubt."
+  },
+  {id:"standard-of-proof", term:"Standard of proof", tags:["Evidence"], level:1,
+    plain:"How convincing the evidence must be.",
+    definition:"The level of persuasion required to satisfy the burden of proof (e.g., beyond reasonable doubt; balance of probabilities).",
+    example:"Most civil claims are proved on the balance of probabilities."
+  },
+  {id:"judicial-review", term:"Judicial review", tags:["Administrative"], level:2,
+    plain:"Court review of whether a public decision-maker acted lawfully.",
+    definition:"A supervisory jurisdiction to review administrative action for legality (e.g., jurisdictional error, procedural fairness).",
+    example:"A decision can be set aside if made without procedural fairness."
+  },
+];
+
+const LS_GLOSSARY = "lexilaw.entries.v2";
+const LS_PROGRESS = "lexilaw.progress.v2";
+const LS_HABITS   = "lexilaw.habits.v1";
+
+
+/* =============================
+   Packed glossary support (CSV→JSON→gzip→base64)
+   Place your pack at: data/glossary.pack
+   This is an obfuscation step, not true access control.
+   ============================= */
+const PACKED_GLOSSARY_URL = "glossary.pack";
+
+function slugifyTerm(s){
+  return String(s ?? "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || ("t-" + Math.random().toString(36).slice(2, 8));
+}
+
+async function loadPackedGlossary(url = PACKED_GLOSSARY_URL){
+  const res = await fetch(url, { cache: "force-cache" });
+  if (!res.ok) throw new Error(`Failed to fetch packed glossary (${res.status})`);
+  const b64 = await res.text();
+  const binStr = atob(b64.trim());
+  const gzBytes = new Uint8Array(binStr.length);
+  for (let i = 0; i < binStr.length; i++) gzBytes[i] = binStr.charCodeAt(i);
+
+  // Prefer pako (broad compatibility). Fall back to DecompressionStream if available.
+  let jsonText;
+  if (window.pako && typeof window.pako.ungzip === "function") {
+    const jsonBytes = window.pako.ungzip(gzBytes);
+    jsonText = new TextDecoder("utf-8").decode(jsonBytes);
+  } else if ("DecompressionStream" in window) {
+    const ds = new DecompressionStream("gzip");
+    const stream = new Blob([gzBytes]).stream().pipeThrough(ds);
+    jsonText = await new Response(stream).text();
+  } else {
+    throw new Error("No gzip decompressor available (pako missing and DecompressionStream unsupported)." );
+  }
+  const rows = JSON.parse(jsonText);
+  if (!Array.isArray(rows)) throw new Error("Packed glossary JSON is not an array.");
+  return rows;
+}
+
+function rowsToEntries(rows){
+  // rows: [{term, definition}, ...]
+  return rows
+    .filter(r => r && (r.term || r.Term || r["term"] || r["Term"]))
+    .map(r => {
+      const term = r.term ?? r.Term ?? r["term"] ?? r["Term"];
+      const def  = r.definition ?? r.Definition ?? r["definition"] ?? r["Definition"] ?? "";
+      return {
+        id: slugifyTerm(term),
+        term: String(term),
+        tags: [],
+        level: 1,
+        plain: String(def),
+        definition: String(def),
+        example: ""
+      };
+    });
+}
+
+function safeSaveGlossary(entries){
+  try { saveGlossary(entries); return true; }
+  catch (e) {
+    console.warn("Could not save glossary to localStorage (quota or blocked). Using in-memory only.", e);
+    return false;
+  }
+}
+
+function loadGlossary(){
+  const raw = localStorage.getItem(LS_GLOSSARY);
+  if (!raw) return [...BUILTIN_GLOSSARY];
+  try { return JSON.parse(raw); } catch { return [...BUILTIN_GLOSSARY]; }
+}
+function saveGlossary(entries){ localStorage.setItem(LS_GLOSSARY, JSON.stringify(entries)); }
+
+function loadProgress(){
+  const raw = localStorage.getItem(LS_PROGRESS);
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch { return {}; }
+}
+function saveProgress(p){ localStorage.setItem(LS_PROGRESS, JSON.stringify(p)); }
+
+function loadHabits(){
+  const raw = localStorage.getItem(LS_HABITS);
+  if (!raw) return { streak: 0, lastDay: null, xp: 0 };
+  try { return JSON.parse(raw); } catch { return { streak: 0, lastDay: null, xp: 0 }; }
+}
+function saveHabits(h){ localStorage.setItem(LS_HABITS, JSON.stringify(h)); }
+
+let glossary = loadGlossary();
+let progress = loadProgress();
+let habits = loadHabits();
+
+/* Spaced repetition: Leitner-ish schedule */
+const BOX_INTERVALS = [0, 0, 1, 3, 7, 14];
+const DAY = 86400000;
+function startOfToday(){
+  const d = new Date(); d.setHours(0,0,0,0); return d.getTime();
+}
+function fmtDate(ms){
+  const d = new Date(ms);
+  return d.toLocaleDateString(undefined, {year:"numeric", month:"short", day:"2-digit"});
+}
+function getProg(id){
+  if (!progress[id]){
+    progress[id] = { box: 1, due: startOfToday(), seen: 0, correct: 0, lastGrade: null };
+  }
+  return progress[id];
+}
+function dueEntries(){
+  const today = startOfToday();
+  return glossary.filter(e => getProg(e.id).due <= today);
+}
+function schedule(id, grade){
+  const p = getProg(id);
+  p.seen += 1;
+  p.lastGrade = grade;
+
+  if (grade === "again") {
+    p.box = 1;
+    p.due = startOfToday();
+  } else if (grade === "hard") {
+    p.box = Math.max(1, p.box);
+    const days = Math.max(0, Math.ceil(BOX_INTERVALS[p.box] / 2));
+    p.due = startOfToday() + days*DAY;
+    p.correct += 1;
+  } else if (grade === "good") {
+    p.box = Math.min(5, p.box + 1);
+    p.due = startOfToday() + BOX_INTERVALS[p.box]*DAY;
+    p.correct += 1;
+  } else if (grade === "easy") {
+    p.box = Math.min(5, p.box + 2);
+    p.due = startOfToday() + BOX_INTERVALS[p.box]*DAY;
+    p.correct += 1;
+  }
+  saveProgress(progress);
+
+  // Habit cues: optional streak/xp concept (local-only)
+  // Inspired by common gamified learning mechanics like streaks and progress signals. [5](https://www.trophy.so/blog/duolingo-gamification-case-study)[6](https://gamelayer.io/blog/duolingo-gamification-user-retention)
+  addXP(grade === "again" ? 2 : grade === "hard" ? 6 : grade === "good" ? 10 : 14);
+  updateStreak();
+}
+
+/* Habit tracking */
+function dayKey(ms){ return new Date(ms).toISOString().slice(0,10); }
+function updateStreak(){
+  const today = startOfToday();
+  const key = dayKey(today);
+  if (habits.lastDay === key) return;
+
+  // if last day was yesterday, increment; else reset to 1
+  const yesterday = dayKey(today - DAY);
+  if (habits.lastDay === yesterday) habits.streak += 1;
+  else habits.streak = 1;
+
+  habits.lastDay = key;
+  saveHabits(habits);
+  renderStreak();
+}
+function addXP(n){
+  habits.xp = (habits.xp || 0) + n;
+  saveHabits(habits);
+  renderStreak();
+}
+function renderStreak(){
+  const el = document.getElementById("streakPill");
+  const s = habits.streak || 0;
+  const xp = habits.xp || 0;
+  el.innerHTML = `🔥 <strong>${s}</strong> day • ✨ <strong>${xp}</strong> XP`;
+}
+renderStreak();
+
+/* =========================================
+   NAVIGATION (adaptive)
+   - same destinations in bottom nav + rail
+   ========================================= */
+
+const tabIds = ["home","glossary","learn","quiz","progress","data"];
+
+function setTab(tab){
+  tabIds.forEach(t => {
+    const el = document.getElementById("tab-" + t);
+    if (el) el.style.display = (t === tab) ? "" : "none";
+  });
+
+  document.querySelectorAll(".navItem").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  document.querySelectorAll(".railBtn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+
+  // contextual renders
+  if (tab === "home") renderHome();
+  if (tab === "glossary") renderGlossary();
+  if (tab === "progress") renderProgress();
+}
+
+document.querySelectorAll(".navItem").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+document.querySelectorAll(".railBtn").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+
+/* Show/hide desktop rail purely via media query expectations */
+function syncRailVisibility(){
+  const rail = document.querySelector(".rail");
+  if (!rail) return;
+  rail.style.display = (window.matchMedia("(min-width: 980px)").matches) ? "flex" : "none";
+}
+window.addEventListener("resize", syncRailVisibility);
+syncRailVisibility();
+
+/* Global search shortcuts */
+const globalSearch = document.getElementById("globalSearch");
+window.addEventListener("keydown", (e) => {
+  if (e.key === "/" && document.activeElement !== globalSearch){
+    e.preventDefault();
+    globalSearch.focus();
+  }
+});
+globalSearch.addEventListener("input", () => {
+  // If user types while not on glossary, jump them there
+  if (document.getElementById("tab-glossary").style.display === "none") setTab("glossary");
+  renderGlossary();
+});
+
+/* =========================================
+   TAGS / FILTERS
+   ========================================= */
+function allTags(){
+  const set = new Set();
+  glossary.forEach(e => (e.tags||[]).forEach(t => set.add(t)));
+  return ["All", ...Array.from(set).sort((a,b)=>a.localeCompare(b))];
+}
+function populateTagFilters(){
+  const tags = allTags();
+  const tagFilter = document.getElementById("tagFilter");
+  const quizTag = document.getElementById("quizTag");
+  tagFilter.innerHTML = tags.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+  quizTag.innerHTML = tags.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+}
+populateTagFilters();
+
+/* =========================================
+   HOME DASHBOARD
+   ========================================= */
+function renderHome(){
+  const total = glossary.length;
+  const today = startOfToday();
+  let due = 0, seen = 0;
+  glossary.forEach(e => {
+    const p = getProg(e.id);
+    if (p.seen > 0) seen++;
+    if (p.due <= today) due++;
+  });
+
+  const pct = total ? Math.round((seen/total)*100) : 0;
+  const ring = document.getElementById("homeRing");
+  const ringInner = document.getElementById("homeRingInner");
+  ring.style.setProperty("--p", pct);
+  ringInner.textContent = pct + "%";
+
+  document.getElementById("homeMeta").textContent =
+    `${due} due • ${seen}/${total} seen • stored locally`;
+
+  document.getElementById("homeProgressHeadline").textContent =
+    (due ? `You have ${due} term${due===1?"":"s"} due today.` : "Nothing due today. Nice.");
+
+  document.getElementById("homeProgressSub").textContent =
+    due ? "Start a short review session to keep momentum." : "Try a quiz or explore new terms.";
+
+  // quick chips: navigate to tag views
+  const chips = document.getElementById("homeQuickChips");
+  const tags = allTags().filter(t => t !== "All").slice(0, 6);
+  chips.innerHTML = tags.map(t => `<span class="chip" data-tag="${escapeHtml(t)}"># ${escapeHtml(t)}</span>`).join("");
+  chips.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    setTab("glossary");
+    document.getElementById("tagFilter").value = c.dataset.tag;
+    renderGlossary();
+  }));
+
+  // due list preview
+  const dueList = document.getElementById("homeDueList");
+  const dueItems = dueEntries().slice(0, 5);
+  dueList.innerHTML = dueItems.length
+    ? dueItems.map(e => `
+      <div class="item" data-id="${e.id}">
+        <div class="t">${escapeHtml(e.term)} <span class="badge good">Due</span></div>
+        <div class="d">${escapeHtml(e.plain||"")}</div>
+      </div>
+    `).join("")
+    : `<div class="muted tiny">You’re up to date. Add more terms or quiz yourself.</div>`;
+
+  dueList.querySelectorAll(".item").forEach(it => it.addEventListener("click", () => {
+    setTab("learn");
+    startSession();
+  }));
+
+  // quick action buttons
+  document.getElementById("goLearnBtn").onclick = () => { setTab("learn"); startSession(); };
+  document.getElementById("goQuizBtn").onclick = () => { setTab("quiz"); startQuiz(); };
+  document.getElementById("goGlossaryBtn").onclick = () => { setTab("glossary"); renderGlossary(); };
+}
+renderHome();
+
+/* =========================================
+   GLOSSARY
+   ========================================= */
+const glossaryMetaEl = document.getElementById("glossaryMeta");
+const glossaryListEl = document.getElementById("glossaryList");
+const glossaryDetailEl = document.getElementById("glossaryDetail");
+const tagFilterEl = document.getElementById("tagFilter");
+
+function matches(entry, q, tag){
+  const text = (entry.term+" "+(entry.plain||"")+" "+(entry.definition||"")+" "+(entry.example||"")).toLowerCase();
+  const okQ = !q || text.includes(q);
+  const okTag = (tag === "All") || (entry.tags||[]).includes(tag);
+  return okQ && okTag;
+}
+
+function renderDetail(entry){
+  const p = getProg(entry.id);
+  const due = p.due <= startOfToday();
+  glossaryDetailEl.innerHTML = `
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+      <div>
+        <div style="font-size:20px;font-weight:950;letter-spacing:.2px;">${escapeHtml(entry.term)}</div>
+        <div class="meta" style="margin-top:10px;">
+          ${(entry.tags||[]).map(t=>`<span class="badge info"># ${escapeHtml(t)}</span>`).join("")}
+          <span class="badge">Box <strong>${p.box}</strong></span>
+          <span class="badge ${due?'good':'warn'}">${due?'Due today':'Scheduled'} • ${fmtDate(p.due)}</span>
+          <span class="badge">Seen <strong>${p.seen}</strong></span>
+        </div>
+      </div>
+      <button class="btn" id="addToLearnBtn" title="Jump to Learn mode">Review</button>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="tiny muted">Plain English</div>
+    <div style="margin-top:6px;line-height:1.55;">${escapeHtml(entry.plain||"")}</div>
+
+    <div class="hr"></div>
+
+    <div class="tiny muted">Definition</div>
+    <div style="margin-top:6px;line-height:1.55;">${escapeHtml(entry.definition||"")}</div>
+
+    <div class="hr"></div>
+
+    <div class="tiny muted">Example</div>
+    <div style="margin-top:6px;line-height:1.55;"><em>${escapeHtml(entry.example||"")}</em></div>
+  `;
+
+  document.getElementById("addToLearnBtn").onclick = () => {
+    setTab("learn");
+    // create a small session with just this item if not due
+    sessionQueue = [entry];
+    learnMetaEl.textContent = "Focused review: 1 card";
+    nextCard();
+  };
+}
+
+function renderGlossary(){
+  const q = (globalSearch.value || "").trim().toLowerCase();
+  const tag = tagFilterEl.value || "All";
+  const filtered = glossary.filter(e => matches(e, q, tag));
+
+  glossaryMetaEl.textContent = `${filtered.length} shown • ${glossary.length} total • search is global`;
+
+  glossaryListEl.innerHTML = filtered.map(e => {
+    const p = getProg(e.id);
+    const due = p.due <= startOfToday();
+    return `
+      <div class="item" data-id="${escapeHtml(e.id)}">
+        <div class="t">
+          ${escapeHtml(e.term)}
+          ${due ? `<span class="badge good">Due</span>` : ``}
+        </div>
+        <div class="d">${escapeHtml(e.plain||"")}</div>
+        <div class="meta">
+          ${(e.tags||[]).slice(0,3).map(t=>`<span class="badge"># ${escapeHtml(t)}</span>`).join("")}
+          <span class="badge">Box <strong>${p.box}</strong></span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  glossaryListEl.querySelectorAll(".item").forEach(div => {
+    div.addEventListener("click", () => {
+      const id = div.dataset.id;
+      const entry = glossary.find(x => x.id === id);
+      if (entry) renderDetail(entry);
+    });
+  });
+
+  if (filtered[0]) renderDetail(filtered[0]);
+  else glossaryDetailEl.innerHTML = `<div class="muted">No matches. Try a different tag or search.</div>`;
+}
+
+tagFilterEl.addEventListener("change", renderGlossary);
+
+/* =========================================
+   LEARN
+   ========================================= */
+const startSessionBtn = document.getElementById("startSessionBtn");
+const newCardBtn = document.getElementById("newCardBtn");
+const flipBtn = document.getElementById("flipBtn");
+const learnCardEl = document.getElementById("learnCard");
+const gradeRow = document.getElementById("gradeRow");
+const learnMetaEl = document.getElementById("learnMeta");
+
+let sessionQueue = [];
+let current = null;
+let flipped = false;
+
+function startSession(){
+  const due = dueEntries();
+  due.sort((a,b) => (getProg(a.id).box - getProg(b.id).box) || (getProg(a.id).due - getProg(b.id).due));
+  sessionQueue = due.slice(0, 20);
+  learnMetaEl.textContent = `Daily review: ${sessionQueue.length} due (showing up to 20)`;
+  nextCard();
+}
+
+function nextCard(){
+  if (!sessionQueue.length){
+    current = null;
+    learnCardEl.innerHTML = `
+      <div class="focusTop">
+        <div class="term">Done 🎉</div>
+        <p class="prompt">No more cards in this session. Back to Home or try a Quiz.</p>
+      </div>
+    `;
+    gradeRow.style.display = "none";
+    renderHome();
+    return;
+  }
+  current = sessionQueue.shift();
+  flipped = false;
+  renderLearnCard();
+  gradeRow.style.display = "";
+}
+
+function renderLearnCard(){
+  if (!current) return;
+  const p = getProg(current.id);
+  const due = p.due <= startOfToday();
+  learnCardEl.innerHTML = `
+    <div class="focusTop">
+      <div class="meta">
+        ${(current.tags||[]).map(t=>`<span class="badge info"># ${escapeHtml(t)}</span>`).join("")}
+        <span class="badge">Box <strong>${p.box}</strong></span>
+        <span class="badge ${due?'good':'warn'}">${due?'Due today':'Scheduled'} • ${fmtDate(p.due)}</span>
+      </div>
+      <div class="term" style="margin-top:10px;">${escapeHtml(current.term)}</div>
+      ${
+        flipped
+        ? `<p class="prompt"><strong>Plain:</strong> ${escapeHtml(current.plain||"")}<br><br>
+           <strong>Definition:</strong> ${escapeHtml(current.definition||"")}<br><br>
+           <strong>Example:</strong> <em>${escapeHtml(current.example||"")}</em></p>`
+        : `<p class="prompt">Recall the meaning first. Tap <span class="mono">Flip</span> when ready.</p>`
+      }
+    </div>
+    <div class="muted tiny">Tip: Grade honestly — “Again” is how the scheduler helps you.</div>
+  `;
+}
+
+startSessionBtn.addEventListener("click", () => { startSession(); updateStreak(); });
+newCardBtn.addEventListener("click", nextCard);
+flipBtn.addEventListener("click", () => { flipped = !flipped; renderLearnCard(); });
+
+gradeRow.querySelectorAll("button[data-grade]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (!current) return;
+    const grade = btn.dataset.grade;
+    schedule(current.id, grade);
+    nextCard();
+  });
+});
+
+/* =========================================
+   QUIZ
+   ========================================= */
+const quizModeEl = document.getElementById("quizMode");
+const quizTagEl = document.getElementById("quizTag");
+const quizStartBtn = document.getElementById("quizStartBtn");
+const quizCardEl = document.getElementById("quizCard");
+const quizMetaEl = document.getElementById("quizMeta");
+let quizState = null;
+
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(){
+  const tag = quizTagEl.value || "All";
+  let pool = glossary.filter(e => (tag==="All") || (e.tags||[]).includes(tag));
+  if (pool.length < 4){
+    quizCardEl.innerHTML = `<div style="font-weight:900;font-size:18px;">Not enough terms</div><div class="muted tiny">Pick a tag with at least 4 terms.</div>`;
+    return;
+  }
+  // bias toward low box
+  pool = pool.sort((a,b)=> getProg(a.id).box - getProg(b.id).box);
+  const target = pool.slice(0, Math.min(50, pool.length));
+  quizState = { pool: target, score: 0, total: 0 };
+  quizMetaEl.textContent = "Score: 0/0";
+  nextQuestion();
+}
+
+function nextQuestion(){
+  const mode = quizModeEl.value;
+  const pool = quizState.pool;
+  const correct = pickRandom(pool);
+  const options = shuffle([correct, ...shuffle(pool.filter(x=>x.id!==correct.id)).slice(0,3)]);
+
+  const prompt = (mode === "termToDef")
+    ? `<div class="muted tiny">Choose the best meaning for:</div><div style="font-size:22px;font-weight:950;margin-top:6px;">${escapeHtml(correct.term)}</div>`
+    : `<div class="muted tiny">Choose the correct term for:</div><div style="font-size:18px;font-weight:900;margin-top:6px;line-height:1.35;">${escapeHtml(correct.plain || correct.definition)}</div>`;
+
+  quizCardEl.innerHTML = `
+    ${prompt}
+    <div class="hr"></div>
+    <div class="choices">
+      ${options.map(o => {
+        const label = (mode === "termToDef") ? escapeHtml(o.plain || o.definition) : escapeHtml(o.term);
+        return `<div class="choice" data-choice="${escapeHtml(o.id)}">${label}</div>`;
+      }).join("")}
+    </div>
+    <div class="hr"></div>
+    <div class="muted tiny">Tip: Quizzes don’t change your schedule — use Learn for spaced review.</div>
+  `;
+
+  quizCardEl.querySelectorAll(".choice").forEach(ch => {
+    ch.addEventListener("click", () => {
+      quizState.total += 1;
+      const chosen = ch.dataset.choice;
+      const ok = chosen === correct.id;
+      if (ok) quizState.score += 1;
+
+      quizMetaEl.innerHTML = `Score: <span class="${ok?'ok':'bad'}">${quizState.score}/${quizState.total}</span>`;
+
+      quizCardEl.innerHTML = `
+        <div class="${ok?'ok':'bad'}" style="font-weight:950;font-size:18px;">
+          ${ok ? "Correct ✅" : "Not quite ❌"}
+        </div>
+        <div class="hr"></div>
+        <div style="font-weight:900;font-size:18px;">${escapeHtml(correct.term)}</div>
+        <div class="muted tiny" style="margin-top:6px;">${escapeHtml(correct.plain||"")}</div>
+        <div class="hr"></div>
+        <div class="tiny muted">Definition</div>
+        <div style="margin-top:6px;line-height:1.55;">${escapeHtml(correct.definition||"")}</div>
+        <div class="hr"></div>
+        <button class="btn" id="nextQ">Next</button>
+      `;
+      document.getElementById("nextQ").addEventListener("click", nextQuestion);
+    });
+  });
+}
+quizStartBtn.addEventListener("click", startQuiz);
+
+/* =========================================
+   PROGRESS
+   ========================================= */
+function renderProgress(){
+  const total = glossary.length;
+  const today = startOfToday();
+  let due = 0;
+  const boxCounts = {1:0,2:0,3:0,4:0,5:0};
+  let seen = 0;
+
+  glossary.forEach(e => {
+    const p = getProg(e.id);
+    boxCounts[p.box] = (boxCounts[p.box]||0) + 1;
+    if (p.seen > 0) seen += 1;
+    if (p.due <= today) due += 1;
+  });
+
+  document.getElementById("progressMeta").textContent = `Local-only • ${due} due today • ${seen}/${total} seen`;
+  document.getElementById("progressSummary").textContent = `You’ve seen ${seen} of ${total} terms. Due today: ${due}.`;
+
+  document.getElementById("progressBreakdown").innerHTML =
+    Object.keys(boxCounts).map(k => {
+      const n = boxCounts[k];
+      const pct = total ? Math.round((n/total)*100) : 0;
+      const cls = k>=4 ? "good" : k==3 ? "info" : "warn";
+      return `
+        <div class="item" style="cursor:default;">
+          <div class="t">Box ${k} <span class="badge ${cls}">${pct}%</span></div>
+          <div class="d">${n} term${n===1?"":"s"} scheduled here</div>
+        </div>`;
+    }).join("");
+
+  const dueItems = dueEntries().slice(0, 60);
+  const dueList = document.getElementById("dueList");
+  dueList.innerHTML = dueItems.length
+    ? dueItems.map(e => `
+      <div class="item" style="cursor:default;">
+        <div class="t">${escapeHtml(e.term)} <span class="badge good">Due</span></div>
+        <div class="d">${escapeHtml(e.plain||"")}</div>
+      </div>`).join("")
+    : `<div class="muted tiny">Nothing due today.</div>`;
+}
+
+/* =========================================
+   IMPORT / EXPORT
+   ========================================= */
+function downloadJson(filename, obj){
+  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("exportProgressBtn").addEventListener("click", () => downloadJson("lexilaw-progress.json", progress));
+document.getElementById("exportGlossaryBtn").addEventListener("click", () => downloadJson("lexilaw-glossary.json", glossary));
+
+document.getElementById("importFile").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  try{
+    const obj = JSON.parse(text);
+    if (Array.isArray(obj)){
+      glossary = obj.map(x => ({...x, tags: Array.isArray(x.tags) ? x.tags : []}));
+      saveGlossary(glossary);
+      populateTagFilters();
+      renderHome(); renderGlossary(); renderProgress();
+      msg("Glossary imported ✓");
+    } else if (typeof obj === "object" && obj !== null){
+      progress = obj;
+      saveProgress(progress);
+      renderHome(); renderGlossary(); renderProgress();
+      msg("Progress imported ✓");
+    } else msg("Unknown JSON format.", true);
+  } catch {
+    msg("Invalid JSON file.", true);
+  }
+  e.target.value = "";
+});
+
+document.getElementById("applyGlossaryBtn").addEventListener("click", () => {
+  const txt = document.getElementById("glossaryPaste").value.trim();
+  if (!txt) return msg("Paste glossary JSON first.", true);
+  try{
+    const arr = JSON.parse(txt);
+    if (!Array.isArray(arr)) return msg("Glossary JSON must be an array.", true);
+    for (const e of arr){
+      if (!e.id || !e.term) return msg("Each entry needs at least {id, term}.", true);
+      if (!Array.isArray(e.tags)) e.tags = [];
+    }
+    glossary = arr;
+    saveGlossary(glossary);
+    populateTagFilters();
+    renderHome(); renderGlossary(); renderProgress();
+    msg("Glossary applied ✓");
+  } catch { msg("Invalid JSON.", true); }
+});
+
+function msg(text, isErr=false){
+  const el = document.getElementById("dataMsg");
+  el.textContent = text;
+  el.className = "muted tiny " + (isErr ? "bad" : "ok");
+  setTimeout(()=>{ el.textContent=""; el.className="muted tiny"; }, 3500);
+}
+
+/* Reset progress */
+document.getElementById("resetProgressBtn").addEventListener("click", () => {
+  if (!confirm("Reset all local learning progress on this device?")) return;
+  progress = {};
+  saveProgress(progress);
+  habits = { streak: 0, lastDay: null, xp: 0 };
+  saveHabits(habits);
+  renderStreak();
+  renderHome(); renderGlossary(); renderProgress();
+});
+
+/* Helpers */
+function escapeHtml(str){
+  return String(str ?? "").replace(/[&<>"']/g, s => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[s]));
+}
+
+
+
+// Bootstrap: if no custom glossary stored locally, try loading the packed glossary.
+(async function bootstrapPackedGlossary(){
+  try {
+    const existing = localStorage.getItem(LS_GLOSSARY);
+    if (existing) return; // don't overwrite user glossary
+
+    // Show a subtle message on Home.
+    const statusEl = document.getElementById('homeStatus');
+    if (statusEl) statusEl.textContent = 'Loading glossary…';
+
+    const rows = await loadPackedGlossary();
+    const entries = rowsToEntries(rows);
+    if (!entries.length) throw new Error('Packed glossary contained zero entries.');
+
+    glossary = entries;
+    safeSaveGlossary(entries);
+
+    // Re-render current tab after loading.
+    renderHome();
+    renderGlossary();
+    renderProgress();
+
+    if (statusEl) statusEl.textContent = `Loaded ${entries.length.toLocaleString()} terms.`;
+  } catch (e) {
+    console.warn('Packed glossary bootstrap failed:', e);
+    const statusEl = document.getElementById('homeStatus');
+    if (statusEl) statusEl.textContent = 'Using built-in starter glossary (pack not loaded).';
+  }
+})();
+
+/* Kick off: default home */
+setTab("home");
+</script>
+</body>
+</html>
