@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Australian Prime Ministers — Face & Name Memory Trainer</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#111a33;
+      --text:#e9eefc;
+      --muted:#aab6de;
+      --accent:#6ea8ff;
+      --ok:#44d19d;
+      --bad:#ff6b6b;
+      --warn:#ffd166;
+      --border:rgba(255,255,255,.08);
+      --shadow: 0 12px 28px rgba(0,0,0,.35);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--sans);background:radial-gradient(1200px 800px at 20% 10%, #1a2a66 0%, var(--bg) 60%);color:var(--text)}
+    a{color:var(--accent)}
+    header{position:sticky;top:0;z-index:10;backdrop-filter: blur(10px);background:rgba(11,16,32,.7);border-bottom:1px solid var(--border)}
+    .wrap{max-width:1180px;margin:0 auto;padding:18px 18px 28px}
+    .row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    h1{font-size:20px;margin:0;letter-spacing:.2px}
+    .sub{color:var(--muted);font-size:13px;margin-top:6px;line-height:1.35}
+
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn{border:1px solid var(--border);background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;box-shadow: 0 8px 16px rgba(0,0,0,.25);font-weight:600;font-size:13px}
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(0)}
+    .btn.primary{border-color:rgba(110,168,255,.35);background:linear-gradient(180deg, rgba(110,168,255,.28), rgba(110,168,255,.12))}
+
+    .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);padding:8px 10px;border-radius:999px;color:var(--muted);font-size:12px}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:14px;margin-top:18px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+    .imgWrap{position:relative;aspect-ratio:3/4;background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02))}
+    .imgWrap img{width:100%;height:100%;object-fit:cover;display:block}
+    .badge{position:absolute;left:10px;top:10px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);padding:5px 8px;border-radius:999px;font-size:11px;color:var(--text)}
+    .cardBody{padding:10px 10px 12px}
+    .name{font-weight:800;font-size:13px;line-height:1.25;margin:0 0 6px}
+    .term{font-size:12px;color:var(--muted);line-height:1.3;min-height:2.6em}
+    .miniRow{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px}
+    .toggle{font-size:12px;padding:7px 9px;border-radius:10px}
+    .hiddenName .name{filter:blur(8px);user-select:none}
+
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .panelBody{padding:16px}
+
+    .quiz{display:grid;grid-template-columns: 1.2fr .8fr;gap:16px;margin-top:18px}
+    @media (max-width: 900px){.quiz{grid-template-columns:1fr}}
+
+    .quizFace{display:flex;gap:16px;align-items:flex-start}
+    .quizFace .portrait{width:260px;max-width:45vw;aspect-ratio:3/4;border-radius:16px;overflow:hidden;border:1px solid var(--border);background:rgba(255,255,255,.03)}
+    .quizFace img{width:100%;height:100%;object-fit:cover}
+
+    .qmeta{flex:1}
+    .qtitle{margin:0 0 6px;font-size:16px}
+    .qhelp{margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.4}
+
+    .field{display:flex;gap:10px;align-items:center}
+    input[type=text]{flex:1;padding:11px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);outline:none;font-size:14px}
+    input[type=text]:focus{border-color:rgba(110,168,255,.45);box-shadow:0 0 0 3px rgba(110,168,255,.14)}
+
+    .result{margin-top:12px;padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-size:13px;line-height:1.35}
+    .result.ok{border-color:rgba(68,209,157,.35);background:rgba(68,209,157,.10)}
+    .result.bad{border-color:rgba(255,107,107,.35);background:rgba(255,107,107,.10)}
+
+    .stats{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:10px}
+    .stat{padding:12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03)}
+    .stat .k{color:var(--muted);font-size:12px}
+    .stat .v{font-size:18px;font-weight:900;margin-top:4px}
+
+    .small{font-size:12px;color:var(--muted);line-height:1.35}
+    .footer{margin-top:22px;color:var(--muted);font-size:12px;line-height:1.4}
+    .mono{font-family:var(--mono)}
+
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.25);border-top-color:rgba(255,255,255,.85);border-radius:999px;animation:spin .9s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .topbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    select{padding:9px 10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-size:13px}
+
+    .toast{position:fixed;right:18px;bottom:18px;max-width:360px;background:rgba(17,26,51,.92);border:1px solid var(--border);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);display:none}
+    .toast.show{display:block}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="row">
+        <div>
+          <h1>Australian Prime Ministers — Face & Name Memory Trainer</h1>
+          <div class="sub">Study mode shows all faces on one page. Quiz mode tests recall. Data & images load live from Wikidata (so the list stays current).</div>
+        </div>
+        <div class="controls">
+          <button class="btn primary" id="modeStudy">Study</button>
+          <button class="btn" id="modeQuiz">Quiz</button>
+          <span class="pill" id="statusPill"><span class="spinner" aria-hidden="true"></span> Loading…</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <section id="studySection">
+      <div class="topbar">
+        <button class="btn" id="hideAll">Hide all names</button>
+        <button class="btn" id="showAll">Show all names</button>
+        <label class="pill">Filter era:
+          <select id="eraSelect">
+            <option value="all">All (1901–present)</option>
+            <option value="contemporary">Contemporary (1996–present)</option>
+            <option value="modern">Modern (1972–1995)</option>
+            <option value="midcentury">Mid-century (1950–1971)</option>
+            <option value="early">Early (1901–1949)</option>
+          </select>
+        </label>
+        <label class="pill">Search:
+          <input id="searchBox" type="text" placeholder="e.g., Deakin" style="width:200px" />
+        </label>
+        <span class="pill" id="countPill">0 loaded</span>
+      </div>
+
+      <div id="grid" class="grid" aria-live="polite"></div>
+
+      <div class="footer">
+        <strong>Attribution & licensing:</strong> Portraits are displayed from Wikimedia Commons files referenced by Wikidata. Each card links to Wikidata and the Commons file page.
+      </div>
+    </section>
+
+    <section id="quizSection" style="display:none">
+      <div class="quiz">
+        <div class="panel">
+          <div class="panelBody">
+            <div class="quizFace">
+              <div class="portrait"><img id="quizImg" alt="Prime Minister portrait" /></div>
+              <div class="qmeta">
+                <h2 class="qtitle">Who is this?</h2>
+                <p class="qhelp">Type their name (first+last is enough). Press Enter to check.</p>
+
+                <div class="field">
+                  <input type="text" id="answer" autocomplete="off" placeholder="Your answer…" />
+                  <button class="btn primary" id="checkBtn">Check</button>
+                </div>
+
+                <div class="result" id="resultBox" style="display:none"></div>
+
+                <div class="miniRow" style="margin-top:14px">
+                  <button class="btn" id="revealBtn">Reveal</button>
+                  <button class="btn" id="skipBtn">Skip</button>
+                  <button class="btn" id="nextBtn" disabled>Next</button>
+                </div>
+
+                <div class="small" style="margin-top:14px" id="quizMeta"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panelBody">
+            <h2 class="qtitle">Your stats</h2>
+            <div class="stats" style="margin-top:12px">
+              <div class="stat"><div class="k">Correct</div><div class="v" id="stCorrect">0</div></div>
+              <div class="stat"><div class="k">Attempted</div><div class="v" id="stAttempted">0</div></div>
+              <div class="stat"><div class="k">Accuracy</div><div class="v" id="stAccuracy">0%</div></div>
+              <div class="stat"><div class="k">Streak</div><div class="v" id="stStreak">0</div></div>
+            </div>
+
+            <div class="small" style="margin-top:14px">
+              <p style="margin:0 0 10px"><strong>Spaced repetition:</strong> stored in your browser (localStorage). Items you miss appear more often.</p>
+              <div class="miniRow">
+                <button class="btn" id="resetProgress">Reset progress</button>
+                <button class="btn" id="exportProgress">Export</button>
+              </div>
+              <p style="margin:10px 0 0" class="mono" id="exportBox"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">Tip: Common short forms are accepted (e.g., “Gough Whitlam”, “Billy Hughes”, “Ben Chifley”, “Bob Hawke”, “Tony Abbott”).</div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const WDQS = 'https://query.wikidata.org/sparql';
+
+  // Query all humans who held the office Prime Minister of Australia (Q319145) via position held (P39)
+  // and pull portrait image (P18) + term qualifiers (P580 start / P582 end) + English Wikipedia article.
+  const sparql = `
+SELECT ?pm ?pmLabel ?image ?start ?end ?article WHERE {
+  ?pm p:P39 ?st.
+  ?st ps:P39 wd:Q319145.
+  OPTIONAL { ?st pq:P580 ?start. }
+  OPTIONAL { ?st pq:P582 ?end. }
+  OPTIONAL { ?pm wdt:P18 ?image. }
+  OPTIONAL {
+    ?article schema:about ?pm;
+             schema:isPartOf <https://en.wikipedia.org/>.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}
+`;
+
+  function qs(sel){ return document.querySelector(sel); }
+  function qsa(sel){ return [...document.querySelectorAll(sel)]; }
+
+  const statusPill = qs('#statusPill');
+  const countPill = qs('#countPill');
+  const grid = qs('#grid');
+
+  let people = [];
+
+  const aliasesByQid = {
+    'Q309214': ['Chris Watson','John Christian Watson','J. C. Watson'],
+    'Q130903': ['Billy Hughes','William Hughes','W. M. Hughes'],
+    'Q317687': ['Ben Chifley','Joseph Chifley'],
+    'Q329757': ['Gough Whitlam','Edward Whitlam'],
+    'Q313720': ['Bob Hawke','Robert Hawke'],
+    'Q76764':  ['Tony Abbott','Anthony Abbott'],
+    'Q106507': ['Malcolm Turnbull'],
+  };
+
+  function toast(msg){
+    const t = qs('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  function normalizeName(s){
+    return (s||'')
+      .toLowerCase()
+      .replace(/\b(the\s+hon(ourable)?|rt\.?\s+hon(ourable)?|sir|dr|ac|ch|qc|kt|gcmg|kcmg|gcb|kc|mc)\b/g,'')
+      .replace(/[^a-z\s\-\']/g,' ')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+
+  function levenshtein(a,b){
+    a = a || ''; b = b || '';
+    const m = a.length, n = b.length;
+    if(!m) return n;
+    if(!n) return m;
+    const dp = Array.from({length:m+1}, () => new Array(n+1).fill(0));
+    for(let i=0;i<=m;i++) dp[i][0]=i;
+    for(let j=0;j<=n;j++) dp[0][j]=j;
+    for(let i=1;i<=m;i++){
+      for(let j=1;j<=n;j++){
+        const cost = a[i-1]===b[j-1] ? 0 : 1;
+        dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
+      }
+    }
+    return dp[m][n];
+  }
+
+  function pickBestImageUrl(imageUrl){
+    return imageUrl;
+  }
+
+  function commonsFileFromImageUrl(url){
+    try{
+      const u = new URL(url);
+      const parts = u.pathname.split('/');
+      return decodeURIComponent(parts[parts.length-1]);
+    }catch(e){ return null; }
+  }
+
+  function year(d){
+    if(!d) return null;
+    const m = /^\d{4}/.exec(d);
+    return m ? m[0] : null;
+  }
+
+  function formatTermList(terms){
+    const uniq = [];
+    const seen = new Set();
+    for(const t of terms){
+      const s = year(t.start) || '?';
+      const e = year(t.end) || 'present';
+      const k = s+'–'+e;
+      if(!seen.has(k)){ seen.add(k); uniq.push(k); }
+    }
+    return uniq.join('; ');
+  }
+
+  function eraBucket(firstYear){
+    // Buckets are for study filtering only (you can redefine these any time):
+    // Early: 1901–1949
+    // Mid-century: 1950–1971
+    // Modern: 1972–1995 (up to and including the Keating era; boundary at the 1996 election)
+    // Contemporary: 1996–present
+    if(!firstYear) return 'all';
+    const y = Number(firstYear);
+    if(y <= 1949) return 'early';
+    if(y <= 1971) return 'midcentury';
+    if(y <= 1995) return 'modern';
+    return 'contemporary';
+  }
+
+  async function runQuery(){
+    const url = WDQS + '?format=json&query=' + encodeURIComponent(sparql);
+    const res = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' }});
+    if(!res.ok) throw new Error('WDQS request failed: ' + res.status);
+    return res.json();
+  }
+
+  function ingest(rows){
+    const by = new Map();
+    for(const r of rows){
+      const pm = r.pm?.value;
+      if(!pm) continue;
+      const qid = pm.split('/').pop();
+      const name = r.pmLabel?.value || qid;
+      const image = r.image?.value || null;
+      const start = r.start?.value || null;
+      const end = r.end?.value || null;
+      const article = r.article?.value || null;
+
+      if(!by.has(qid)){
+        by.set(qid, { qid, name, image, terms: [], article, wikidataUrl: pm, commonsFile: image ? commonsFileFromImageUrl(image) : null });
+      }
+      const obj = by.get(qid);
+      if(image && !obj.image){ obj.image=image; obj.commonsFile=commonsFileFromImageUrl(image); }
+      if(article && !obj.article){ obj.article=article; }
+      if(start || end){ obj.terms.push({start, end}); }
+    }
+
+    const arr = [...by.values()].map(p => {
+      const firstStart = p.terms.map(t=>t.start).filter(Boolean).sort()[0] || null;
+      p.firstYear = year(firstStart);
+      p.era = eraBucket(p.firstYear);
+      return p;
+    });
+
+    arr.sort((a,b) => (Number(a.firstYear||9999) - Number(b.firstYear||9999)));
+    return arr;
+  }
+
+  function svgPlaceholder(text){
+    const safe = (text||'').replace(/[<>&]/g,'');
+    const svg = `
+<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800'>
+  <defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'>
+    <stop offset='0' stop-color='#1a2a66'/><stop offset='1' stop-color='#0b1020'/>
+  </linearGradient></defs>
+  <rect width='100%' height='100%' fill='url(#g)'/>
+  <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle'
+        font-family='Arial' font-size='34' fill='rgba(255,255,255,.85)'>No image</text>
+  <text x='50%' y='56%' dominant-baseline='middle' text-anchor='middle'
+        font-family='Arial' font-size='18' fill='rgba(255,255,255,.65)'>${safe}</text>
+</svg>`;
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  function renderStudy(){
+    const era = qs('#eraSelect').value;
+    const query = normalizeName(qs('#searchBox').value);
+
+    const filtered = people.filter(p => {
+      if(era !== 'all' && p.era !== era) return false;
+      if(query){
+        const n = normalizeName(p.name);
+        if(!n.includes(query)) return false;
+      }
+      return true;
+    });
+
+    grid.innerHTML = '';
+    for(const p of filtered){
+      const card = document.createElement('div');
+      card.className = 'card hiddenName';
+
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'imgWrap';
+
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.alt = p.name;
+      img.src = p.image ? pickBestImageUrl(p.image) : svgPlaceholder(p.name);
+      imgWrap.appendChild(img);
+
+      const badge = document.createElement('div');
+      badge.className = 'badge';
+      badge.textContent = p.firstYear ? p.firstYear : '—';
+      imgWrap.appendChild(badge);
+
+      const body = document.createElement('div');
+      body.className = 'cardBody';
+
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = p.name;
+
+      const term = document.createElement('div');
+      term.className = 'term';
+      term.textContent = p.terms.length ? ('Term(s): ' + formatTermList(p.terms)) : 'Term(s): —';
+
+      const mini = document.createElement('div');
+      mini.className = 'miniRow';
+
+      const toggle = document.createElement('button');
+      toggle.className = 'btn toggle';
+      toggle.textContent = 'Reveal';
+      toggle.addEventListener('click', () => {
+        card.classList.toggle('hiddenName');
+        toggle.textContent = card.classList.contains('hiddenName') ? 'Reveal' : 'Hide';
+      });
+
+      const links = document.createElement('div');
+      links.style.display='flex';
+      links.style.gap='8px';
+      links.style.alignItems='center';
+
+      const wd = document.createElement('a');
+      wd.href = p.wikidataUrl;
+      wd.target = '_blank';
+      wd.rel = 'noopener';
+      wd.textContent = 'Wikidata';
+      wd.style.fontSize='12px';
+
+      const cm = document.createElement('a');
+      cm.target = '_blank';
+      cm.rel = 'noopener';
+      cm.style.fontSize='12px';
+      if(p.commonsFile){
+        cm.href = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(p.commonsFile);
+        cm.textContent = 'Commons';
+      } else {
+        cm.href = p.article || p.wikidataUrl;
+        cm.textContent = 'Source';
+      }
+
+      links.appendChild(wd);
+      links.appendChild(cm);
+      mini.appendChild(toggle);
+      mini.appendChild(links);
+
+      body.appendChild(name);
+      body.appendChild(term);
+      body.appendChild(mini);
+
+      card.appendChild(imgWrap);
+      card.appendChild(body);
+      grid.appendChild(card);
+    }
+
+    countPill.textContent = filtered.length + ' shown / ' + people.length + ' total';
+  }
+
+  // --------------------
+  // Quiz engine
+  // --------------------
+
+  const STORAGE_KEY = 'aus_pm_memory_trainer_v2';
+
+  function loadProgress(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch(e){ return {}; }
+  }
+  function saveProgress(p){ localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
+
+  function defaultItemState(){
+    return { box: 1, due: 0, seen: 0, correct: 0, wrong: 0 };
+  }
+
+  function nowDay(){
+    const d = new Date();
+    d.setHours(0,0,0,0);
+    return d.getTime();
+  }
+
+  function nextDue(box){
+    const gaps = {1:0,2:1,3:3,4:7,5:14};
+    const g = gaps[box] ?? 0;
+    return nowDay() + g*86400000;
+  }
+
+  let progress = loadProgress();
+  let current = null;
+  let answered = false;
+
+  function ensureProgress(){
+    for(const p of people){
+      if(!progress[p.qid]) progress[p.qid] = defaultItemState();
+    }
+    saveProgress(progress);
+  }
+
+  function duePool(){
+    const today = nowDay();
+    const due = [];
+    const learning = [];
+
+    for(const p of people){
+      const st = progress[p.qid] || defaultItemState();
+      if(st.due <= today) due.push(p);
+      else if(st.box <= 2) learning.push(p);
+    }
+
+    const pool = due.length ? due : (learning.length ? learning : people);
+
+    const weighted = [];
+    for(const p of pool){
+      const box = (progress[p.qid]?.box) || 1;
+      const w = Math.max(1, 6 - box);
+      for(let i=0;i<w;i++) weighted.push(p);
+    }
+    return weighted;
+  }
+
+  function pickNext(){
+    const pool = duePool();
+    if(!pool.length) return null;
+
+    // Avoid immediate repeats unless there is only one unique candidate.
+    const unique = new Set(pool.map(x => x.qid));
+    let pick = pool[Math.floor(Math.random()*pool.length)];
+    if(current && unique.size > 1){
+      for(let i=0;i<12;i++){
+        if(pick.qid !== current.qid) break;
+        pick = pool[Math.floor(Math.random()*pool.length)];
+      }
+    }
+    return pick;
+  }
+
+  function acceptedAnswers(person){
+    const out = new Set();
+    const normLabel = normalizeName(person.name);
+    if(normLabel) out.add(normLabel);
+
+    const parts = normLabel.split(' ').filter(Boolean);
+    if(parts.length >= 2) out.add(parts[0] + ' ' + parts[parts.length-1]);
+
+    const extra = aliasesByQid[person.qid];
+    if(extra) for(const a of extra) out.add(normalizeName(a));
+
+    return [...out];
+  }
+
+  function isCorrect(userInput, person){
+    const u = normalizeName(userInput);
+    if(!u) return {ok:false, best:null, dist:null};
+
+    const answers = acceptedAnswers(person);
+    let best = null;
+    let bestDist = Infinity;
+
+    for(const a of answers){
+      if(u === a) return {ok:true, best:a, dist:0};
+      const d = levenshtein(u, a);
+      if(d < bestDist){ bestDist = d; best = a; }
+    }
+
+    const threshold = Math.max(1, Math.floor((best || u).length * 0.12));
+    return {ok: bestDist <= threshold, best, dist: bestDist};
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function setQuizPerson(p){
+    if(!p) return;
+    current = p;
+    answered = false;
+
+    // Force repaint & prevent "stuck portrait" issues
+    const imgEl = qs('#quizImg');
+    imgEl.src = '';
+    const baseSrc = p.image ? pickBestImageUrl(p.image) : svgPlaceholder(p.name);
+    imgEl.src = (p.image ? (baseSrc + (baseSrc.includes('?') ? '&' : '?') + 'v=' + Date.now()) : baseSrc);
+
+    qs('#answer').value = '';
+    qs('#resultBox').style.display = 'none';
+    qs('#nextBtn').disabled = true;
+
+    const terms = p.terms.length ? formatTermList(p.terms) : '—';
+    const links = [];
+    if(p.article) links.push(`<a href="${p.article}" target="_blank" rel="noopener">Wikipedia</a>`);
+    links.push(`<a href="${p.wikidataUrl}" target="_blank" rel="noopener">Wikidata</a>`);
+    if(p.commonsFile) links.push(`<a href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(p.commonsFile)}" target="_blank" rel="noopener">Commons file</a>`);
+
+    qs('#quizMeta').innerHTML = `Term(s): <strong>${terms}</strong><br/>Links: ${links.join(' · ')}`;
+    qs('#answer').focus();
+  }
+
+  function updateStats(){
+    const attempted = progress._attempted || 0;
+    const correct = progress._correct || 0;
+    const streak = progress._streak || 0;
+    qs('#stAttempted').textContent = attempted;
+    qs('#stCorrect').textContent = correct;
+    qs('#stStreak').textContent = streak;
+    qs('#stAccuracy').textContent = attempted ? Math.round((correct/attempted)*100) + '%' : '0%';
+  }
+
+  function markResult(ok){
+    const st = progress[current.qid] || defaultItemState();
+    st.seen += 1;
+    if(ok){
+      st.correct += 1;
+      st.box = Math.min(5, st.box + 1);
+      progress._correct = (progress._correct || 0) + 1;
+      progress._streak = (progress._streak || 0) + 1;
+    } else {
+      st.wrong += 1;
+      st.box = 1;
+      progress._streak = 0;
+    }
+    st.due = nextDue(st.box);
+    progress[current.qid] = st;
+    progress._attempted = (progress._attempted || 0) + 1;
+    saveProgress(progress);
+    updateStats();
+  }
+
+  function showResult(ok, message){
+    const box = qs('#resultBox');
+    box.style.display = 'block';
+    box.className = 'result ' + (ok ? 'ok' : 'bad');
+    box.innerHTML = message;
+  }
+
+  function checkAnswer(){
+    if(!current || answered) return;
+    const val = qs('#answer').value;
+    const r = isCorrect(val, current);
+    answered = true;
+
+    if(r.ok){
+      showResult(true, `✅ Correct! <strong>${escapeHtml(current.name)}</strong>`);
+      toast('Nice — correct!');
+    } else {
+      const suggestion = r.best ? `<br/><span class="small">Closest match: <span class="mono">${escapeHtml(r.best)}</span></span>` : '';
+      showResult(false, `❌ Not quite. Correct answer: <strong>${escapeHtml(current.name)}</strong>${suggestion}`);
+      toast('Missed — it will reappear sooner.');
+    }
+
+    markResult(r.ok);
+    qs('#nextBtn').disabled = false;
+  }
+
+  function reveal(){
+    if(!current) return;
+    showResult(false, `👀 Reveal: <strong>${escapeHtml(current.name)}</strong><br/><span class="small">(Reveals count as “wrong” for spacing.)</span>`);
+    if(!answered){
+      answered = true;
+      markResult(false);
+      qs('#nextBtn').disabled = false;
+    }
+  }
+
+  function skip(){
+    const nxt = pickNext();
+    if(nxt) setQuizPerson(nxt);
+  }
+
+  function next(){
+    const nxt = pickNext();
+    if(nxt) setQuizPerson(nxt);
+  }
+
+  function setMode(mode){
+    const study = qs('#studySection');
+    const quiz = qs('#quizSection');
+    if(mode === 'quiz'){
+      study.style.display = 'none';
+      quiz.style.display = 'block';
+      qs('#modeStudy').classList.remove('primary');
+      qs('#modeQuiz').classList.add('primary');
+      ensureProgress();
+      updateStats();
+      if(!current) setQuizPerson(pickNext());
+    } else {
+      quiz.style.display = 'none';
+      study.style.display = 'block';
+      qs('#modeQuiz').classList.remove('primary');
+      qs('#modeStudy').classList.add('primary');
+      renderStudy();
+    }
+  }
+
+  // UI wiring
+  qs('#modeStudy').addEventListener('click', () => setMode('study'));
+  qs('#modeQuiz').addEventListener('click', () => setMode('quiz'));
+
+  qs('#hideAll').addEventListener('click', () => qsa('.card').forEach(c => c.classList.add('hiddenName')));
+  qs('#showAll').addEventListener('click', () => qsa('.card').forEach(c => c.classList.remove('hiddenName')));
+
+  qs('#eraSelect').addEventListener('change', renderStudy);
+  qs('#searchBox').addEventListener('input', () => { clearTimeout(window.__sdeb); window.__sdeb = setTimeout(renderStudy, 120); });
+
+  qs('#checkBtn').addEventListener('click', checkAnswer);
+  qs('#answer').addEventListener('keydown', (e) => { if(e.key === 'Enter') checkAnswer(); });
+  qs('#revealBtn').addEventListener('click', reveal);
+  qs('#skipBtn').addEventListener('click', skip);
+  qs('#nextBtn').addEventListener('click', next);
+
+  qs('#resetProgress').addEventListener('click', () => {
+    if(!confirm('Reset all quiz progress stored in this browser?')) return;
+    progress = {};
+    saveProgress(progress);
+    ensureProgress();
+    updateStats();
+    toast('Progress reset.');
+  });
+
+  qs('#exportProgress').addEventListener('click', () => {
+    const payload = { exportedAt: new Date().toISOString(), version: 2, progress };
+    const s = JSON.stringify(payload);
+    qs('#exportBox').textContent = s;
+    navigator.clipboard?.writeText(s).then(()=>toast('Copied export JSON to clipboard.'),()=>toast('Export shown below (copy manually).'));
+  });
+
+  // Bootstrap
+  (async () => {
+    try{
+      statusPill.innerHTML = '<span class="spinner" aria-hidden="true"></span> Loading from Wikidata…';
+      const json = await runQuery();
+      const rows = json?.results?.bindings || [];
+      people = ingest(rows);
+
+      statusPill.textContent = `Loaded ${people.length} people`;
+      countPill.textContent = people.length + ' loaded';
+      renderStudy();
+
+    } catch (e){
+      console.error(e);
+      statusPill.innerHTML = '⚠️ Failed to load. Check your internet connection, then reload.';
+      statusPill.style.borderColor = 'rgba(255, 209, 102, .35)';
+      statusPill.style.background = 'rgba(255, 209, 102, .10)';
+      grid.innerHTML = '<div class="panel"><div class="panelBody">Could not load data from Wikidata. If you are offline, the app can’t fetch images. Try again when online.</div></div>';
+    }
+  })();
+
+})();
+</script>
+</body>
+</html>
