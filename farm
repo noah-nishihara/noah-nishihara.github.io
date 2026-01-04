@@ -1,0 +1,2360 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dumpling Farm</title>
+  <style>
+    :root{
+      --px: 4px;
+      --tile: 74px;
+      --cols: 10;
+
+      /* bright sky palette */
+      --bg0:#dff3ff;
+      --bg1:#bfe6ff;
+      --bg2:#8dd2ff;
+
+      --ink:#13223a;
+      --muted:#38577a;
+      --card:#ffffffcc;
+      --card2:#ffffffa8;
+      --line: rgba(19,34,58,.22);
+      --shadow: rgba(0,0,0,.20);
+
+      --grass1:#4ade80;
+      --grass2:#22c55e;
+      --dirt1:#c08457;
+      --dirt2:#8b5a2b;
+
+      --accent:#f59e0b;
+      --blue:#3b82f6;
+      --good:#10b981;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+
+      --wood1:#d6a97a;
+      --wood2:#b07943;
+      --wood3:#8a5a2f;
+
+      --font: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(900px 600px at 20% 10%, #ffffff 0%, var(--bg0) 35%, var(--bg1) 70%, var(--bg2) 100%);
+      display:flex;
+      justify-content:center;
+      padding: 16px;
+      image-rendering: pixelated;
+    }
+
+    .app{
+      width:min(1280px, 100%);
+      display:grid;
+      gap:14px;
+      grid-template-columns: 1.35fr .85fr;
+      align-content:start;
+      max-height: calc(100vh - 32px);
+      min-height: 0;
+    }
+
+    .card{
+      border: 3px solid var(--line);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: 0 10px 0 rgba(0,0,0,.08), 0 24px 40px var(--shadow);
+      overflow:hidden;
+      border-radius: 10px;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+      max-height: 100%;
+    }
+
+    .head{
+      padding: 14px;
+      border-bottom: 3px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.90), rgba(255,255,255,.70));
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    h1{
+      margin:0 0 6px 0;
+      font-size: 16px;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+
+    .sub{
+      margin:0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .body{
+      padding: 14px;
+      overflow:auto;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .pill{
+      border: 3px solid var(--line);
+      background: rgba(255,255,255,.85);
+      padding: 6px 10px;
+      font-size: 12px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      box-shadow: 0 6px 0 rgba(0,0,0,.08);
+      white-space: nowrap;
+      border-radius: 10px;
+    }
+
+    .badge{
+      border: 3px solid var(--line);
+      background: rgba(255,255,255,.75);
+      padding: 6px 10px;
+      font-size: 11px;
+      color: var(--muted);
+      box-shadow: 0 6px 0 rgba(0,0,0,.08);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      white-space: nowrap;
+      border-radius: 10px;
+    }
+
+    button{
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 1000;
+      letter-spacing: .3px;
+      padding: 10px 10px;
+      border: 3px solid var(--line);
+      background: rgba(255,255,255,.88);
+      color: var(--ink);
+      cursor:pointer;
+      user-select:none;
+      box-shadow: 0 7px 0 rgba(0,0,0,.10);
+      transform: translateY(0);
+      border-radius: 10px;
+    }
+    button:hover{ filter: brightness(1.03); }
+    button:active{ transform: translateY(4px); box-shadow: 0 3px 0 rgba(0,0,0,.10); }
+    button:disabled{ opacity:.45; cursor:not-allowed; filter: grayscale(.15); }
+
+    .b-blue{ border-color: rgba(59,130,246,.55); background: rgba(59,130,246,.12); }
+    .b-good{ border-color: rgba(16,185,129,.55); background: rgba(16,185,129,.12); }
+    .b-warn{ border-color: rgba(245,158,11,.55); background: rgba(245,158,11,.13); }
+    .b-bad{ border-color: rgba(239,68,68,.55); background: rgba(239,68,68,.10); }
+
+    .controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+      align-items:center;
+    }
+
+    /* Energy / Clock */
+    .energy, .clock{
+      min-width: 280px;
+      border: 3px solid var(--line);
+      background: rgba(255,255,255,.80);
+      padding: 10px;
+      box-shadow: 0 7px 0 rgba(0,0,0,.08);
+      border-radius: 10px;
+    }
+    .energy .meta, .clock .meta{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .bar, .clockBar{
+      border: 3px solid var(--line);
+      height: 16px;
+      background: rgba(0,0,0,.04);
+      overflow:hidden;
+      border-radius: 10px;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.28) 0 6px, rgba(255,255,255,0) 6px 12px),
+        linear-gradient(90deg, #f59e0b, #10b981);
+      transition: width .2s ease;
+    }
+    .clockBar > div{
+      height:100%;
+      width:0%;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.25) 0 5px, rgba(255,255,255,0) 5px 10px),
+        linear-gradient(90deg, #3b82f6, #f59e0b);
+      transition: width .15s ease;
+    }
+
+    /* Scrollable tilemap */
+    .gridWrap{
+      overflow:auto;
+      padding-bottom: 6px;
+      max-height: 72vh;
+      border: 3px dashed rgba(19,34,58,.18);
+      border-radius: 12px;
+      background: rgba(255,255,255,.35);
+      padding: 10px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(var(--cols), var(--tile));
+      gap: 10px;
+      justify-content:start;
+      width: max-content;
+    }
+
+    .plot{
+      width: var(--tile);
+      height: var(--tile);
+      border: 3px solid var(--line);
+      box-shadow: 0 7px 0 rgba(0,0,0,.10);
+      position:relative;
+      overflow:hidden;
+      background:
+        repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0 4px, rgba(0,0,0,0) 4px 8px),
+        linear-gradient(180deg, var(--dirt1), var(--dirt2));
+      border-radius: 12px;
+    }
+
+    .plot::before{
+      content:"";
+      position:absolute;
+      left:0; top:0;
+      width:100%;
+      height: 18px;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.30) 0 4px, rgba(0,0,0,0) 4px 10px),
+        linear-gradient(180deg, var(--grass1), var(--grass2));
+      border-bottom: 3px solid rgba(0,0,0,.12);
+    }
+
+    .plot.locked{
+      opacity: .55;
+      filter: grayscale(.25);
+    }
+
+    .plot .inner{
+      position:absolute;
+      inset: 0;
+      padding: 6px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+
+    .topline{
+      display:flex;
+      justify-content:space-between;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 16px;
+    }
+
+    .midline{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+      margin-top: 2px;
+      font-size: 11px;
+      font-weight: 1100;
+    }
+    .tiny{ font-size: 10px; color: var(--muted); }
+
+    .prog{
+      margin-top: 6px;
+      border: 3px solid var(--line);
+      height: 12px;
+      background: rgba(0,0,0,.04);
+      overflow:hidden;
+      border-radius: 10px;
+    }
+    .prog > div{
+      height:100%;
+      width:0%;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.26) 0 5px, rgba(255,255,255,0) 5px 10px),
+        linear-gradient(90deg, #3b82f6, #10b981);
+    }
+
+    .actions{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-start;
+    }
+    .actions button{
+      padding: 8px 8px;
+      font-size: 10px;
+      box-shadow: 0 6px 0 rgba(0,0,0,.10);
+    }
+    .actions button:active{
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 rgba(0,0,0,.10);
+    }
+
+    /* Sprites */
+    .sprite{
+      width: calc(var(--px) * 8);
+      height: calc(var(--px) * 8);
+      background: transparent;
+      display:inline-block;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 3px 0 rgba(0,0,0,.18));
+    }
+    .sprout{ box-shadow:
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #22c55e,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #16a34a,
+      calc(var(--px)*2) calc(var(--px)*4) 0 0 #86efac,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #22c55e,
+      calc(var(--px)*4) calc(var(--px)*4) 0 0 #86efac,
+      calc(var(--px)*2) calc(var(--px)*7) 0 0 #8b5a2b,
+      calc(var(--px)*3) calc(var(--px)*7) 0 0 #c08457,
+      calc(var(--px)*4) calc(var(--px)*7) 0 0 #8b5a2b; }
+
+    /* Crop sprites (same as prior bright version) */
+    .cabbage{ box-shadow:
+      calc(var(--px)*3) calc(var(--px)*1) 0 0 #86efac,
+      calc(var(--px)*2) calc(var(--px)*2) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #10b981,
+      calc(var(--px)*4) calc(var(--px)*2) 0 0 #34d399,
+      calc(var(--px)*1) calc(var(--px)*3) 0 0 #34d399,
+      calc(var(--px)*2) calc(var(--px)*3) 0 0 #10b981,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #86efac,
+      calc(var(--px)*4) calc(var(--px)*3) 0 0 #10b981,
+      calc(var(--px)*5) calc(var(--px)*3) 0 0 #34d399,
+      calc(var(--px)*2) calc(var(--px)*4) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #10b981,
+      calc(var(--px)*4) calc(var(--px)*4) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #10b981,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #34d399; }
+
+    .chives{ box-shadow:
+      calc(var(--px)*2) calc(var(--px)*1) 0 0 #86efac,
+      calc(var(--px)*3) calc(var(--px)*1) 0 0 #34d399,
+      calc(var(--px)*4) calc(var(--px)*1) 0 0 #10b981,
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #10b981,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #10b981,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*7) 0 0 #8b5a2b; }
+
+    .scallion{ box-shadow:
+      calc(var(--px)*3) calc(var(--px)*1) 0 0 #86efac,
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #10b981,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #10b981,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*7) 0 0 #8b5a2b; }
+
+    .garlic{ box-shadow:
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #fff7ed,
+      calc(var(--px)*4) calc(var(--px)*2) 0 0 #ffedd5,
+      calc(var(--px)*2) calc(var(--px)*3) 0 0 #ffedd5,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #fff7ed,
+      calc(var(--px)*4) calc(var(--px)*3) 0 0 #ffedd5,
+      calc(var(--px)*5) calc(var(--px)*3) 0 0 #fed7aa,
+      calc(var(--px)*2) calc(var(--px)*4) 0 0 #fed7aa,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #ffedd5,
+      calc(var(--px)*4) calc(var(--px)*4) 0 0 #fff7ed,
+      calc(var(--px)*5) calc(var(--px)*4) 0 0 #ffedd5,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #fed7aa,
+      calc(var(--px)*4) calc(var(--px)*5) 0 0 #ffedd5,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #f59e0b; }
+
+    .ginger{ box-shadow:
+      calc(var(--px)*2) calc(var(--px)*2) 0 0 #fdba74,
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #fb923c,
+      calc(var(--px)*4) calc(var(--px)*2) 0 0 #fdba74,
+      calc(var(--px)*1) calc(var(--px)*3) 0 0 #fb923c,
+      calc(var(--px)*2) calc(var(--px)*3) 0 0 #fdba74,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #fb923c,
+      calc(var(--px)*4) calc(var(--px)*3) 0 0 #fdba74,
+      calc(var(--px)*5) calc(var(--px)*3) 0 0 #fb923c,
+      calc(var(--px)*2) calc(var(--px)*4) 0 0 #fb923c,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #fdba74,
+      calc(var(--px)*4) calc(var(--px)*4) 0 0 #fb923c,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #fdba74,
+      calc(var(--px)*4) calc(var(--px)*5) 0 0 #fb923c; }
+
+    .wheat{ box-shadow:
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #fbbf24,
+      calc(var(--px)*4) calc(var(--px)*2) 0 0 #f59e0b,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #f59e0b,
+      calc(var(--px)*4) calc(var(--px)*3) 0 0 #fbbf24,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #fbbf24,
+      calc(var(--px)*4) calc(var(--px)*4) 0 0 #f59e0b,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #f59e0b,
+      calc(var(--px)*4) calc(var(--px)*5) 0 0 #fbbf24,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #8b5a2b; }
+
+    .corn{ box-shadow:
+      calc(var(--px)*2) calc(var(--px)*2) 0 0 #16a34a,
+      calc(var(--px)*5) calc(var(--px)*2) 0 0 #16a34a,
+      calc(var(--px)*2) calc(var(--px)*3) 0 0 #22c55e,
+      calc(var(--px)*5) calc(var(--px)*3) 0 0 #22c55e,
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #fbbf24,
+      calc(var(--px)*4) calc(var(--px)*2) 0 0 #f59e0b,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #f59e0b,
+      calc(var(--px)*4) calc(var(--px)*3) 0 0 #fbbf24,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #fbbf24,
+      calc(var(--px)*4) calc(var(--px)*4) 0 0 #f59e0b,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #f59e0b,
+      calc(var(--px)*4) calc(var(--px)*5) 0 0 #fbbf24,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #f59e0b; }
+
+    .carrot{ box-shadow:
+      calc(var(--px)*3) calc(var(--px)*1) 0 0 #fb923c,
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #f97316,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #fb923c,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #f97316,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #fb923c,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #f97316,
+      calc(var(--px)*2) calc(var(--px)*2) 0 0 #22c55e,
+      calc(var(--px)*4) calc(var(--px)*2) 0 0 #22c55e; }
+
+    .celery{ box-shadow:
+      calc(var(--px)*2) calc(var(--px)*2) 0 0 #86efac,
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #34d399,
+      calc(var(--px)*4) calc(var(--px)*2) 0 0 #86efac,
+      calc(var(--px)*2) calc(var(--px)*3) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #10b981,
+      calc(var(--px)*4) calc(var(--px)*3) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #10b981,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #34d399,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #8b5a2b; }
+
+    .mushroom{ box-shadow:
+      calc(var(--px)*2) calc(var(--px)*2) 0 0 #a78bfa,
+      calc(var(--px)*3) calc(var(--px)*2) 0 0 #8b5cf6,
+      calc(var(--px)*4) calc(var(--px)*2) 0 0 #a78bfa,
+      calc(var(--px)*1) calc(var(--px)*3) 0 0 #a78bfa,
+      calc(var(--px)*2) calc(var(--px)*3) 0 0 #8b5cf6,
+      calc(var(--px)*3) calc(var(--px)*3) 0 0 #a78bfa,
+      calc(var(--px)*4) calc(var(--px)*3) 0 0 #8b5cf6,
+      calc(var(--px)*5) calc(var(--px)*3) 0 0 #a78bfa,
+      calc(var(--px)*3) calc(var(--px)*4) 0 0 #6d28d9,
+      calc(var(--px)*3) calc(var(--px)*5) 0 0 #8b5cf6,
+      calc(var(--px)*3) calc(var(--px)*6) 0 0 #8b5a2b; }
+
+    /* Flower deco */
+    .deco{
+      position:absolute;
+      left:50%;
+      transform: translateX(-50%);
+      bottom: 8px;
+      pointer-events:none;
+      opacity:.95;
+    }
+    .flower{
+      width: calc(var(--px) * 8);
+      height: calc(var(--px) * 8);
+      display:inline-block;
+      box-shadow:
+        calc(var(--px)*3) calc(var(--px)*6) 0 0 #22c55e,
+        calc(var(--px)*4) calc(var(--px)*6) 0 0 #16a34a,
+        calc(var(--px)*3) calc(var(--px)*3) 0 0 #fb7185,
+        calc(var(--px)*4) calc(var(--px)*3) 0 0 #f472b6,
+        calc(var(--px)*2) calc(var(--px)*4) 0 0 #f472b6,
+        calc(var(--px)*3) calc(var(--px)*4) 0 0 #fb7185,
+        calc(var(--px)*4) calc(var(--px)*4) 0 0 #f472b6,
+        calc(var(--px)*5) calc(var(--px)*4) 0 0 #fb7185,
+        calc(var(--px)*3) calc(var(--px)*4) 0 0 #fbbf24,
+        calc(var(--px)*4) calc(var(--px)*4) 0 0 #f59e0b,
+        calc(var(--px)*2) calc(var(--px)*6) 0 0 #86efac,
+        calc(var(--px)*5) calc(var(--px)*6) 0 0 #86efac;
+      filter: drop-shadow(0 3px 0 rgba(0,0,0,.18));
+    }
+
+    /* Connected fences */
+    .fences{ position:absolute; inset:0; pointer-events:none; }
+    .edge{
+      position:absolute;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.35) 0 4px, rgba(0,0,0,0) 4px 9px),
+        linear-gradient(180deg, var(--wood1), var(--wood2));
+      border: 2px solid rgba(0,0,0,.12);
+      box-shadow: 0 3px 0 rgba(0,0,0,.12);
+      border-radius: 6px;
+    }
+    .edge.n{ left: 4px; right: 4px; top: 20px; height: 10px; }
+    .edge.s{ left: 4px; right: 4px; bottom: 6px; height: 10px; }
+    .edge.w{ top: 24px; bottom: 10px; left: 4px; width: 10px; }
+    .edge.e{ top: 24px; bottom: 10px; right: 4px; width: 10px; }
+    .post{
+      position:absolute;
+      width: 10px; height: 10px;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.28) 0 3px, rgba(0,0,0,0) 3px 7px),
+        linear-gradient(180deg, var(--wood2), var(--wood3));
+      border: 2px solid rgba(0,0,0,.12);
+      box-shadow: 0 3px 0 rgba(0,0,0,.12);
+      border-radius: 6px;
+    }
+    .post.nw{ left: 4px; top: 20px; }
+    .post.ne{ right: 4px; top: 20px; }
+    .post.sw{ left: 4px; bottom: 6px; }
+    .post.se{ right: 4px; bottom: 6px; }
+
+    /* Tabs */
+    .tabs{
+      display:flex;
+      gap:8px;
+      padding: 12px 14px;
+      border-bottom: 3px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.90), rgba(255,255,255,.70));
+      flex-wrap:wrap;
+      position: sticky;
+      top: 0;
+      z-index: 12;
+    }
+    .tab{
+      padding: 8px 10px;
+      border: 3px solid var(--line);
+      background: rgba(255,255,255,.82);
+      font-size: 12px;
+      font-weight: 1100;
+      cursor:pointer;
+      box-shadow: 0 6px 0 rgba(0,0,0,.08);
+      user-select:none;
+      border-radius: 10px;
+    }
+    .tab.active{
+      border-color: rgba(16,185,129,.55);
+      background: rgba(16,185,129,.12);
+    }
+    .panel{
+      display:none;
+      padding: 14px;
+      overflow: auto;
+      flex: 1 1 auto;
+      min-height: 0;
+      scroll-behavior: smooth;
+    }
+    .panel.active{ display:block; }
+
+    .item{
+      border: 3px solid var(--line);
+      background: rgba(255,255,255,.78);
+      padding: 12px;
+      box-shadow: 0 7px 0 rgba(0,0,0,.08);
+      margin-bottom: 12px;
+      border-radius: 12px;
+    }
+    .name{ font-weight: 1200; letter-spacing:.4px; text-transform: uppercase; font-size: 12px; }
+    .meta{ color: var(--muted); font-size: 11px; margin-top: 6px; line-height:1.4; }
+
+    .miniBtnRow{
+      margin-top:10px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:16px;
+      transform: translateX(-50%);
+      border: 3px solid var(--line);
+      background: rgba(255,255,255,.92);
+      padding: 10px 12px;
+      box-shadow: 0 8px 0 rgba(0,0,0,.08);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+      max-width: 92vw;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .35px;
+      border-radius: 12px;
+    }
+    .toast.show{ opacity:1; transform: translateX(-50%) translateY(-2px); }
+
+    @media (max-width: 920px){
+      .app{ grid-template-columns: 1fr; max-height: none; }
+      body{ padding: 10px; }
+      .card{ max-height: calc(100vh - 20px); }
+    }
+    @media (max-width: 520px){
+      :root{ --tile: 66px; --px: 3.5px; --cols: 8; }
+    }
+  
+    /* Scrollbar styling (optional but helpful) */
+    .panel::-webkit-scrollbar, .body::-webkit-scrollbar, .gridWrap::-webkit-scrollbar { width: 12px; height: 12px; }
+    .panel::-webkit-scrollbar-thumb, .body::-webkit-scrollbar-thumb, .gridWrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 10px; }
+    .panel::-webkit-scrollbar-track, .body::-webkit-scrollbar-track, .gridWrap::-webkit-scrollbar-track { background: rgba(0,0,0,.06); border-radius: 10px; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="head">
+        <div class="row">
+          <div>
+            <h1>Pixel Dumpling Farm — Bright (10×10 + Expand)</h1>
+            <p class="sub">
+              Scrollable 10×10 world. Start unlocked 5×5. Unlock more rows/cols via upgrades.
+              In‑game day = 15 minutes (Morning/Afternoon/Evening).
+            </p>
+          </div>
+          <div class="row" style="align-items:flex-start">
+            <div class="pill">COINS: <strong id="coins">0</strong></div>
+            <div class="pill">ALL DUMPL: <strong id="dumplTotal">0</strong></div>
+            <div class="pill">MODE: <strong id="modeTxt">FARM</strong></div>
+            <div class="pill">UNLOCK: <strong id="unlockTxt">5×5</strong></div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="b-blue" id="selScallion">SCALLION</button>
+          <button class="b-blue" id="selChives">CHIVES</button>
+          <button class="b-blue" id="selCabbage">CABBAGE</button>
+          <button class="b-blue" id="selGarlic">GARLIC</button>
+          <button class="b-blue" id="selGinger">GINGER</button>
+          <button class="b-blue" id="selWheat">WHEAT</button>
+          <button class="b-blue" id="selCorn">CORN</button>
+          <button class="b-blue" id="selCarrot">CARROT</button>
+          <button class="b-blue" id="selCelery">CELERY</button>
+          <button class="b-blue" id="selMushroom">MUSHROOM</button>
+
+          <span class="badge">SEED: <strong id="selSeed">SCALLION</strong></span>
+          <span class="badge">FERT: <strong id="fertCount">0</strong></span>
+          <span class="badge">BEAUTY: <strong id="beauty">0</strong></span>
+
+          <button class="b-blue" id="btnFullscreen" title="Toggle Fullscreen (F)">FULLSCREEN</button>
+
+          <button class="b-warn" id="toggleMode">DECOR MODE</button>
+          <button class="b-bad" id="reset">RESET</button>
+        </div>
+
+        <div class="row" style="margin-top:12px; align-items:flex-start;">
+          <div class="energy">
+            <div class="meta">
+              <span>⚡ ENERGY: <strong id="energyTxt">0/0</strong></span>
+              <span id="regenTxt"></span>
+            </div>
+            <div class="bar"><div id="energyFill"></div></div>
+            <div class="meta" style="margin-top:8px;">
+              <span>🍵 TEA: <strong id="teaCount">0</strong></span>
+              <span class="tiny">DRINK IN SHOP</span>
+            </div>
+          </div>
+
+          <div class="clock">
+            <div class="meta">
+              <span>⏱ DAY: <strong id="dayNum">0</strong></span>
+              <span>WINDOW: <strong id="windowTxt">MORNING</strong></span>
+            </div>
+            <div class="clockBar"><div id="clockFill"></div></div>
+            <div class="meta" style="margin-top:8px;">
+              <span>TIME: <strong id="timeTxt">0:00</strong></span>
+              <span class="tiny">15:00/DAY</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="sub" style="margin-top:10px">
+          Farm mode: click empty tile to plant. Decor mode: flower (tile) or fence (edge). Shift+click removes.
+          Locked tiles are visible but inactive until unlocked.
+        </p>
+      </div>
+
+      <div class="body">
+        <div class="gridWrap">
+          <div class="grid" id="grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDE -->
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" data-tab="shop">SHOP</div>
+        <div class="tab" data-tab="decor">DECOR</div>
+        <div class="tab" data-tab="animals">ANIMALS</div>
+        <div class="tab" data-tab="factory">FACTORY</div>
+        <div class="tab" data-tab="orders">ORDERS</div>
+        <div class="tab" data-tab="upgrades">UPGRADES</div>
+        <div class="tab" data-tab="bag">BAG</div>
+      </div>
+
+      <div class="panel active" id="panel-shop"></div>
+      <div class="panel" id="panel-decor"></div>
+      <div class="panel" id="panel-animals"></div>
+      <div class="panel" id="panel-factory"></div>
+      <div class="panel" id="panel-orders"></div>
+      <div class="panel" id="panel-upgrades"></div>
+      <div class="panel" id="panel-bag"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  // ---------- TIME ----------
+  const DAY_MS = 15 * 60 * 1000;
+  const WINDOW_MS = DAY_MS / 3;
+  const KEY = "pixel.dumpling.farm.big_expand.bright.v1";
+
+  // ---------- MAP ----------
+  const MAP_COLS = 10;
+  const MAP_ROWS = 10;
+  const MAP_COUNT = MAP_COLS * MAP_ROWS;
+
+  // ---------- TUNING ----------
+  const ENERGY_BASE_MAX = 20;
+  const ENERGY_BASE_REGEN_MS = 12_000;
+  const ENERGY_COST = { plant:1, water:1, harvest:1, fertilize:2 };
+
+  const WATER_COOLDOWN_MS = 5_000;
+  const FERTILIZER_COST = 35;
+  const FERTILIZER_FACTOR = 0.50;
+
+  const TEA_COST = 25;
+  const TEA_RESTORE = 8;
+
+  const FLOWER_COST = 12;
+  const FLOWER_BEAUTY = 1;
+  const FENCE_COST = 4;
+  const FENCE_REFUND_FACTOR = 0.5;
+
+  const BUILD_COST = {
+    factory: 250, feedmill: 180, starch: 320,
+    coop: 140, pigpen: 220, cowbarn: 280, sheeppen: 260, shrimppond: 260
+  };
+
+  const FEED_BUY_PRICE = 12;
+  const WHEAT_STARCH_PRICE = 18;
+  const TAPIOCA_STARCH_PRICE = 18;
+  const BAMBOO_SHOOTS_PRICE = 22;
+  const VERMICELLI_PRICE = 16;
+
+  const WATER_BOOST_MS = {
+    scallion: 8_000, chives: 10_000, cabbage: 12_000, garlic: 14_000, ginger: 16_000,
+    wheat: 12_000, corn: 12_000, carrot: 12_000, celery: 12_000, mushroom: 10_000
+  };
+
+  const CROPS = {
+    scallion: { name:"SCALLION", seedCost:6,  growDays:1.0, sell:8,  sprite:"scallion" },
+    chives:   { name:"CHIVES",   seedCost:8,  growDays:1.5, sell:11, sprite:"chives" },
+    cabbage:  { name:"CABBAGE",  seedCost:10, growDays:2.0, sell:15, sprite:"cabbage" },
+    garlic:   { name:"GARLIC",   seedCost:12, growDays:2.5, sell:18, sprite:"garlic" },
+    ginger:   { name:"GINGER",   seedCost:14, growDays:3.0, sell:20, sprite:"ginger" },
+    wheat:    { name:"WHEAT",    seedCost:10, growDays:2.0, sell:12, sprite:"wheat" },
+    corn:     { name:"CORN",     seedCost:12, growDays:2.0, sell:14, sprite:"corn" },
+    carrot:   { name:"CARROT",   seedCost:10, growDays:1.5, sell:13, sprite:"carrot" },
+    celery:   { name:"CELERY",   seedCost:11, growDays:1.8, sell:15, sprite:"celery" },
+    mushroom: { name:"MUSHROOM", seedCost:14, growDays:2.2, sell:19, sprite:"mushroom" }
+  };
+
+  // Animals
+  const EGG_RATE_FED = 0.8;
+  const EGG_RATE_UNFED = 0.4;
+  const CHICKEN_FEED_PER_HEN = 0.5;
+
+  const PIG_GROW_DAYS = 6, PIG_FEED_PER = 2, PIG_OUTPUT = { pork:6, pork_fat:2 };
+  const COW_GROW_DAYS = 8, COW_FEED_PER = 3, COW_OUTPUT = { beef:8 };
+  const SHEEP_GROW_DAYS = 7, SHEEP_FEED_PER = 2, SHEEP_OUTPUT = { lamb:7 };
+
+  // Shrimp
+  const SHRIMP_STOCK = 80, SHRIMP_GROW_DAYS = 4;
+  const SHRIMP_DAY_HUNGER_DROP = 30, SHRIMP_DAY_WQ_DROP = 10, SHRIMP_MAINTAIN_BOOST = 18;
+  const SHRIMP_FEED = {
+    light:  { hunger:+18, wq:-3,  costPellets:1 },
+    normal: { hunger:+28, wq:-6,  costPellets:1 },
+    heavy:  { hunger:+38, wq:-12, costPellets:2 }
+  };
+
+  // Recipes (product per recipeId)
+  const RECIPES = {
+    veg_jiaozi: { name:"VEG JIAOZI", inputs:{ cabbage:2, chives:1, scallion:1, wheat:1 }, out:10, timeDays:1.0, sellEach:16 },
+    chive_egg: { name:"CHIVE + EGG", inputs:{ chives:2, egg:2, wheat:1 }, out:8, timeDays:0.8, sellEach:16 },
+    pork_cabbage: { name:"PORK + CABBAGE", inputs:{ pork:2, cabbage:2, scallion:1, wheat:1 }, out:10, timeDays:1.0, sellEach:18 },
+    pork_chive: { name:"PORK + CHIVE", inputs:{ pork:2, chives:2, scallion:1, wheat:1 }, out:10, timeDays:1.1, sellEach:20 },
+    shrimp_chive: { name:"SHRIMP + CHIVE", inputs:{ shrimp:3, chives:2, wheat:1 }, optional:{ egg:1 }, bonus:0.15, out:10, timeDays:1.2, sellEach:26 },
+    siu_mai: { name:"SIU MAI", inputs:{ pork:2, shrimp:2, pork_fat:1, scallion:1, mushroom:1 }, out:10, timeDays:1.4, sellEach:34 },
+    beef_celery: { name:"BEEF + CELERY", inputs:{ beef:2, celery:2, scallion:1, wheat:1 }, out:10, timeDays:1.3, sellEach:28 },
+    lamb_carrot: { name:"LAMB + CARROT", inputs:{ lamb:2, carrot:2, scallion:1, wheat:1 }, out:10, timeDays:1.3, sellEach:30 },
+    tofu_mush: { name:"TOFU + MUSH", inputs:{ tofu:2, mushroom:2, cabbage:1, vermicelli:1, wheat:1 }, out:10, timeDays:1.2, sellEach:24 },
+    har_gow: { name:"HAR GOW", inputs:{ shrimp:3, bamboo_shoots:1, pork_fat:1, crystal_wrappers:10 }, out:10, timeDays:1.8, sellEach:44 }
+  };
+
+  // Upgrades
+  const UPGRADES = {
+    backpack: { name:"BACKPACK", desc:"+5 MAX ENERGY/LVL", base:120, step:90, max:4 },
+    routine:  { name:"ROUTINE", desc:"FASTER REGEN/LVL", base:140, step:110, max:4 },
+    factory_slots: { name:"FACTORY SLOTS", desc:"+1 QUEUE SLOT/LVL", base:160, step:140, max:3 },
+    factory_speed: { name:"FACTORY SPEED", desc:"-15% TIME/LVL", base:180, step:160, max:3 },
+    shrimp_aerator: { name:"AERATOR", desc:"+WQ PASSIVE/LVL", base:120, step:220, max:2 },
+    shrimp_auto: { name:"AUTO FEEDER", desc:"AUTO MORNING+EVENING", base:280, step:9999, max:1 },
+    shrimp_biofilter: { name:"BIOFILTER", desc:"+WQ PASSIVE/LVL", base:260, step:260, max:2 },
+    farm_expand: { name:"EXPAND FARM", desc:"+1 ROW OR COL", base:160, step:140, max:10 } // used as counter; actual unlock logic below
+  };
+
+  // Fence bitmask
+  const N = 1, E = 2, S = 4, W = 8;
+
+  // ---------- HELPERS ----------
+  const $ = s => document.querySelector(s);
+  const now = () => Date.now();
+  const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
+  
+  // ---------- FULLSCREEN ----------
+  function isFullscreen(){ return !!document.fullscreenElement; }
+
+  async function toggleFullscreen(){
+    try{
+      if(!isFullscreen()){
+        await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+      } else {
+        await document.exitFullscreen();
+      }
+      renderFullscreenButton();
+    } catch(e){
+      toast('FULLSCREEN NOT AVAILABLE');
+    }
+  }
+
+  function renderFullscreenButton(){
+    const b = document.getElementById('btnFullscreen');
+    if(!b) return;
+    b.textContent = isFullscreen() ? 'EXIT FULLSCREEN' : 'FULLSCREEN';
+  }
+
+  document.getElementById('btnFullscreen')?.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', renderFullscreenButton);
+
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+    if(tag === 'input' || tag === 'textarea') return;
+    if(e.key && e.key.toLowerCase() === 'f'){
+      e.preventDefault();
+      toggleFullscreen();
+    }
+  });
+
+
+  function toast(msg){
+    const el = $("#toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.classList.remove("show"), 1700);
+  }
+
+  function fmtClock(ms){
+    const totalSec = Math.floor(ms/1000);
+    const m = Math.floor(totalSec/60);
+    const s = totalSec%60;
+    return `${m}:${String(s).padStart(2,"0")}`;
+  }
+
+  function dayIndex(t, epoch){ return Math.floor((t-epoch)/DAY_MS); }
+  function msIntoDay(t, epoch){ const d=dayIndex(t,epoch); return (t-epoch)-d*DAY_MS; }
+  function windowKey(msd){ return msd < WINDOW_MS ? "morning" : (msd < WINDOW_MS*2 ? "afternoon" : "evening"); }
+  function windowName(msd){ return msd < WINDOW_MS ? "MORNING" : (msd < WINDOW_MS*2 ? "AFTERNOON" : "EVENING"); }
+
+  function hash01(a,b){
+    let x = (a*73856093) ^ (b*19349663);
+    x = (x<<13) ^ x;
+    const r = (1.0 - ((x * (x * x * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0);
+    return (r + 1) / 2;
+  }
+
+  // ---------- STATE ----------
+  function defaultState(){
+    const invCrops = {}, invSeeds = {};
+    Object.keys(CROPS).forEach(k=>{ invCrops[k]=0; invSeeds[k]= (k==="scallion"? 10:0); });
+
+    const products = {};
+    Object.keys(RECIPES).forEach(k=> products[k]=0);
+
+    return {
+      version: 1,
+      epoch: now(),
+      coins: 160,
+      mode: "farm",
+      selectedSeed: "scallion",
+      selectedTool: "flower",
+
+      // unlocked area starts 5x5 inside a fixed 10x10 map
+      unlockedRows: 5,
+      unlockedCols: 5,
+
+      energy: ENERGY_BASE_MAX,
+      lastEnergyAt: now(),
+
+      inv: {
+        crops: invCrops,
+        seeds: invSeeds,
+        fertilizer: 0,
+        tea: 0,
+        feedPellets: 10,
+
+        egg: 0, pork: 0, pork_fat: 0, shrimp: 0, beef: 0, lamb: 0,
+
+        wheat_starch: 0, tapioca_starch: 0, bamboo_shoots: 0,
+        vermicelli: 0, tofu: 0, crystal_wrappers: 0,
+
+        products
+      },
+
+      buildings: {
+        factory:false, feedmill:false, starch:false,
+        coop:false, pigpen:false, cowbarn:false, sheeppen:false, shrimppond:false
+      },
+
+      upgrades: {
+        backpack:0, routine:0, factory_slots:0, factory_speed:0,
+        shrimp_aerator:0, shrimp_auto:0, shrimp_biofilter:0,
+        farm_expand:0
+      },
+
+      plots: Array.from({length:MAP_COUNT}, (_,i)=>({
+        id:i,
+        cropId:null,
+        plantedAt:null,
+        growMs:null,
+        lastWaterAt:0,
+        flower:false,
+        fenceMask:0
+      })),
+
+      chickens: { hens:0, fedDay:-1 },
+      pigs: { count:0, active:false, startDay:-1, endDay:-1, fedDays:{} },
+      cows: { count:0, active:false, startDay:-1, endDay:-1, fedDays:{} },
+      sheep:{ count:0, active:false, startDay:-1, endDay:-1, fedDays:{} },
+
+      shrimpPond:{
+        owned:false, active:false, startDay:-1, endDay:-1,
+        stock: SHRIMP_STOCK, hunger:70, wq:80, maintainDay:-1,
+        windowFed:{ morning:false, afternoon:false, evening:false }
+      },
+
+      factory:{ queue:[] },
+      orders:{ day:-1, list:[] },
+
+      _lastDayProcessed:null
+    };
+  }
+
+  let state = load() ?? defaultState();
+
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch{} }
+  function load(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return null;
+      const s = JSON.parse(raw);
+      if(!s || s.version !== 1) return null;
+      return s;
+    }catch{ return null; }
+  }
+
+  // ---------- ENERGY ----------
+  function energyMax(){ return ENERGY_BASE_MAX + state.upgrades.backpack*5; }
+  function regenMsPer1(){ return Math.max(6_000, ENERGY_BASE_REGEN_MS - state.upgrades.routine*1_500); }
+
+  function updateEnergy(){
+    const t=now();
+    const elapsed = t - (state.lastEnergyAt||t);
+    if(elapsed<=0) return;
+    const interval = regenMsPer1();
+    const gained = Math.floor(elapsed/interval);
+    if(gained>0){
+      state.energy = clamp(state.energy+gained, 0, energyMax());
+      state.lastEnergyAt += gained*interval;
+      save();
+    } else {
+      state.energy = clamp(state.energy, 0, energyMax());
+    }
+  }
+
+  function msToNextEnergy(){
+    if(state.energy >= energyMax()) return 0;
+    return Math.max(0, regenMsPer1() - (now()-state.lastEnergyAt));
+  }
+
+  function spendEnergy(cost){
+    updateEnergy();
+    if(state.energy < cost){
+      toast(`NO ENERGY. +1 IN ~${Math.ceil(msToNextEnergy()/1000)}S`);
+      return false;
+    }
+    state.energy -= cost;
+    save();
+    return true;
+  }
+
+  // ---------- IN-GAME CLOCK ----------
+  function curDay(){ return dayIndex(now(), state.epoch); }
+  function curMsIntoDay(){ return msIntoDay(now(), state.epoch); }
+
+  function ensureDailyTick(){
+    if(state._lastDayProcessed==null) state._lastDayProcessed = curDay();
+    const d = curDay();
+    while(state._lastDayProcessed < d){
+      state._lastDayProcessed++;
+      onNewDay(state._lastDayProcessed);
+    }
+  }
+
+  // ---------- ORDERS ----------
+  function recipeUnlocked(rid){
+    if(!state.buildings.factory) return false;
+    if(rid === "har_gow") return state.buildings.starch && state.buildings.shrimppond && state.buildings.pigpen;
+    if(rid === "siu_mai") return state.buildings.pigpen && state.buildings.shrimppond;
+    if(rid === "shrimp_chive") return state.buildings.shrimppond;
+    if(rid === "pork_cabbage" || rid === "pork_chive") return state.buildings.pigpen;
+    if(rid === "beef_celery") return state.buildings.cowbarn;
+    if(rid === "lamb_carrot") return state.buildings.sheeppen;
+    if(rid === "chive_egg") return state.buildings.coop;
+    return true;
+  }
+
+  function generateOrdersForDay(day){
+    if(state.orders.day === day) return;
+    if(!state.buildings.factory){
+      state.orders = { day, list:[] };
+      save();
+      return;
+    }
+    const pool = Object.keys(RECIPES).filter(rid => recipeUnlocked(rid));
+    if(pool.length === 0){
+      state.orders = { day, list:[] };
+      save(); return;
+    }
+
+    const list = [];
+    for(let i=0;i<3;i++){
+      const pick = pool[Math.floor(hash01(day, 100+i)*pool.length)];
+      const baseQty = 8 + Math.floor(hash01(day, 200+i)*18);
+      const r = RECIPES[pick];
+      const rewardCoins = Math.floor(baseQty * r.sellEach * 1.25);
+      const rewardFeed = (hash01(day, 300+i) < 0.5) ? 1 : 2;
+      list.push({ id:`ord_${day}_${i}`, recipeId:pick, qty:baseQty, rewardCoins, rewardFeed, done:false });
+    }
+    state.orders = { day, list };
+    save();
+  }
+
+  function fulfillOrder(orderId){
+    const o = state.orders.list.find(x=>x.id===orderId);
+    if(!o || o.done) return;
+    const have = state.inv.products[o.recipeId] || 0;
+    if(have < o.qty) return toast("NOT ENOUGH DUMPL");
+    state.inv.products[o.recipeId] -= o.qty;
+    state.coins += o.rewardCoins;
+    state.inv.feedPellets += o.rewardFeed;
+    o.done = true;
+    save(); renderAll();
+    toast("ORDER COMPLETE");
+  }
+
+  // ---------- DAILY TICK ----------
+  function onNewDay(day){
+    generateOrdersForDay(day);
+
+    // Shrimp drift
+    if(state.buildings.shrimppond && state.shrimpPond.active){
+      state.shrimpPond.hunger = clamp(state.shrimpPond.hunger - SHRIMP_DAY_HUNGER_DROP, 0, 100);
+
+      let wqDrop = SHRIMP_DAY_WQ_DROP;
+      if(state.upgrades.shrimp_biofilter > 0){
+        wqDrop = Math.max(0, wqDrop - (8*state.upgrades.shrimp_biofilter));
+      }
+      state.shrimpPond.wq = clamp(state.shrimpPond.wq - wqDrop, 0, 100);
+
+      if(state.upgrades.shrimp_aerator > 0){
+        state.shrimpPond.wq = clamp(state.shrimpPond.wq + (3 + 2*(state.upgrades.shrimp_aerator-1)), 0, 100);
+      }
+
+      state.shrimpPond.maintainDay = -1;
+      state.shrimpPond.windowFed = { morning:false, afternoon:false, evening:false };
+    }
+
+    // Chickens lay eggs
+    if(state.buildings.coop && state.chickens.hens > 0){
+      const fed = state.chickens.fedDay === day;
+      for(let i=0;i<state.chickens.hens;i++){
+        const r = hash01(day, i);
+        const p = fed ? EGG_RATE_FED : EGG_RATE_UNFED;
+        if(r < p) state.inv.egg += 1;
+      }
+      state.chickens.fedDay = -1;
+    }
+
+    // Missed feed extends grow
+    if(state.buildings.pigpen && state.pigs.active) if(!state.pigs.fedDays[day]) state.pigs.endDay += 1;
+    if(state.buildings.cowbarn && state.cows.active) if(!state.cows.fedDays[day]) state.cows.endDay += 1;
+    if(state.buildings.sheeppen && state.sheep.active) if(!state.sheep.fedDays[day]) state.sheep.endDay += 1;
+
+    save();
+  }
+
+  // ---------- LOCKED AREA ----------
+  function isUnlocked(plotId){
+    const r = Math.floor(plotId / MAP_COLS);
+    const c = plotId % MAP_COLS;
+    return r < state.unlockedRows && c < state.unlockedCols;
+  }
+
+  // ---------- FARM ACTIONS ----------
+  function plotProgress(plot){
+    if(!plot.cropId) return { pct:0, ready:false, rem:0, total:0 };
+    const elapsed = now() - plot.plantedAt;
+    const total = plot.growMs;
+    const pct = clamp(elapsed/total, 0, 1);
+    return { pct, ready: pct>=1, rem: Math.max(0, total-elapsed), total };
+  }
+
+  function canWater(plot){ remember = plot.lastWaterAt||0; return (now()-remember)>=WATER_COOLDOWN_MS; }
+
+  function spriteClass(cropId, pct){
+    if(!cropId) return "sprite sprout";
+    const base = CROPS[cropId]?.sprite || "sprout";
+    if(pct < 0.33) return "sprite sprout";
+    if(pct < 0.95) return `sprite ${base} growing`;
+    return `sprite ${base} ready`;
+  }
+
+  function plant(plotId){
+    if(!isUnlocked(plotId)) return toast("LOCKED TILE");
+    const plot = state.plots[plotId];
+    if(plot.cropId) return toast("CANT PLANT");
+    const cropId = state.selectedSeed;
+    const seeds = state.inv.seeds[cropId]||0;
+    if(seeds<=0) return toast("NO SEEDS");
+    if(!spendEnergy(ENERGY_COST.plant)) return;
+
+    state.inv.seeds[cropId] = seeds-1;
+    plot.cropId = cropId;
+    plot.plantedAt = now();
+    plot.growMs = Math.floor(CROPS[cropId].growDays * DAY_MS);
+    plot.lastWaterAt = 0;
+    save(); renderAll();
+    toast(`PLANTED ${CROPS[cropId].name}`);
+  }
+
+  function harvest(plotId){
+    if(!isUnlocked(plotId)) return;
+    const plot = state.plots[plotId];
+    if(!plot.cropId) return;
+    const p = plotProgress(plot);
+    if(!p.ready) return toast("NOT READY");
+    if(!spendEnergy(ENERGY_COST.harvest)) return;
+
+    state.inv.crops[plot.cropId] = (state.inv.crops[plot.cropId]||0)+1;
+    plot.cropId=null; plot.plantedAt=null; plot.growMs=null; plot.lastWaterAt=0;
+    save(); renderAll();
+    toast("HARVESTED");
+  }
+
+  function water(plotId){
+    if(!isUnlocked(plotId)) return;
+    const plot = state.plots[plotId];
+    if(!plot.cropId) return;
+    const p = plotProgress(plot);
+    if(p.ready) return toast("ALREADY READY");
+    if(!canWater(plot)) return toast("WATER COOLDOWN");
+    if(!spendEnergy(ENERGY_COST.water)) return;
+
+    const boost = WATER_BOOST_MS[plot.cropId] || 10_000;
+    plot.plantedAt -= boost;
+    plot.lastWaterAt = now();
+    save(); renderAll();
+    toast("WATERED");
+  }
+
+  function fertilize(plotId){
+    if(!isUnlocked(plotId)) return;
+    const plot = state.plots[plotId];
+    if(!plot.cropId) return;
+    const p = plotProgress(plot);
+    if(p.ready) return toast("ALREADY READY");
+    if(state.inv.fertilizer<=0) return toast("NO FERT");
+    if(!spendEnergy(ENERGY_COST.fertilize)) return;
+
+    const reduce = Math.floor(p.rem * FERTILIZER_FACTOR);
+    plot.plantedAt -= reduce;
+    state.inv.fertilizer -= 1;
+    save(); renderAll();
+    toast("FERTILIZED");
+  }
+
+  // ---------- DECOR ----------
+  function totalBeauty(){
+    let b=0;
+    for(const p of state.plots) if(p.flower) b += FLOWER_BEAUTY;
+    return b;
+  }
+
+  function toggleFlower(plotId, removeMode){
+    if(!isUnlocked(plotId)) return toast("LOCKED TILE");
+    const plot = state.plots[plotId];
+    const refund = Math.floor(FLOWER_COST*0.5);
+
+    if(removeMode){
+      if(!plot.flower) return toast("NO FLOWER");
+      plot.flower=false;
+      state.coins += refund;
+      save(); renderAll();
+      return toast(`REMOVED (+${refund})`);
+    } else {
+      if(plot.flower) return toast("ALREADY");
+      if(state.coins < FLOWER_COST) return toast("NO COINS");
+      plot.flower=true;
+      state.coins -= FLOWER_COST;
+      save(); renderAll();
+      return toast(`PLACED (-${FLOWER_COST})`);
+    }
+  }
+
+  function idxToRC(i){ return { r: Math.floor(i/MAP_COLS), c: i%MAP_COLS }; }
+  function rcToIdx(r,c){
+    const idx = r*MAP_COLS + c;
+    if(idx<0 || idx>=MAP_COUNT) return null;
+    if(c<0 || c>=MAP_COLS) return null;
+    return idx;
+  }
+  function opposite(bit){ return bit===N?S : bit===S?N : bit===E?W : bit===W?E : 0; }
+  function neighborIndex(plotId, bit){
+    const {r,c} = idxToRC(plotId);
+    if(bit===N) return rcToIdx(r-1,c);
+    if(bit===S) return rcToIdx(r+1,c);
+    if(bit===W) return rcToIdx(r,c-1);
+    if(bit===E) return rcToIdx(r,c+1);
+    return null;
+  }
+  function hasEdge(plot, bit){ return (plot.fenceMask & bit)!==0; }
+
+  function setEdge(plotId, bit, on){
+    const plot = state.plots[plotId];
+    plot.fenceMask = on ? (plot.fenceMask|bit) : (plot.fenceMask & ~bit);
+
+    const nb = neighborIndex(plotId, bit);
+    if(nb!==null){
+      const nplot = state.plots[nb];
+      const obit = opposite(bit);
+      nplot.fenceMask = on ? (nplot.fenceMask|obit) : (nplot.fenceMask & ~obit);
+    }
+  }
+
+  function clickToEdge(el, evt){
+    const rect = el.getBoundingClientRect();
+    const x = evt.clientX - rect.left;
+    const y = evt.clientY - rect.top;
+    const t = 16;
+    const dTop=y, dBot=rect.height-y, dLeft=x, dRight=rect.width-x;
+    const min = Math.min(dTop,dBot,dLeft,dRight);
+    if(min>t) return "CENTER";
+    if(min===dTop) return N;
+    if(min===dRight) return E;
+    if(min===dBot) return S;
+    return W;
+  }
+
+  function tryToggleFence(plotId, edgeOrCenter, removeMode){
+    if(!isUnlocked(plotId)) return toast("LOCKED TILE");
+    const plot = state.plots[plotId];
+    const bits = edgeOrCenter==="CENTER" ? [N,E,S,W] : [edgeOrCenter];
+
+    let addBits=[], removeBits=[];
+    for(const bit of bits){
+      const on = hasEdge(plot,bit);
+      if(removeMode){ if(on) removeBits.push(bit); }
+      else { if(on) removeBits.push(bit); else addBits.push(bit); }
+    }
+
+    if(edgeOrCenter==="CENTER" && !removeMode){
+      const missing = bits.filter(b=>!hasEdge(plot,b));
+      if(missing.length>0){ addBits=missing; removeBits=[]; }
+      else { addBits=[]; removeBits=bits.slice(); }
+    }
+
+    const addCost = addBits.length * FENCE_COST;
+    if(addCost>0 && state.coins<addCost) return toast(`NEED ${addCost} COINS`);
+
+    let refund=0;
+    for(const bit of removeBits){
+      if(hasEdge(plot,bit)){
+        setEdge(plotId,bit,false);
+        refund += Math.floor(FENCE_COST * FENCE_REFUND_FACTOR);
+      }
+    }
+    if(refund>0) state.coins += refund;
+
+    if(addCost>0) state.coins -= addCost;
+    for(const bit of addBits) setEdge(plotId,bit,true);
+
+    save(); renderAll();
+    toast(addBits.length?`FENCE +${addBits.length}`:removeBits.length?`FENCE -${removeBits.length}`:"NO CHANGE");
+  }
+
+  function fenceHTML(mask){
+    const edges=[];
+    if(mask&N) edges.push(`<span class="edge n"></span>`);
+    if(mask&E) edges.push(`<span class="edge e"></span>`);
+    if(mask&S) edges.push(`<span class="edge s"></span>`);
+    if(mask&W) edges.push(`<span class="edge w"></span>`);
+
+    const posts=[];
+    const nOn=!!(mask&N), sOn=!!(mask&S), eOn=!!(mask&E), wOn=!!(mask&W);
+    if(nOn||wOn) posts.push(`<span class="post nw"></span>`);
+    if(nOn||eOn) posts.push(`<span class="post ne"></span>`);
+    if(sOn||wOn) posts.push(`<span class="post sw"></span>`);
+    if(sOn||eOn) posts.push(`<span class="post se"></span>`);
+    if(!edges.length && !posts.length) return "";
+    return `<div class="fences">${edges.join("")}${posts.join("")}</div>`;
+  }
+
+  // ---------- SHOP ----------
+  function buySeed(id, qty=1){
+    const c=CROPS[id], cost=c.seedCost*qty;
+    if(state.coins<cost) return toast("NO COINS");
+    state.coins-=cost;
+    state.inv.seeds[id]=(state.inv.seeds[id]||0)+qty;
+    save(); renderAll();
+    toast(`BOUGHT ${c.name} SEED`);
+  }
+
+  function sellCrop(id, qty=1){
+    const c=CROPS[id], have=state.inv.crops[id]||0;
+    if(have<qty) return toast("NOT ENOUGH");
+    state.inv.crops[id]-=qty;
+    state.coins += c.sell*qty;
+    save(); renderAll();
+    toast(`SOLD ${c.name}`);
+  }
+
+  function buyFertilizer(){
+    if(state.coins<FERTILIZER_COST) return toast("NO COINS");
+    state.coins-=FERTILIZER_COST;
+    state.inv.fertilizer+=1;
+    save(); renderAll();
+    toast("BOUGHT FERT");
+  }
+
+  function buyTea(){
+    if(state.coins<TEA_COST) return toast("NO COINS");
+    state.coins-=TEA_COST;
+    state.inv.tea+=1;
+    save(); renderAll();
+    toast("BOUGHT TEA");
+  }
+
+  function drinkTea(){
+    updateEnergy();
+    if(state.inv.tea<=0) return toast("NO TEA");
+    if(state.energy>=energyMax()) return toast("ENERGY FULL");
+    state.inv.tea-=1;
+    state.energy = clamp(state.energy + TEA_RESTORE, 0, energyMax());
+    save(); renderAll();
+    toast(`TEA +${TEA_RESTORE}`);
+  }
+
+  function buyFeedPellets(qty=1){
+    const cost = FEED_BUY_PRICE*qty;
+    if(state.coins<cost) return toast("NO COINS");
+    state.coins-=cost;
+    state.inv.feedPellets+=qty;
+    save(); renderAll();
+    toast("BOUGHT FEED");
+  }
+
+  function makeFeedPellets(){
+    if(!state.buildings.feedmill) return toast("BUY FEED MILL");
+    if(state.inv.crops.wheat<1 || state.inv.crops.corn<1) return toast("NEED WHEAT+COR N");
+    state.inv.crops.wheat-=1; state.inv.crops.corn-=1;
+    state.inv.feedPellets+=2;
+    save(); renderAll();
+    toast("+2 FEED");
+  }
+
+  function buyPantry(key, price){
+    if(state.coins<price) return toast("NO COINS");
+    state.coins-=price;
+    state.inv[key]+=1;
+    save(); renderAll();
+    toast(`BOUGHT ${key.toUpperCase()}`);
+  }
+
+  function buyBuilding(key){
+    if(state.buildings[key]) return toast("ALREADY");
+    const cost=BUILD_COST[key];
+    if(state.coins<cost) return toast("NO COINS");
+    state.coins-=cost;
+    state.buildings[key]=true;
+    if(key==="shrimppond") state.shrimpPond.owned=true;
+    save(); renderAll();
+    toast(`BOUGHT ${key.toUpperCase()}`);
+  }
+
+  // ---------- FARM EXPANSION ----------
+  function farmExpandCost(){
+    // expansion cost scales with how much unlocked
+    const steps = (state.unlockedRows-5) + (state.unlockedCols-5); // 0..10
+    return 140 + steps*110;
+  }
+
+  function canExpandRow(){ return state.unlockedRows < MAP_ROWS; }
+  function canExpandCol(){ return state.unlockedCols < MAP_COLS; }
+
+  function expandRow(){
+    if(!canExpandRow()) return toast("MAX ROWS");
+    const cost = farmExpandCost();
+    if(state.coins < cost) return toast("NO COINS");
+    state.coins -= cost;
+    state.unlockedRows += 1;
+    save(); renderAll();
+    toast(`UNLOCKED ROW (${state.unlockedRows}×${state.unlockedCols})`);
+  }
+
+  function expandCol(){
+    if(!canExpandCol()) return toast("MAX COLS");
+    const cost = farmExpandCost();
+    if(state.coins < cost) return toast("NO COINS");
+    state.coins -= cost;
+    state.unlockedCols += 1;
+    save(); renderAll();
+    toast(`UNLOCKED COL (${state.unlockedRows}×${state.unlockedCols})`);
+  }
+
+  // ---------- ANIMALS ----------
+  function addHens(n=2){
+    if(!state.buildings.coop) return toast("BUY COOP");
+    const cost=60*n;
+    if(state.coins<cost) return toast("NO COINS");
+    state.coins-=cost;
+    state.chickens.hens+=n;
+    save(); renderAll();
+    toast(`+${n} HENS`);
+  }
+
+  function feedChickens(){
+    if(!state.buildings.coop || state.chickens.hens<=0) return toast("NO HENS");
+    const d=curDay();
+    if(state.chickens.fedDay===d) return toast("ALREADY");
+    const need = Math.ceil(state.chickens.hens * CHICKEN_FEED_PER_HEN);
+    if(state.inv.feedPellets<need) return toast("NEED FEED");
+    state.inv.feedPellets-=need;
+    state.chickens.fedDay=d;
+    save(); renderAll();
+    toast("FED HENS");
+  }
+
+  function addAnimal(objKey, costEach, n=1){
+    const obj=state[objKey];
+    const cost=costEach*n;
+    if(state.coins<cost) return toast("NO COINS");
+    state.coins-=cost;
+    obj.count+=n;
+    save(); renderAll();
+    toast(`+${n}`);
+  }
+
+  function startGrow(objKey, days){
+    const obj=state[objKey];
+    if(obj.active) return toast("ALREADY");
+    if(obj.count<=0) return toast("NONE");
+    const d=curDay();
+    obj.active=true;
+    obj.startDay=d;
+    obj.endDay=d+days;
+    obj.fedDays={};
+    save(); renderAll();
+    toast(`STARTED ${objKey.toUpperCase()}`);
+  }
+
+  function feedGrow(objKey, perUnit){
+    const obj=state[objKey];
+    if(!obj.active) return toast("NOT ACTIVE");
+    const d=curDay();
+    if(obj.fedDays[d]) return toast("ALREADY FED");
+    const need=obj.count*perUnit;
+    if(state.inv.feedPellets<need) return toast("NEED FEED");
+    state.inv.feedPellets-=need;
+    obj.fedDays[d]=true;
+    save(); renderAll();
+    toast("FED");
+  }
+
+  function canHarvestGrow(objKey){
+    const obj=state[objKey];
+    return obj.active && curDay()>=obj.endDay;
+  }
+
+  function harvestGrow(objKey, outputs){
+    if(!canHarvestGrow(objKey)) return toast("NOT READY");
+    const obj=state[objKey];
+    Object.entries(outputs).forEach(([k,v])=> state.inv[k]+= obj.count*v );
+    obj.active=false; obj.startDay=-1; obj.endDay=-1; obj.fedDays={};
+    save(); renderAll();
+    toast("HARVESTED");
+  }
+
+  // ---------- SHRIMP ----------
+  function shrimpActive(){ return state.buildings.shrimppond && state.shrimpPond.active; }
+  function shrimpDone(){ return shrimpActive() && curDay()>=state.shrimpPond.endDay; }
+
+  function startShrimpBatch(){
+    if(!state.buildings.shrimppond) return toast("BUY SHRIMP POND");
+    if(state.shrimpPond.active) return toast("ALREADY");
+    const d=curDay();
+    state.shrimpPond.active=true;
+    state.shrimpPond.startDay=d;
+    state.shrimpPond.endDay=d+SHRIMP_GROW_DAYS;
+    state.shrimpPond.hunger=70;
+    state.shrimpPond.wq=80;
+    state.shrimpPond.maintainDay=-1;
+    state.shrimpPond.windowFed={ morning:false, afternoon:false, evening:false };
+    save(); renderAll();
+    toast("SHRIMP STOCKED");
+  }
+
+  function shrimpMaintain(){
+    if(!shrimpActive()) return toast("NO SHRIMP");
+    const d=curDay();
+    if(state.shrimpPond.maintainDay===d) return toast("ALREADY");
+    state.shrimpPond.wq = clamp(state.shrimpPond.wq + SHRIMP_MAINTAIN_BOOST, 0, 100);
+    state.shrimpPond.maintainDay=d;
+    save(); renderAll();
+    toast("+WQ");
+  }
+
+  function shrimpFeed(kind){
+    if(!shrimpActive()) return toast("NO SHRIMP");
+    const wk = windowKey(curMsIntoDay());
+    if(state.shrimpPond.windowFed[wk]) return toast("FED THIS WINDOW");
+    const spec=SHRIMP_FEED[kind];
+    if(state.inv.feedPellets<spec.costPellets) return toast("NEED FEED");
+    state.inv.feedPellets-=spec.costPellets;
+    state.shrimpPond.hunger = clamp(state.shrimpPond.hunger + spec.hunger, 0, 100);
+    state.shrimpPond.wq = clamp(state.shrimpPond.wq + spec.wq, 0, 100);
+    state.shrimpPond.windowFed[wk]=true;
+    save(); renderAll();
+    toast(`FED ${kind.toUpperCase()}`);
+  }
+
+  function shrimpSurvivalFromWQ(wq){
+    if(wq>=70) return 0.95;
+    if(wq>=50) return 0.88;
+    if(wq>=30) return 0.75;
+    return 0.60;
+  }
+
+  function harvestShrimp(){
+    if(!shrimpDone()) return toast("NOT READY");
+    const surv=shrimpSurvivalFromWQ(state.shrimpPond.wq);
+    const qty=Math.max(0, Math.floor(state.shrimpPond.stock*surv));
+    state.inv.shrimp += qty;
+    state.shrimpPond.active=false;
+    state.shrimpPond.startDay=-1;
+    state.shrimpPond.endDay=-1;
+    save(); renderAll();
+    toast(`HARVESTED ${qty} SHRIMP`);
+  }
+
+  function shrimpAutoFeederCheck(){
+    if(!shrimpActive()) return;
+    if(state.upgrades.shrimp_auto<=0) return;
+    const wk=windowKey(curMsIntoDay());
+    if((wk==="morning" || wk==="evening") && !state.shrimpPond.windowFed[wk]){
+      const spec=SHRIMP_FEED.normal;
+      if(state.inv.feedPellets>=spec.costPellets){
+        state.inv.feedPellets-=spec.costPellets;
+        state.shrimpPond.hunger = clamp(state.shrimpPond.hunger + spec.hunger, 0, 100);
+        state.shrimpPond.wq = clamp(state.shrimpPond.wq + spec.wq, 0, 100);
+        state.shrimpPond.windowFed[wk]=true;
+        save();
+      }
+    }
+  }
+
+  // ---------- STARCH SHOP ----------
+  function craftCrystalWrappers(){
+    if(!state.buildings.starch) return toast("BUY STARCH SHOP");
+    if(state.inv.wheat_starch<1 || state.inv.tapioca_starch<1) return toast("NEED STARCH");
+    state.inv.wheat_starch-=1;
+    state.inv.tapioca_starch-=1;
+    state.inv.crystal_wrappers+=10;
+    save(); renderAll();
+    toast("+10 CRYSTAL WRAPPERS");
+  }
+
+  // ---------- FACTORY ----------
+  function factorySlots(){ return 1 + state.upgrades.factory_slots; }
+  function factorySpeedMult(){ return Math.max(0.55, 1 - 0.15*(state.upgrades.factory_speed||0)); }
+
+  function invHas(k){
+    if(k in state.inv) return state.inv[k];
+    if(k in state.inv.crops) return state.inv.crops[k];
+    return 0;
+  }
+  function invTake(k,n){
+    if(k in state.inv) state.inv[k]-=n;
+    else if(k in state.inv.crops) state.inv.crops[k]-=n;
+  }
+
+  function canCraft(rid){
+    if(!recipeUnlocked(rid)) return false;
+    if(state.factory.queue.length>=factorySlots()) return false;
+    const r=RECIPES[rid];
+    for(const [k,v] of Object.entries(r.inputs)) if(invHas(k)<v) return false;
+    return true;
+  }
+
+  function startCraft(rid){
+    if(!state.buildings.factory) return toast("BUY FACTORY");
+    if(!recipeUnlocked(rid)) return toast("LOCKED");
+    if(state.factory.queue.length>=factorySlots()) return toast("QUEUE FULL");
+    const r=RECIPES[rid];
+    for(const [k,v] of Object.entries(r.inputs)) if(invHas(k)<v) return toast("MISSING");
+
+    for(const [k,v] of Object.entries(r.inputs)) invTake(k,v);
+
+    let bonusMult=1.0;
+    if(r.optional && r.bonus){
+      for(const [ok,ov] of Object.entries(r.optional)){
+        if(invHas(ok)>=ov){
+          invTake(ok,ov);
+          bonusMult += r.bonus;
+          break;
+        }
+      }
+    }
+
+    const durationMs = Math.floor(r.timeDays * DAY_MS * factorySpeedMult());
+    state.factory.queue.push({ id:"job_"+Math.random().toString(16).slice(2), recipeId:rid, startAt:now(), durationMs, bonusMult });
+    save(); renderAll();
+    toast(`STARTED ${r.name}`);
+  }
+
+  function jobReady(job){ return now() >= job.startAt + job.durationMs; }
+
+  function collectJob(jobId){
+    const i=state.factory.queue.findIndex(j=>j.id===jobId);
+    if(i<0) return;
+    const job=state.factory.queue[i];
+    if(!jobReady(job)) return toast("NOT READY");
+    const r=RECIPES[job.recipeId];
+    state.inv.products[job.recipeId] = (state.inv.products[job.recipeId]||0) + r.out;
+    state.factory.queue.splice(i,1);
+    save(); renderAll();
+    toast(`COLLECTED ${r.out}`);
+  }
+
+  function totalDumplings(){
+    let t=0;
+    Object.keys(RECIPES).forEach(rid=> t += (state.inv.products[rid]||0) );
+    return t;
+  }
+
+  function sellProduct(rid, qty){
+    const have=state.inv.products[rid]||0;
+    if(have<qty) return toast("NOT ENOUGH");
+    const r=RECIPES[rid];
+    const beautyBonus = Math.min(4, Math.floor(totalBeauty()/10));
+    const priceEach = r.sellEach + beautyBonus;
+    state.inv.products[rid]-=qty;
+    state.coins += qty*priceEach;
+    save(); renderAll();
+    toast(`SOLD +${qty*priceEach}`);
+  }
+
+  // ---------- UPGRADES ----------
+  function upgradeCost(id){
+    const u=UPGRADES[id], lvl=state.upgrades[id]||0;
+    return u.base + lvl*u.step;
+  }
+  function buyUpgrade(id){
+    const u=UPGRADES[id], lvl=state.upgrades[id]||0;
+    if(lvl>=u.max) return toast("MAXED");
+    const cost=upgradeCost(id);
+    if(state.coins<cost) return toast("NO COINS");
+    state.coins-=cost;
+    state.upgrades[id]=lvl+1;
+
+    updateEnergy();
+    state.energy = clamp(state.energy, 0, energyMax());
+
+    save(); renderAll();
+    toast(`UPGRADED ${u.name}`);
+  }
+
+  // ---------- MODE ----------
+  function toggleMode(){
+    state.mode = state.mode==="farm" ? "decor" : "farm";
+    save(); renderHUD();
+    toast(`MODE: ${state.mode.toUpperCase()}`);
+  }
+
+  function setSeed(id){
+    state.selectedSeed=id;
+    save(); renderHUD();
+    toast(`SEED: ${CROPS[id].name}`);
+  }
+
+  function setTool(id){
+    state.selectedTool=id;
+    save(); renderDecorPanel();
+    toast(`TOOL: ${id.toUpperCase()}`);
+  }
+
+  // ---------- RENDER ----------
+  function renderHUD(){
+    renderFullscreenButton();
+    ensureDailyTick();
+    updateEnergy();
+    shrimpAutoFeederCheck();
+
+    $("#coins").textContent = state.coins;
+    $("#dumplTotal").textContent = totalDumplings();
+    $("#modeTxt").textContent = state.mode.toUpperCase();
+    $("#unlockTxt").textContent = `${state.unlockedRows}×${state.unlockedCols}`;
+    $("#selSeed").textContent = CROPS[state.selectedSeed].name;
+    $("#fertCount").textContent = state.inv.fertilizer;
+    $("#teaCount").textContent = state.inv.tea;
+    $("#beauty").textContent = totalBeauty();
+
+    const pctE = (state.energy/energyMax())*100;
+    $("#energyFill").style.width = pctE + "%";
+    $("#energyTxt").textContent = `${state.energy}/${energyMax()}`;
+    $("#regenTxt").textContent = state.energy>=energyMax() ? "FULL" : `+1 IN ~${Math.ceil(msToNextEnergy()/1000)}S`;
+
+    const d=curDay();
+    const msd=curMsIntoDay();
+    $("#dayNum").textContent = d;
+    $("#windowTxt").textContent = windowName(msd);
+    $("#clockFill").style.width = (msd/DAY_MS*100) + "%";
+    $("#timeTxt").textContent = fmtClock(msd);
+
+    $("#toggleMode").textContent = state.mode==="farm" ? "DECOR MODE" : "FARM MODE";
+
+    save();
+  }
+
+  function renderFarm(){
+    const grid=$("#grid");
+    grid.innerHTML="";
+    grid.style.setProperty("--cols", MAP_COLS);
+
+    for(const plot of state.plots){
+      const el=document.createElement("div");
+      el.className="plot" + (isUnlocked(plot.id) ? "" : " locked");
+
+      const inner=document.createElement("div");
+      inner.className="inner";
+
+      const fences=fenceHTML(plot.fenceMask);
+      const flowerHtml=plot.flower ? `<div class="deco"><span class="flower"></span></div>` : "";
+
+      el.addEventListener("click",(evt)=>{
+        if(evt.target.tagName==="BUTTON") return;
+        if(!isUnlocked(plot.id)) return toast("LOCKED TILE");
+
+        if(state.mode==="farm"){
+          if(!plot.cropId) plant(plot.id);
+        } else {
+          const removeMode=evt.shiftKey;
+          if(state.selectedTool==="flower") toggleFlower(plot.id, removeMode);
+          else {
+            const edge=clickToEdge(el,evt);
+            tryToggleFence(plot.id, edge, removeMode);
+          }
+        }
+      });
+
+      if(!isUnlocked(plot.id)){
+        inner.innerHTML = `
+          ${fences}
+          <div class="topline"><span>#${plot.id+1}</span><span>LOCKED</span></div>
+          <div class="midline"><span class="tiny">UNLOCK IN UPGRADES</span><span class="tiny">${Math.floor(plot.id/MAP_COLS)+1},${(plot.id%MAP_COLS)+1}</span></div>
+          <div class="prog"><div style="width:0%"></div></div>
+          <div class="actions"><button class="b-warn" disabled>LOCKED</button></div>
+        `;
+      } else if(!plot.cropId){
+        inner.innerHTML = `
+          ${fences}
+          ${flowerHtml}
+          <div class="topline"><span>#${plot.id+1}</span><span>${state.mode==="decor" ? "DECOR" : "EMPTY"}</span></div>
+          <div class="midline">
+            <span class="tiny">${state.mode==="decor" ? (state.selectedTool==="fence" ? "EDGE CLICK" : "TILE CLICK") : "DIRT"}</span>
+            <span class="tiny">${state.mode==="decor" ? "SHIFT=REMOVE" : "CLICK"}</span>
+          </div>
+          <div class="prog"><div style="width:0%"></div></div>
+          <div class="actions">
+            ${state.mode==="farm"
+              ? `<button class="b-good">PLANT</button>`
+              : (state.selectedTool==="flower"
+                  ? `<button class="b-blue">${plot.flower ? "FLOWER ON" : "FLOWER"}</button>`
+                  : `<button class="b-blue">FENCE PERIM</button>`
+                )
+            }
+          </div>
+        `;
+        const btn=inner.querySelector("button");
+        if(state.mode==="farm") btn.addEventListener("click",()=>plant(plot.id));
+        else btn.addEventListener("click",()=>{
+          if(state.selectedTool==="flower") toggleFlower(plot.id,false);
+          else tryToggleFence(plot.id,"CENTER",false);
+        });
+      } else {
+        const p=plotProgress(plot);
+        const pct=Math.round(p.pct*100);
+        const sprite=`<span class="${spriteClass(plot.cropId,p.pct)}"></span>`;
+        const wReady=canWater(plot);
+        const canFert=state.inv.fertilizer>0;
+
+        inner.innerHTML=`
+          ${fences}
+          ${flowerHtml}
+          <div class="topline"><span>#${plot.id+1}</span><span>${p.ready?"READY":"GROW"}</span></div>
+          <div class="midline">
+            <span>${sprite}</span>
+            <span class="tiny">${p.ready?"HARVEST":fmtClock(Math.min(p.rem,DAY_MS-1))}</span>
+          </div>
+          <div class="prog"><div style="width:${pct}%"></div></div>
+          <div class="actions">
+            <button class="b-good" ${p.ready?"":"disabled"}>HARV</button>
+            <button class="b-warn" ${(!p.ready&&wReady)?"":"disabled"}>WATR</button>
+            <button class="b-blue" ${(!p.ready&&canFert)?"":"disabled"}>FERT</button>
+          </div>
+        `;
+        const [bH,bW,bF]=inner.querySelectorAll("button");
+        bH.addEventListener("click",()=>harvest(plot.id));
+        bW.addEventListener("click",()=>water(plot.id));
+        bF.addEventListener("click",()=>fertilize(plot.id));
+      }
+
+      el.appendChild(inner);
+      grid.appendChild(el);
+    }
+  }
+
+  function renderShop(){
+    const panel=$("#panel-shop");
+    panel.innerHTML="";
+
+    const info=document.createElement("div");
+    info.className="item";
+    info.innerHTML=`
+      <div class="name">SHOP</div>
+      <div class="meta">BUY BUILDINGS, ITEMS, SEEDS. SELL CROPS. CRYSTAL WRAPPERS REQUIRE STARCH SHOP.</div>
+    `;
+    panel.appendChild(info);
+
+    const b=document.createElement("div");
+    b.className="item";
+    b.innerHTML=`
+      <div class="name">BUILDINGS</div>
+      <div class="miniBtnRow">
+        <button class="b-good" ${state.buildings.factory?"disabled":""} id="buyFactory">BUY FACTORY (${BUILD_COST.factory})</button>
+        <button class="b-good" ${state.buildings.feedmill?"disabled":""} id="buyMill">BUY FEED MILL (${BUILD_COST.feedmill})</button>
+        <button class="b-good" ${state.buildings.starch?"disabled":""} id="buyStarch">BUY STARCH SHOP (${BUILD_COST.starch})</button>
+        <button class="b-good" ${state.buildings.coop?"disabled":""} id="buyCoop">BUY COOP (${BUILD_COST.coop})</button>
+        <button class="b-good" ${state.buildings.pigpen?"disabled":""} id="buyPig">BUY PIG PEN (${BUILD_COST.pigpen})</button>
+        <button class="b-good" ${state.buildings.cowbarn?"disabled":""} id="buyCow">BUY COW BARN (${BUILD_COST.cowbarn})</button>
+        <button class="b-good" ${state.buildings.sheeppen?"disabled":""} id="buySheep">BUY SHEEP PEN (${BUILD_COST.sheeppen})</button>
+        <button class="b-good" ${state.buildings.shrimppond?"disabled":""} id="buyShrimp">BUY SHRIMP POND (${BUILD_COST.shrimppond})</button>
+      </div>
+    `;
+    panel.appendChild(b);
+
+    $("#buyFactory").addEventListener("click",()=>buyBuilding("factory"));
+    $("#buyMill").addEventListener("click",()=>buyBuilding("feedmill"));
+    $("#buyStarch").addEventListener("click",()=>buyBuilding("starch"));
+    $("#buyCoop").addEventListener("click",()=>buyBuilding("coop"));
+    $("#buyPig").addEventListener("click",()=>buyBuilding("pigpen"));
+    $("#buyCow").addEventListener("click",()=>buyBuilding("cowbarn"));
+    $("#buySheep").addEventListener("click",()=>buyBuilding("sheeppen"));
+    $("#buyShrimp").addEventListener("click",()=>buyBuilding("shrimppond"));
+
+    const items=document.createElement("div");
+    items.className="item";
+    items.innerHTML=`
+      <div class="name">ITEMS</div>
+      <div class="miniBtnRow">
+        <button class="b-blue" id="buyTea">BUY TEA (${TEA_COST})</button>
+        <button class="b-good" id="drinkTea" ${state.inv.tea>0 && state.energy<energyMax() ? "" : "disabled"}>DRINK TEA</button>
+        <button class="b-blue" id="buyFert">BUY FERT (${FERTILIZER_COST})</button>
+        <button class="b-blue" id="buyFeed">BUY FEED (${FEED_BUY_PRICE})</button>
+        <button class="b-good" id="makeFeed" ${state.buildings.feedmill ? "" : "disabled"}>MAKE FEED (WHEAT+COR N)</button>
+      </div>
+      <div class="miniBtnRow">
+        <button class="b-blue" id="buyWS">W STARCH (${WHEAT_STARCH_PRICE})</button>
+        <button class="b-blue" id="buyTS">T STARCH (${TAPIOCA_STARCH_PRICE})</button>
+        <button class="b-blue" id="buyBamboo">BAMBOO (${BAMBOO_SHOOTS_PRICE})</button>
+        <button class="b-blue" id="buyVerm">VERMICELLI (${VERMICELLI_PRICE})</button>
+        <button class="b-blue" id="buyTofu">TOFU (18)</button>
+        <button class="b-good" id="craftCrystal" ${state.buildings.starch ? "" : "disabled"}>CRYSTAL WRAP x10</button>
+      </div>
+      <div class="meta">
+        YOU HAVE: TEA ${state.inv.tea} • FERT ${state.inv.fertilizer} • FEED ${state.inv.feedPellets}<br/>
+        WST ${state.inv.wheat_starch} • TST ${state.inv.tapioca_starch} • BAM ${state.inv.bamboo_shoots} • VER ${state.inv.vermicelli} • TOFU ${state.inv.tofu} • CRYS ${state.inv.crystal_wrappers}
+      </div>
+    `;
+    panel.appendChild(items);
+
+    $("#buyTea").addEventListener("click",buyTea);
+    $("#drinkTea").addEventListener("click",drinkTea);
+    $("#buyFert").addEventListener("click",buyFertilizer);
+    $("#buyFeed").addEventListener("click",()=>buyFeedPellets(1));
+    $("#makeFeed").addEventListener("click",makeFeedPellets);
+
+    $("#buyWS").addEventListener("click",()=>buyPantry("wheat_starch",WHEAT_STARCH_PRICE));
+    $("#buyTS").addEventListener("click",()=>buyPantry("tapioca_starch",TAPIOCA_STARCH_PRICE));
+    $("#buyBamboo").addEventListener("click",()=>buyPantry("bamboo_shoots",BAMBOO_SHOOTS_PRICE));
+    $("#buyVerm").addEventListener("click",()=>buyPantry("vermicelli",VERMICELLI_PRICE));
+    $("#buyTofu").addEventListener("click",()=>buyPantry("tofu",18));
+    $("#craftCrystal").addEventListener("click",craftCrystalWrappers);
+
+    const seedBox=document.createElement("div");
+    seedBox.className="item";
+    seedBox.innerHTML=`<div class="name">SEEDS & CROPS</div><div class="meta">BUY SEEDS • SELL CROPS</div>`;
+    panel.appendChild(seedBox);
+
+    Object.keys(CROPS).forEach(id=>{
+      const c=CROPS[id];
+      const seeds=state.inv.seeds[id]||0;
+      const crops=state.inv.crops[id]||0;
+      const row=document.createElement("div");
+      row.className="item";
+      row.innerHTML=`
+        <div class="name">${c.name}</div>
+        <div class="meta">SEED ${c.seedCost} • SELL ${c.sell} • GROW ${c.growDays} DAY</div>
+        <div class="meta">YOU HAVE: ${seeds} SEEDS • ${crops} CROPS</div>
+        <div class="miniBtnRow">
+          <button class="b-blue">BUY 1</button>
+          <button class="b-good" ${crops>0?"":"disabled"}>SELL 1</button>
+        </div>
+      `;
+      const [bBuy,bSell]=row.querySelectorAll("button");
+      bBuy.addEventListener("click",()=>buySeed(id,1));
+      bSell.addEventListener("click",()=>sellCrop(id,1));
+      panel.appendChild(row);
+    });
+  }
+
+  function renderDecorPanel(){
+    const panel=$("#panel-decor");
+    panel.innerHTML="";
+    const box=document.createElement("div");
+    box.className="item";
+    box.innerHTML=`
+      <div class="name">DECOR</div>
+      <div class="meta">
+        FLOWER: COST ${FLOWER_COST}, +${FLOWER_BEAUTY} BEAUTY<br/>
+        FENCE: COST ${FENCE_COST} PER EDGE • SHIFT=REMOVE (REFUND HALF)
+      </div>
+      <div class="miniBtnRow">
+        <button class="b-blue" id="toolFlower">FLOWER</button>
+        <button class="b-blue" id="toolFence">FENCE</button>
+        <span class="badge">SELECTED: <strong id="toolSel">${state.selectedTool.toUpperCase()}</strong></span>
+      </div>
+    `;
+    panel.appendChild(box);
+    $("#toolFlower").addEventListener("click",()=>setTool("flower"));
+    $("#toolFence").addEventListener("click",()=>setTool("fence"));
+  }
+
+  function renderAnimals(){
+    const panel=$("#panel-animals");
+    panel.innerHTML="";
+
+    const hens=document.createElement("div");
+    hens.className="item";
+    hens.innerHTML=`
+      <div class="name">🐔 CHICKENS</div>
+      <div class="meta">
+        COOP: ${state.buildings.coop?"OWNED":"NOT OWNED"} • HENS: ${state.chickens.hens}<br/>
+        FED TODAY: ${state.chickens.fedDay===curDay()?"YES":"NO"} • EGGS: ${state.inv.egg}
+      </div>
+      <div class="miniBtnRow">
+        <button class="b-good" ${state.buildings.coop?"":"disabled"} id="addHens">BUY 2 HENS (120)</button>
+        <button class="b-blue" ${state.buildings.coop && state.chickens.hens>0?"":"disabled"} id="feedHens">FEED</button>
+      </div>
+    `;
+    panel.appendChild(hens);
+    $("#addHens").addEventListener("click",()=>addHens(2));
+    $("#feedHens").addEventListener("click",feedChickens);
+
+    function animalBox(label, buildingKey, objKey, buyCost, startDays, feedPer, outputsText){
+      const obj=state[objKey];
+      const box=document.createElement("div");
+      box.className="item";
+      box.innerHTML=`
+        <div class="name">${label}</div>
+        <div class="meta">
+          ${buildingKey.toUpperCase()}: ${state.buildings[buildingKey]?"OWNED":"NOT OWNED"} • COUNT: ${obj.count}<br/>
+          STATUS: ${obj.active?`GROWING (READY DAY ${obj.endDay})`:"IDLE"}<br/>
+          ${outputsText}
+        </div>
+        <div class="miniBtnRow">
+          <button class="b-good" ${state.buildings[buildingKey]?"":"disabled"} id="${objKey}_buy">BUY 1 (${buyCost})</button>
+          <button class="b-blue" ${state.buildings[buildingKey] && obj.count>0 && !obj.active ? "" : "disabled"} id="${objKey}_start">START</button>
+          <button class="b-blue" ${obj.active ? "" : "disabled"} id="${objKey}_feed">FEED</button>
+          <button class="b-good" ${canHarvestGrow(objKey) ? "" : "disabled"} id="${objKey}_harv">HARVEST</button>
+        </div>
+      `;
+      panel.appendChild(box);
+      $(`#${objKey}_buy`).addEventListener("click",()=>addAnimal(objKey,buyCost,1));
+      $(`#${objKey}_start`).addEventListener("click",()=>startGrow(objKey,startDays));
+      $(`#${objKey}_feed`).addEventListener("click",()=>feedGrow(objKey,feedPer));
+      $(`#${objKey}_harv`).addEventListener("click",()=>{
+        const out = objKey==="pigs"?PIG_OUTPUT : objKey==="cows"?COW_OUTPUT : SHEEP_OUTPUT;
+        harvestGrow(objKey,out);
+      });
+    }
+
+    animalBox("🐖 PIGS","pigpen","pigs",140,PIG_GROW_DAYS,PIG_FEED_PER,`PORK ${state.inv.pork} • FAT ${state.inv.pork_fat}`);
+    animalBox("🐄 COWS","cowbarn","cows",180,COW_GROW_DAYS,COW_FEED_PER,`BEEF ${state.inv.beef}`);
+    animalBox("🐑 SHEEP","sheeppen","sheep",160,SHEEP_GROW_DAYS,SHEEP_FEED_PER,`LAMB ${state.inv.lamb}`);
+
+    const wk=windowKey(curMsIntoDay());
+    const shrimp=document.createElement("div");
+    shrimp.className="item";
+    shrimp.innerHTML=`
+      <div class="name">🦐 SHRIMP POND</div>
+      <div class="meta">
+        POND: ${state.buildings.shrimppond?"OWNED":"NOT OWNED"}<br/>
+        STATUS: ${state.shrimpPond.active?`GROWING (READY DAY ${state.shrimpPond.endDay})`:"IDLE"}<br/>
+        HUNGER ${Math.round(state.shrimpPond.hunger)} • WQ ${Math.round(state.shrimpPond.wq)}<br/>
+        WINDOW ${wk.toUpperCase()} • FED: ${state.shrimpPond.windowFed[wk]?"YES":"NO"}<br/>
+        SHRIMP: ${state.inv.shrimp}
+      </div>
+      <div class="miniBtnRow">
+        <button class="b-good" ${state.buildings.shrimppond && !state.shrimpPond.active ? "" : "disabled"} id="shr_start">START</button>
+        <button class="b-blue" ${shrimpActive() ? "" : "disabled"} id="shr_maint">MAINTAIN</button>
+        <button class="b-blue" ${shrimpActive() ? "" : "disabled"} id="shr_l">LIGHT</button>
+        <button class="b-blue" ${shrimpActive() ? "" : "disabled"} id="shr_n">NORMAL</button>
+        <button class="b-warn" ${shrimpActive() ? "" : "disabled"} id="shr_h">HEAVY</button>
+        <button class="b-good" ${shrimpDone() ? "" : "disabled"} id="shr_harv">HARVEST</button>
+      </div>
+    `;
+    panel.appendChild(shrimp);
+    $("#shr_start").addEventListener("click",startShrimpBatch);
+    $("#shr_maint").addEventListener("click",shrimpMaintain);
+    $("#shr_l").addEventListener("click",()=>shrimpFeed("light"));
+    $("#shr_n").addEventListener("click",()=>shrimpFeed("normal"));
+    $("#shr_h").addEventListener("click",()=>shrimpFeed("heavy"));
+    $("#shr_harv").addEventListener("click",harvestShrimp);
+  }
+
+  function renderFactory(){
+    const panel=$("#panel-factory");
+    panel.innerHTML="";
+
+    const header=document.createElement("div");
+    header.className="item";
+    header.innerHTML=`
+      <div class="name">🏭 FACTORY</div>
+      <div class="meta">
+        FACTORY: ${state.buildings.factory?"OWNED":"NOT OWNED"} • QUEUE ${state.factory.queue.length}/${factorySlots()} • SPEED ${factorySpeedMult().toFixed(2)}<br/>
+        TOTAL DUMPLINGS: ${totalDumplings()}
+      </div>
+    `;
+    panel.appendChild(header);
+
+    const recipes=document.createElement("div");
+    recipes.className="item";
+    recipes.innerHTML=`<div class="name">RECIPES</div><div class="meta">CRAFT DUMPLINGS BY TYPE (USED FOR ORDERS).</div>`;
+    panel.appendChild(recipes);
+
+    Object.keys(RECIPES).forEach(rid=>{
+      const r=RECIPES[rid];
+      const unlocked=recipeUnlocked(rid);
+      const can=canCraft(rid);
+      const inputs=Object.entries(r.inputs).map(([k,v])=>`${k.toUpperCase()}x${v}`).join(" ");
+      const timeS=Math.round(r.timeDays*DAY_MS*factorySpeedMult()/1000);
+
+      const row=document.createElement("div");
+      row.className="item";
+      row.innerHTML=`
+        <div class="name">${r.name}</div>
+        <div class="meta">IN: ${inputs}<br/>OUT: ${r.out} • TIME ~${timeS}s • BASE SELL ${r.sellEach}/EA</div>
+        <div class="miniBtnRow">
+          <button class="b-good" ${unlocked && can ? "" : "disabled"}>START</button>
+          <span class="badge">${unlocked ? "UNLOCKED" : "LOCKED"}</span>
+        </div>
+      `;
+      row.querySelector("button").addEventListener("click",()=>startCraft(rid));
+      panel.appendChild(row);
+    });
+
+    const q=document.createElement("div");
+    q.className="item";
+    q.innerHTML=`<div class="name">QUEUE</div>`;
+    panel.appendChild(q);
+
+    if(!state.buildings.factory){
+      q.innerHTML += `<div class="meta">BUY THE FACTORY IN SHOP.</div>`;
+    } else if(state.factory.queue.length===0){
+      q.innerHTML += `<div class="meta">NO ACTIVE JOBS.</div>`;
+    } else {
+      state.factory.queue.forEach(job=>{
+        const r=RECIPES[job.recipeId];
+        const ready=jobReady(job);
+        const rem=Math.max(0, (job.startAt+job.durationMs)-now());
+        const row=document.createElement("div");
+        row.style.marginTop="10px";
+        row.style.paddingTop="10px";
+        row.style.borderTop="2px solid rgba(0,0,0,.08)";
+        row.innerHTML=`
+          <div class="name">${r.name}</div>
+          <div class="meta">${ready?"READY":"IN PROGRESS: "+fmtClock(Math.min(rem,DAY_MS-1))}</div>
+          <div class="miniBtnRow"><button class="b-good" ${ready?"":"disabled"}>COLLECT +${r.out}</button></div>
+        `;
+        row.querySelector("button").addEventListener("click",()=>collectJob(job.id));
+        q.appendChild(row);
+      });
+    }
+
+    const sell=document.createElement("div");
+    sell.className="item";
+    sell.innerHTML=`<div class="name">SELL</div><div class="meta">SELL BY TYPE (PRICE = BASE + BEAUTY BONUS)</div>`;
+    panel.appendChild(sell);
+
+    Object.keys(RECIPES).forEach(rid=>{
+      const have=state.inv.products[rid]||0;
+      if(have<=0) return;
+      const r=RECIPES[rid];
+      const row=document.createElement("div");
+      row.className="item";
+      row.innerHTML=`
+        <div class="name">${r.name}</div>
+        <div class="meta">YOU HAVE: ${have}</div>
+        <div class="miniBtnRow">
+          <button class="b-blue">SELL 10</button>
+          <button class="b-blue">SELL ALL</button>
+        </div>
+      `;
+      const [b10,bAll]=row.querySelectorAll("button");
+      b10.addEventListener("click",()=>sellProduct(rid,Math.min(10,have)));
+      bAll.addEventListener("click",()=>sellProduct(rid,have));
+      panel.appendChild(row);
+    });
+  }
+
+  function renderOrders(){
+    const panel=$("#panel-orders");
+    panel.innerHTML="";
+    const d=curDay();
+    generateOrdersForDay(d);
+
+    const head=document.createElement("div");
+    head.className="item";
+    head.innerHTML=`
+      <div class="name">DAILY ORDERS</div>
+      <div class="meta">NEW ORDERS EACH IN‑GAME DAY. DELIVER DUMPLINGS FOR COINS + FEED.</div>
+    `;
+    panel.appendChild(head);
+
+    if(!state.buildings.factory){
+      const n=document.createElement("div");
+      n.className="item";
+      n.innerHTML=`<div class="name">LOCKED</div><div class="meta">BUY THE FACTORY TO RECEIVE ORDERS.</div>`;
+      panel.appendChild(n);
+      return;
+    }
+
+    if(state.orders.list.length===0){
+      const n=document.createElement("div");
+      n.className="item";
+      n.innerHTML=`<div class="name">NO ORDERS</div><div class="meta">COME BACK NEXT DAY.</div>`;
+      panel.appendChild(n);
+      return;
+    }
+
+    state.orders.list.forEach(o=>{
+      const r=RECIPES[o.recipeId];
+      const have=state.inv.products[o.recipeId]||0;
+      const ok=have>=o.qty;
+      const row=document.createElement("div");
+      row.className="item";
+      row.innerHTML=`
+        <div class="name">${r.name}</div>
+        <div class="meta">REQUIRE ${o.qty} • YOU HAVE ${have}<br/>REWARD +${o.rewardCoins} COINS • +${o.rewardFeed} FEED</div>
+        <div class="miniBtnRow">
+          <button class="b-good" ${(!o.done && ok) ? "" : "disabled"}>${o.done ? "DONE" : "DELIVER"}</button>
+          <span class="badge">${o.done ? "COMPLETED" : (ok ? "READY" : "NEED MORE")}</span>
+        </div>
+      `;
+      row.querySelector("button").addEventListener("click",()=>fulfillOrder(o.id));
+      panel.appendChild(row);
+    });
+  }
+
+  function renderUpgrades(){
+    const panel=$("#panel-upgrades");
+    panel.innerHTML="";
+
+    const info=document.createElement("div");
+    info.className="item";
+    info.innerHTML=`
+      <div class="name">UPGRADES</div>
+      <div class="meta">
+        FARM UNLOCK: ${state.unlockedRows}×${state.unlockedCols} (MAX 10×10)<br/>
+        ENERGY ${state.energy}/${energyMax()} • REGEN 1/${Math.round(regenMsPer1()/1000)}S<br/>
+        FACTORY SLOTS ${factorySlots()} • SPEED ${factorySpeedMult().toFixed(2)}<br/>
+        SHRIMP: AERATOR ${state.upgrades.shrimp_aerator} • AUTO ${state.upgrades.shrimp_auto} • BIO ${state.upgrades.shrimp_biofilter}
+      </div>
+    `;
+    panel.appendChild(info);
+
+    // Farm expansion controls
+    const exp=document.createElement("div");
+    exp.className="item";
+    exp.innerHTML=`
+      <div class="name">EXPAND FARM</div>
+      <div class="meta">UNLOCK MORE TILES. COST SCALES AS YOU EXPAND.</div>
+      <div class="miniBtnRow">
+        <button class="b-good" id="expRow" ${canExpandRow() ? "" : "disabled"}>UNLOCK +1 ROW (${farmExpandCost()})</button>
+        <button class="b-good" id="expCol" ${canExpandCol() ? "" : "disabled"}>UNLOCK +1 COL (${farmExpandCost()})</button>
+      </div>
+    `;
+    panel.appendChild(exp);
+    $("#expRow").addEventListener("click", expandRow);
+    $("#expCol").addEventListener("click", expandCol);
+
+    // Standard upgrades
+    Object.keys(UPGRADES).forEach(id=>{
+      if(id==="farm_expand") return; // using custom UI above
+      const u=UPGRADES[id];
+      const lvl=state.upgrades[id]||0;
+      const cost=upgradeCost(id);
+      const can = lvl<u.max && state.coins>=cost;
+
+      const item=document.createElement("div");
+      item.className="item";
+      item.innerHTML=`
+        <div class="name">${u.name}</div>
+        <div class="meta">${u.desc}<br/>LEVEL ${lvl}/${u.max} • NEXT COST ${lvl<u.max?cost:"—"}</div>
+        <div class="miniBtnRow">
+          <button class="b-good" ${can?"":"disabled"}>${lvl<u.max?"UPGRADE":"MAXED"}</button>
+        </div>
+      `;
+      item.querySelector("button").addEventListener("click",()=>buyUpgrade(id));
+      panel.appendChild(item);
+    });
+  }
+
+  function renderBag(){
+    const panel=$("#panel-bag");
+    const seedsLine = Object.keys(CROPS).map(k=>`${k}:${state.inv.seeds[k]||0}`).join(" • ");
+    const cropsLine = Object.keys(CROPS).map(k=>`${k}:${state.inv.crops[k]||0}`).join(" • ");
+    const prodLine = Object.keys(RECIPES).map(k=>`${RECIPES[k].name}:${state.inv.products[k]||0}`).join("<br/>");
+
+    panel.innerHTML=`
+      <div class="item"><div class="name">INVENTORY</div><div class="meta">COINS ${state.coins} • FEED ${state.inv.feedPellets} • FERT ${state.inv.fertilizer} • TEA ${state.inv.tea}</div></div>
+      <div class="item"><div class="name">SEEDS</div><div class="meta">${seedsLine}</div></div>
+      <div class="item"><div class="name">CROPS</div><div class="meta">${cropsLine}</div></div>
+      <div class="item"><div class="name">ANIMAL GOODS</div><div class="meta">EGG ${state.inv.egg} • PORK ${state.inv.pork} • FAT ${state.inv.pork_fat} • SHRIMP ${state.inv.shrimp} • BEEF ${state.inv.beef} • LAMB ${state.inv.lamb}</div></div>
+      <div class="item"><div class="name">PANTRY</div><div class="meta">WST ${state.inv.wheat_starch} • TST ${state.inv.tapioca_starch} • BAM ${state.inv.bamboo_shoots} • VER ${state.inv.vermicelli} • TOFU ${state.inv.tofu} • CRYS ${state.inv.crystal_wrappers}</div></div>
+      <div class="item"><div class="name">DUMPLING TYPES</div><div class="meta">${prodLine}</div></div>
+    `;
+  }
+
+  function renderAll(){
+    renderHUD();
+    renderFarm();
+    renderShop();
+    renderDecorPanel();
+    renderAnimals();
+    renderFactory();
+    renderOrders();
+    renderUpgrades();
+    renderBag();
+  }
+
+  // ---------- BUTTONS ----------
+  $("#selScallion").addEventListener("click",()=>setSeed("scallion"));
+  $("#selChives").addEventListener("click",()=>setSeed("chives"));
+  $("#selCabbage").addEventListener("click",()=>setSeed("cabbage"));
+  $("#selGarlic").addEventListener("click",()=>setSeed("garlic"));
+  $("#selGinger").addEventListener("click",()=>setSeed("ginger"));
+  $("#selWheat").addEventListener("click",()=>setSeed("wheat"));
+  $("#selCorn").addEventListener("click",()=>setSeed("corn"));
+  $("#selCarrot").addEventListener("click",()=>setSeed("carrot"));
+  $("#selCelery").addEventListener("click",()=>setSeed("celery"));
+  $("#selMushroom").addEventListener("click",()=>setSeed("mushroom"));
+
+  $("#toggleMode").addEventListener("click",toggleMode);
+  $("#reset").addEventListener("click",()=>{
+    if(confirm("RESET ALL PROGRESS?")){
+      localStorage.removeItem(KEY);
+      state = defaultState();
+      renderAll();
+      toast("RESET COMPLETE");
+    }
+  });
+
+  // Tabs
+  document.querySelectorAll(".tab").forEach(tab=>{
+    tab.addEventListener("click",()=>{
+      document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+      tab.classList.add("active");
+      const key=tab.dataset.tab;
+      document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+      document.querySelector("#panel-"+key).classList.add("active");
+      if(key==="animals") renderAnimals();
+      if(key==="factory") renderFactory();
+      if(key==="orders") renderOrders();
+      if(key==="upgrades") renderUpgrades();
+    });
+  });
+
+  // ---------- MAIN TICK ----------
+  setInterval(()=>{
+    ensureDailyTick();
+    renderHUD();
+    renderFarm();
+    if($("#panel-animals").classList.contains("active")) renderAnimals();
+    if($("#panel-factory").classList.contains("active")) renderFactory();
+    if($("#panel-orders").classList.contains("active")) renderOrders();
+    if($("#panel-upgrades").classList.contains("active")) renderUpgrades();
+  }, 650);
+
+  // First render
+  renderAll();
+})();
+</script>
+</body>
+</html>
