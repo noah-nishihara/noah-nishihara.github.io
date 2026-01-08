@@ -1,0 +1,1276 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Constellation Othello — Starspin + Strong AI</title>
+<style>
+  :root{
+    --bg0:#040617;
+    --bg1:#060a24;
+    --panel: rgba(12,16,46,.62);
+    --line: rgba(160,190,255,.22);
+    --text: rgba(236,246,255,.92);
+    --muted: rgba(236,246,255,.68);
+    --accent:#72f7ff;
+    --accent2:#b47cff;
+
+    --black1:#0b1020;
+    --black2:#212a55;
+    --white1:#f3fbff;
+    --white2:#b8d3ff;
+
+    --bh:#05050d;
+    --bhGlow:#ffb86b;
+  }
+
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1400px 900px at 20% 10%, rgba(125,85,255,.18), transparent 60%),
+      radial-gradient(1200px 800px at 80% 20%, rgba(120,255,240,.12), transparent 60%),
+      radial-gradient(900px 700px at 50% 90%, rgba(255,155,85,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg0), var(--bg1));
+    min-height:100svh;
+    overflow-x:hidden;
+  }
+
+  /* star dust */
+  .stars::before, .stars::after{
+    content:"";
+    position:fixed;
+    inset:-30%;
+    background-image:
+      radial-gradient(2px 2px at 12% 22%, rgba(255,255,255,.65), transparent 60%),
+      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,.55), transparent 60%),
+      radial-gradient(1px 1px at 73% 18%, rgba(255,255,255,.55), transparent 60%),
+      radial-gradient(2px 2px at 80% 70%, rgba(255,255,255,.65), transparent 60%),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,.55), transparent 60%),
+      radial-gradient(2px 2px at 45% 82%, rgba(255,255,255,.55), transparent 60%),
+      radial-gradient(1px 1px at 22% 78%, rgba(255,255,255,.45), transparent 60%),
+      radial-gradient(1px 1px at 66% 66%, rgba(255,255,255,.45), transparent 60%);
+    opacity:.55;
+    transform: translateZ(0);
+    animation: drift 40s linear infinite;
+    pointer-events:none;
+  }
+  .stars::after{
+    opacity:.35;
+    filter: blur(.4px);
+    animation-duration: 70s;
+    animation-direction: reverse;
+  }
+  @keyframes drift{
+    from{ transform: translate(-2%, -2%) scale(1.02); }
+    to{ transform: translate(2%, 2%) scale(1.02); }
+  }
+
+  header{
+    max-width: 1150px;
+    margin: 26px auto 12px;
+    padding: 0 16px;
+    display:flex;
+    align-items:flex-end;
+    justify-content: space-between;
+    gap:16px;
+  }
+  h1{
+    margin:0;
+    font-size: clamp(22px, 2.9vw, 38px);
+    letter-spacing:.05em;
+    font-weight: 820;
+    text-transform: uppercase;
+  }
+  .sub{
+    margin-top:6px;
+    color:var(--muted);
+    font-size: 13px;
+    line-height:1.35;
+  }
+  .badge{
+    display:inline-flex;
+    gap: 10px;
+    align-items:center;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(120,255,240,.10), rgba(180,124,255,.08));
+    box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    backdrop-filter: blur(6px);
+    font-size: 12px;
+    user-select:none;
+  }
+  .dot{
+    width: 9px; height: 9px;
+    border-radius:999px;
+    background: radial-gradient(circle at 30% 30%, #fff, var(--accent));
+    box-shadow: 0 0 12px rgba(114,247,255,.7);
+  }
+
+  main{
+    max-width: 1150px;
+    margin: 0 auto 26px;
+    padding: 0 16px 18px;
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    gap:16px;
+  }
+  @media (max-width: 980px){
+    main{ grid-template-columns: 1fr; }
+  }
+
+  .card{
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(16,22,70,.55), rgba(9,12,40,.55));
+    border-radius: 16px;
+    overflow:hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    position:relative;
+  }
+  .top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid rgba(160,190,255,.16);
+    background: linear-gradient(180deg, rgba(14,18,60,.55), rgba(14,18,60,.18));
+  }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 7px 10px;
+    border: 1px solid rgba(160,190,255,.20);
+    border-radius: 999px;
+    background: rgba(0,0,0,.18);
+    font-size: 12px;
+    color: rgba(245,252,255,.92);
+  }
+  .discTiny{
+    width: 14px; height: 14px;
+    border-radius:999px;
+    box-shadow: 0 0 10px rgba(0,0,0,.35);
+  }
+  .discTiny.black{
+    background: radial-gradient(circle at 30% 30%, #556, var(--black1) 55%, var(--black2));
+  }
+  .discTiny.white{
+    background: radial-gradient(circle at 30% 30%, #fff, var(--white1) 55%, var(--white2));
+  }
+
+  .wrap{
+    padding: 14px;
+  }
+
+  /* SVG board */
+  .svgBox{
+    width: min(820px, 100%);
+    aspect-ratio: 1/1;
+    margin: 0 auto;
+    border-radius: 18px;
+    border: 1px solid rgba(160,190,255,.18);
+    background:
+      radial-gradient(900px 600px at 50% 35%, rgba(114,247,255,.10), transparent 62%),
+      radial-gradient(900px 650px at 20% 85%, rgba(180,124,255,.10), transparent 60%),
+      linear-gradient(180deg, rgba(5,9,26,.75), rgba(5,7,20,.80));
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.04),
+      0 25px 55px rgba(0,0,0,.35);
+    overflow:hidden;
+    position:relative;
+  }
+
+  /* rotating group */
+  .spin{
+    transform-origin: 400px 400px;
+    animation: spin 26s linear infinite;
+  }
+  @keyframes spin{
+    from{ transform: rotate(0deg); }
+    to{ transform: rotate(360deg); }
+  }
+
+  .constLine{
+    stroke: rgba(160,190,255,.22);
+    stroke-width: 2;
+    opacity: .75;
+  }
+  .constLine.dim{
+    opacity:.35;
+    stroke: rgba(160,190,255,.16);
+  }
+
+  .nodeHit{
+    cursor:pointer;
+    fill: rgba(255,255,255,.02);
+    stroke: rgba(160,190,255,.18);
+    stroke-width: 2;
+  }
+  .nodeHit:hover{
+    stroke: rgba(114,247,255,.50);
+  }
+  .hintRing{
+    fill: none;
+    stroke: rgba(114,247,255,.85);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+    filter: drop-shadow(0 0 8px rgba(114,247,255,.25));
+    animation: pulse 1.25s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:.65; transform: scale(.98); }
+    50%{ opacity:1; transform: scale(1.03); }
+  }
+
+  .disc{
+    filter: drop-shadow(0 12px 16px rgba(0,0,0,.35));
+    transform-origin: center;
+  }
+  .disc.black{
+    fill: url(#gradBlack);
+    stroke: rgba(255,255,255,.12);
+    stroke-width: 1.2;
+  }
+  .disc.white{
+    fill: url(#gradWhite);
+    stroke: rgba(0,0,0,.10);
+    stroke-width: 1.2;
+  }
+  .flip{
+    animation: flip 420ms ease-in-out both;
+    transform-origin: center;
+  }
+  @keyframes flip{
+    0%{ transform: scale(1) rotateY(0deg); }
+    45%{ transform: scale(.92) rotateY(90deg); }
+    100%{ transform: scale(1) rotateY(180deg); }
+  }
+
+  /* Black hole corners */
+  .bhCore{
+    fill: radial-gradient(circle at 35% 30%, rgba(255,255,255,.16), rgba(0,0,0,0) 38%);
+  }
+  .bhDisc{
+    fill: var(--bh);
+    stroke: rgba(255,184,107,.18);
+    stroke-width: 2;
+    filter: drop-shadow(0 0 18px rgba(255,184,107,.16));
+  }
+  .bhRing{
+    fill: none;
+    stroke: rgba(255,184,107,.22);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 34 18;
+    animation: ring 2.8s linear infinite;
+    transform-origin: center;
+  }
+  @keyframes ring{
+    from{ transform: rotate(0deg); opacity:.70; }
+    to{ transform: rotate(360deg); opacity:.70; }
+  }
+
+  .side{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .panel{
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--panel), rgba(8,10,28,.55));
+    border-radius: 16px;
+    box-shadow: 0 18px 55px rgba(0,0,0,.28);
+    overflow:hidden;
+  }
+  .panel h2{
+    margin:0;
+    font-size: 13px;
+    letter-spacing:.12em;
+    text-transform: uppercase;
+    padding: 12px 12px 10px;
+    border-bottom: 1px solid rgba(160,190,255,.14);
+    color: rgba(245,252,255,.86);
+    background: linear-gradient(180deg, rgba(12,18,60,.38), rgba(12,18,60,.10));
+  }
+  .content{
+    padding: 12px;
+    color: rgba(245,252,255,.86);
+    font-size: 13px;
+    line-height:1.4;
+  }
+  .row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba(160,190,255,.14);
+  }
+  .row:last-child{ border-bottom:0; }
+  .btns{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding-top: 4px;
+  }
+  button, select, input[type="range"]{
+    font:inherit;
+  }
+  button{
+    appearance:none;
+    border: 1px solid rgba(160,190,255,.22);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
+    color: rgba(245,252,255,.92);
+    border-radius: 12px;
+    padding: 9px 10px;
+    cursor:pointer;
+    transition: transform .06s ease, border-color .2s ease, filter .2s ease;
+  }
+  button:hover{
+    border-color: rgba(114,247,255,.45);
+    filter: brightness(1.06);
+  }
+  button:active{ transform: translateY(1px); }
+  button.primary{
+    border-color: rgba(114,247,255,.55);
+    box-shadow: 0 0 0 3px rgba(114,247,255,.10);
+  }
+  button.danger{ border-color: rgba(255,120,120,.45); }
+
+  select{
+    width:100%;
+    border: 1px solid rgba(160,190,255,.22);
+    background: rgba(0,0,0,.18);
+    color: rgba(245,252,255,.92);
+    border-radius: 12px;
+    padding: 9px 10px;
+    outline:none;
+  }
+  input[type="range"]{
+    width: 160px;
+  }
+  .small{ font-size:12px; color:var(--muted); }
+  .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+  .log{
+    max-height: 220px;
+    overflow:auto;
+    padding-right: 4px;
+  }
+  .item{
+    padding: 7px 0;
+    border-bottom: 1px dashed rgba(160,190,255,.14);
+    display:flex;
+    justify-content:space-between;
+    gap: 10px;
+    font-size: 12px;
+    color: rgba(245,252,255,.84);
+  }
+  .item:last-child{ border-bottom:0; }
+
+  .toast{
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    padding: 10px 12px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.45);
+    border: 1px solid rgba(160,190,255,.25);
+    color: rgba(245,252,255,.92);
+    box-shadow: 0 18px 55px rgba(0,0,0,.35);
+    opacity: 0;
+    pointer-events:none;
+    transition: opacity .18s ease, transform .18s ease;
+    z-index: 100;
+    font-size: 13px;
+  }
+  .toast.on{
+    opacity:1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+</style>
+</head>
+<body class="stars">
+<header>
+  <div>
+    <h1>Constellation Othello</h1>
+    <div class="sub">
+      The board is a rotating star map. Corners are <b>black holes</b>. AI uses <b>iterative deepening minimax + alpha-beta + transposition</b>.
+    </div>
+  </div>
+  <div class="badge"><span class="dot"></span><span class="mono">Starspin v1.0</span><span>single‑file</span></div>
+</header>
+
+<main>
+  <section class="card">
+    <div class="top">
+      <div class="pill">
+        <span id="turnDisc" class="discTiny black"></span>
+        <span id="turnText">Black to move</span>
+      </div>
+      <div class="pill">⟡ Turn <span class="mono" id="turnNum">1</span></div>
+      <div class="pill" id="status">Bracket a line to flip.</div>
+    </div>
+    <div class="wrap">
+      <div class="svgBox">
+        <svg id="svg" viewBox="0 0 800 800" width="100%" height="100%" aria-label="Constellation Othello board" role="img">
+          <defs>
+            <radialGradient id="gradBlack" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#687"/>
+              <stop offset="55%" stop-color="var(--black1)"/>
+              <stop offset="100%" stop-color="var(--black2)"/>
+            </radialGradient>
+            <radialGradient id="gradWhite" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#fff"/>
+              <stop offset="55%" stop-color="var(--white1)"/>
+              <stop offset="100%" stop-color="var(--white2)"/>
+            </radialGradient>
+          </defs>
+
+          <!-- subtle static background stars inside the board -->
+          <g opacity=".45">
+            <circle cx="120" cy="180" r="2" fill="rgba(255,255,255,.55)"/>
+            <circle cx="240" cy="520" r="1.5" fill="rgba(255,255,255,.45)"/>
+            <circle cx="650" cy="210" r="2" fill="rgba(255,255,255,.55)"/>
+            <circle cx="580" cy="610" r="1.8" fill="rgba(255,255,255,.45)"/>
+            <circle cx="410" cy="140" r="1.2" fill="rgba(255,255,255,.35)"/>
+            <circle cx="355" cy="700" r="1.5" fill="rgba(255,255,255,.42)"/>
+            <circle cx="150" cy="640" r="1.2" fill="rgba(255,255,255,.36)"/>
+            <circle cx="690" cy="460" r="1.2" fill="rgba(255,255,255,.36)"/>
+          </g>
+
+          <!-- Everything interactive rotates together -->
+          <g id="spinGroup" class="spin">
+            <g id="lines"></g>
+            <g id="blackholes"></g>
+            <g id="hints"></g>
+            <g id="discs"></g>
+            <g id="hits"></g>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <section class="panel">
+      <h2>Controls</h2>
+      <div class="content">
+        <div class="row">
+          <div>
+            <div><b>Mode</b></div>
+            <div class="small">Hotseat or vs AI (White).</div>
+          </div>
+          <div style="min-width: 170px;">
+            <select id="mode">
+              <option value="hotseat">Hotseat (2 players)</option>
+              <option value="ai" selected>Vs AI (You=Black, AI=White)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div><b>AI think time</b></div>
+            <div class="small">More time = stronger (uses it).</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input id="think" type="range" min="80" max="1200" step="20" value="420"/>
+            <span class="mono" id="thinkVal">420ms</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div><b>Max depth cap</b></div>
+            <div class="small">Upper bound for search.</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input id="depth" type="range" min="3" max="9" step="1" value="7"/>
+            <span class="mono" id="depthVal">7</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div><b>Spin speed</b></div>
+            <div class="small">Purely visual planetarium feel.</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input id="spin" type="range" min="8" max="60" step="1" value="26"/>
+            <span class="mono" id="spinVal">26s</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="btns">
+            <button id="hintBtn">Hint</button>
+            <button id="undoBtn">Undo</button>
+            <button id="restartBtn" class="danger">Restart</button>
+          </div>
+        </div>
+
+        <div class="small">
+          <b>Core rule:</b> place a disc that brackets opponent discs in any direction; bracketed discs flip.
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Score + Telemetry</h2>
+      <div class="content">
+        <div class="row">
+          <div class="pill"><span class="discTiny black"></span> <b>Black</b> <span class="mono" id="scoreB">2</span></div>
+          <div class="pill"><span class="discTiny white"></span> <b>White</b> <span class="mono" id="scoreW">2</span></div>
+        </div>
+        <div class="row">
+          <div>
+            <div><b>Legal moves</b></div>
+            <div class="small">Current player.</div>
+          </div>
+          <div class="mono" id="legalCount">4</div>
+        </div>
+        <div class="row">
+          <div>
+            <div><b>AI reached</b></div>
+            <div class="small">Depth & nodes last move.</div>
+          </div>
+          <div class="mono" id="aiStats">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Chronicle</h2>
+      <div class="content">
+        <div id="log" class="log"></div>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(() => {
+  const N = 8;
+  const dirs = [
+    [-1,-1], [-1,0], [-1,1],
+    [0,-1],          [0,1],
+    [1,-1],  [1,0],  [1,1]
+  ];
+
+  // Positional weights (classic strong heuristic)
+  const W = [
+    [120,-20, 20,  5,  5, 20,-20,120],
+    [-20,-40, -5, -5, -5, -5,-40,-20],
+    [ 20, -5, 15,  3,  3, 15, -5, 20],
+    [  5, -5,  3,  3,  3,  3, -5,  5],
+    [  5, -5,  3,  3,  3,  3, -5,  5],
+    [ 20, -5, 15,  3,  3, 15, -5, 20],
+    [-20,-40, -5, -5, -5, -5,-40,-20],
+    [120,-20, 20,  5,  5, 20,-20,120],
+  ];
+
+  // UI
+  const svg = document.getElementById('svg');
+  const spinGroup = document.getElementById('spinGroup');
+  const linesG = document.getElementById('lines');
+  const holesG = document.getElementById('blackholes');
+  const hintsG = document.getElementById('hints');
+  const discsG = document.getElementById('discs');
+  const hitsG = document.getElementById('hits');
+
+  const modeSel = document.getElementById('mode');
+  const thinkRange = document.getElementById('think');
+  const thinkVal = document.getElementById('thinkVal');
+  const depthRange = document.getElementById('depth');
+  const depthVal = document.getElementById('depthVal');
+  const spinRange = document.getElementById('spin');
+  const spinVal = document.getElementById('spinVal');
+
+  const hintBtn = document.getElementById('hintBtn');
+  const undoBtn = document.getElementById('undoBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  const turnText = document.getElementById('turnText');
+  const turnDisc = document.getElementById('turnDisc');
+  const turnNumEl = document.getElementById('turnNum');
+  const statusEl = document.getElementById('status');
+  const scoreBEl = document.getElementById('scoreB');
+  const scoreWEl = document.getElementById('scoreW');
+  const legalCountEl = document.getElementById('legalCount');
+  const aiStatsEl = document.getElementById('aiStats');
+  const logEl = document.getElementById('log');
+  const toastEl = document.getElementById('toast');
+
+  // Game state
+  let board, current, turnNo, passes, showHints;
+  let history = [];
+  let log = [];
+
+  // --- Constellation geometry (node positions) ---
+  // Map grid nodes to a star-map "constellation": slightly perturbed lattice.
+  const nodePos = Array.from({length:N}, () => Array(N).fill(null));
+  const base = {min: 120, max: 680};
+  const step = (base.max - base.min) / (N-1);
+
+  // deterministic jitter so it looks hand-drawn but stable
+  function hash2(r,c){
+    let x = (r+1)*374761393 + (c+1)*668265263;
+    x = (x ^ (x >> 13)) * 1274126177;
+    x = (x ^ (x >> 16)) >>> 0;
+    return x / 2**32;
+  }
+  for (let r=0;r<N;r++){
+    for (let c=0;c<N;c++){
+      const j1 = (hash2(r,c) - 0.5) * 22;
+      const j2 = (hash2(c,r) - 0.5) * 22;
+      const x = base.min + c*step + j1;
+      const y = base.min + r*step + j2;
+      nodePos[r][c] = {x,y};
+    }
+  }
+
+  // Build constellation lines (connect neighbors with some diagonals)
+  function drawConstellation(){
+    linesG.innerHTML = "";
+    const addLine = (a,b,dim=false) => {
+      const ln = document.createElementNS("http://www.w3.org/2000/svg","line");
+      ln.setAttribute("x1", a.x); ln.setAttribute("y1", a.y);
+      ln.setAttribute("x2", b.x); ln.setAttribute("y2", b.y);
+      ln.setAttribute("class", "constLine" + (dim?" dim":""));
+      linesG.appendChild(ln);
+    };
+    for (let r=0;r<N;r++){
+      for (let c=0;c<N;c++){
+        const a = nodePos[r][c];
+        if (c+1<N) addLine(a, nodePos[r][c+1], (r+c)%3===0);
+        if (r+1<N) addLine(a, nodePos[r+1][c], (r+c)%4===0);
+        if (r+1<N && c+1<N && (r+c)%2===0) addLine(a, nodePos[r+1][c+1], true);
+        if (r+1<N && c-1>=0 && (r+c)%5===0) addLine(a, nodePos[r+1][c-1], true);
+      }
+    }
+  }
+
+  function drawBlackHoles(){
+    holesG.innerHTML = "";
+    const corners = [[0,0],[0,7],[7,0],[7,7]];
+    for (const [r,c] of corners){
+      const p = nodePos[r][c];
+      const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+      g.setAttribute("transform", `translate(${p.x} ${p.y})`);
+
+      // outer ring
+      const ring = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      ring.setAttribute("r", 34);
+      ring.setAttribute("class","bhRing");
+      g.appendChild(ring);
+
+      // accretion glow
+      const glow = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      glow.setAttribute("r", 28);
+      glow.setAttribute("fill","rgba(255,184,107,.08)");
+      g.appendChild(glow);
+
+      // core disc
+      const core = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      core.setAttribute("r", 22);
+      core.setAttribute("class","bhDisc");
+      g.appendChild(core);
+
+      holesG.appendChild(g);
+    }
+  }
+
+  function drawHitTargets(){
+    hitsG.innerHTML = "";
+    for (let r=0;r<N;r++){
+      for (let c=0;c<N;c++){
+        const p = nodePos[r][c];
+        const hit = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        hit.setAttribute("cx", p.x);
+        hit.setAttribute("cy", p.y);
+        hit.setAttribute("r", 28);
+        hit.setAttribute("class","nodeHit");
+        hit.dataset.r = r;
+        hit.dataset.c = c;
+        hit.addEventListener("click", () => onCell(r,c));
+        hitsG.appendChild(hit);
+      }
+    }
+  }
+
+  // --- Helpers ---
+  function other(p){ return p==='B' ? 'W' : 'B'; }
+  function inb(r,c){ return r>=0 && r<N && c>=0 && c<N; }
+  function cloneBoard(b){ return b.map(row => row.slice()); }
+
+  function coordLabel(r,c){
+    const file = String.fromCharCode(97+c);
+    const rank = (r+1);
+    return file+rank;
+  }
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('on');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(() => toastEl.classList.remove('on'), 1350);
+  }
+
+  // --- Othello rules ---
+  function legalMovesFor(player){
+    const opp = other(player);
+    const moves = new Map(); // "r,c" -> flips[]
+    for (let r=0;r<N;r++){
+      for (let c=0;c<N;c++){
+        if (board[r][c] !== null) continue;
+        let flipsAll = [];
+        for (const [dr,dc] of dirs){
+          let rr=r+dr, cc=c+dc;
+          let flips = [];
+          while(inb(rr,cc) && board[rr][cc]===opp){
+            flips.push([rr,cc]);
+            rr+=dr; cc+=dc;
+          }
+          if (flips.length && inb(rr,cc) && board[rr][cc]===player){
+            flipsAll = flipsAll.concat(flips);
+          }
+        }
+        if (flipsAll.length) moves.set(r+","+c, flipsAll);
+      }
+    }
+    return moves;
+  }
+
+  function applyMove(stateBoard, player, r,c, flips){
+    stateBoard[r][c] = player;
+    for (const [rr,cc] of flips) stateBoard[rr][cc] = player;
+  }
+
+  function countScore(bd=board){
+    let b=0,w=0;
+    for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+      if (bd[r][c]==='B') b++;
+      else if (bd[r][c]==='W') w++;
+    }
+    return {b,w};
+  }
+
+  // --- Rendering ---
+  function render(){
+    const moves = legalMovesFor(current);
+    const {b,w} = countScore();
+
+    scoreBEl.textContent = b;
+    scoreWEl.textContent = w;
+    legalCountEl.textContent = moves.size;
+
+    turnText.textContent = (current==='B' ? "Black" : "White") + " to move";
+    turnDisc.classList.toggle('black', current==='B');
+    turnDisc.classList.toggle('white', current==='W');
+    turnNumEl.textContent = turnNo;
+
+    if (moves.size===0) statusEl.textContent = "No legal moves: pass.";
+    else statusEl.textContent = showHints ? "Hints ON: dashed rings are legal moves." : "Bracket a line to flip.";
+
+    // discs
+    discsG.innerHTML = "";
+    for (let r=0;r<N;r++){
+      for (let c=0;c<N;c++){
+        const v = board[r][c];
+        if (!v) continue;
+        const p = nodePos[r][c];
+
+        const d = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        d.setAttribute("cx", p.x);
+        d.setAttribute("cy", p.y);
+        d.setAttribute("r", 18);
+        d.setAttribute("class", "disc " + (v==='B' ? "black" : "white"));
+        discsG.appendChild(d);
+      }
+    }
+
+    // hints
+    hintsG.innerHTML = "";
+    if (showHints){
+      for (const key of moves.keys()){
+        const [r,c] = key.split(',').map(Number);
+        const p = nodePos[r][c];
+        const ring = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        ring.setAttribute("cx", p.x);
+        ring.setAttribute("cy", p.y);
+        ring.setAttribute("r", 21);
+        ring.setAttribute("class","hintRing");
+        hintsG.appendChild(ring);
+      }
+    }
+
+    // log
+    logEl.innerHTML = "";
+    for (let i=0;i<log.length;i++){
+      const it = document.createElement('div');
+      it.className = 'item';
+      it.innerHTML = `<span class="mono">${String(i+1).padStart(2,'0')}</span><span>${log[i]}</span>`;
+      logEl.appendChild(it);
+    }
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function animateFlip(coords){
+    // Simple: re-render already shows new colors. We'll flash flip class by briefly adding a second overlay disc.
+    for (const [r,c] of coords){
+      const p = nodePos[r][c];
+      const v = board[r][c];
+      const d = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      d.setAttribute("cx", p.x);
+      d.setAttribute("cy", p.y);
+      d.setAttribute("r", 18);
+      d.setAttribute("class", "disc flip " + (v==='B' ? "black" : "white"));
+      discsG.appendChild(d);
+      setTimeout(() => { try{ d.remove(); }catch{} }, 450);
+    }
+  }
+
+  function endIfOver(){
+    const mB = legalMovesFor('B').size;
+    const mW = legalMovesFor('W').size;
+    if (mB===0 && mW===0){
+      const {b,w} = countScore();
+      const res = (b===w) ? "Draw" : (b>w ? "Black wins" : "White wins");
+      statusEl.textContent = `Game over — ${res}.`;
+      toast(`Game over — ${res}.`);
+      return true;
+    }
+    return false;
+  }
+
+  // --- History (Undo) ---
+  function pushHistory(reason){
+    history.push({
+      board: cloneBoard(board),
+      current,
+      turnNo,
+      passes,
+      showHints,
+      log: log.slice(),
+      aiStats: aiStatsEl.textContent,
+      reason
+    });
+    if (history.length > 90) history.shift();
+  }
+  function popHistory(){
+    if (history.length <= 1) return;
+    history.pop();
+    const s = history[history.length-1];
+    board = cloneBoard(s.board);
+    current = s.current;
+    turnNo = s.turnNo;
+    passes = s.passes;
+    showHints = s.showHints;
+    log = s.log.slice();
+    aiStatsEl.textContent = s.aiStats || "—";
+    render();
+  }
+
+  // --- Strong AI: Iterative deepening alpha-beta with transposition (Zobrist) ---
+  // Zobrist keys: [r][c][2] for B/W plus side-to-move.
+  const zob = Array.from({length:N}, () => Array.from({length:N}, () => [rand64(), rand64()]));
+  const zobTurn = rand64();
+
+  function rand64(){
+    // 64-bit as BigInt
+    const hi = BigInt((Math.random()*0xFFFFFFFF)>>>0);
+    const lo = BigInt((Math.random()*0xFFFFFFFF)>>>0);
+    return (hi<<32n) ^ lo;
+  }
+
+  function hashBoard(bd, turnPlayer){
+    let h = 0n;
+    for (let r=0;r<N;r++){
+      for (let c=0;c<N;c++){
+        const v = bd[r][c];
+        if (v==='B') h ^= zob[r][c][0];
+        else if (v==='W') h ^= zob[r][c][1];
+      }
+    }
+    if (turnPlayer==='W') h ^= zobTurn;
+    return h;
+  }
+
+  function evalBoard(bd, player){
+    // score from perspective of 'player' (positive is good for player)
+    const opp = other(player);
+    let s = 0;
+
+    // positional weights
+    for (let r=0;r<N;r++){
+      for (let c=0;c<N;c++){
+        const v = bd[r][c];
+        if (v===player) s += W[r][c];
+        else if (v===opp) s -= W[r][c];
+      }
+    }
+
+    // corners
+    const corners = [[0,0],[0,7],[7,0],[7,7]];
+    let cornerScore = 0;
+    for (const [r,c] of corners){
+      if (bd[r][c]===player) cornerScore += 35;
+      else if (bd[r][c]===opp) cornerScore -= 35;
+    }
+    s += cornerScore;
+
+    // mobility
+    const mobP = legalMovesForOn(bd, player).size;
+    const mobO = legalMovesForOn(bd, opp).size;
+    s += (mobP - mobO) * 7;
+
+    // frontier discs (discs adjacent to empties are vulnerable): penalize
+    const frontier = (who) => {
+      let f=0;
+      for (let r=0;r<N;r++){
+        for (let c=0;c<N;c++){
+          if (bd[r][c]!==who) continue;
+          for (const [dr,dc] of dirs){
+            const rr=r+dr, cc=c+dc;
+            if (inb(rr,cc) && bd[rr][cc]===null){ f++; break; }
+          }
+        }
+      }
+      return f;
+    };
+    s += (frontier(opp) - frontier(player)) * 2.5;
+
+    // disc parity late game (slight)
+    const {b,w} = countScore(bd);
+    const total = b+w;
+    if (total > 54){
+      const diff = (player==='B' ? (b-w) : (w-b));
+      s += diff * 3;
+    }
+
+    return s;
+  }
+
+  function legalMovesForOn(bd, player){
+    const opp = other(player);
+    const moves = new Map();
+    for (let r=0;r<N;r++){
+      for (let c=0;c<N;c++){
+        if (bd[r][c] !== null) continue;
+        let flipsAll = [];
+        for (const [dr,dc] of dirs){
+          let rr=r+dr, cc=c+dc;
+          let flips = [];
+          while(inb(rr,cc) && bd[rr][cc]===opp){
+            flips.push([rr,cc]);
+            rr+=dr; cc+=dc;
+          }
+          if (flips.length && inb(rr,cc) && bd[rr][cc]===player){
+            flipsAll = flipsAll.concat(flips);
+          }
+        }
+        if (flipsAll.length) moves.set(r+","+c, flipsAll);
+      }
+    }
+    return moves;
+  }
+
+  function orderedMoves(movesMap){
+    // Strong ordering helps alpha-beta: corners first, then high flips, then positional.
+    const arr = [];
+    for (const [key, flips] of movesMap.entries()){
+      const [r,c] = key.split(',').map(Number);
+      const isCorner = (r===0 && c===0) || (r===0 && c===7) || (r===7 && c===0) || (r===7 && c===7);
+      const score = (isCorner?10000:0) + flips.length*40 + W[r][c];
+      arr.push({r,c, flips, key, score});
+    }
+    arr.sort((a,b)=> b.score - a.score);
+    return arr;
+  }
+
+  function minimaxRoot(bd, player, msBudget, depthCap){
+    const start = performance.now();
+    const deadline = start + msBudget;
+
+    let nodes = 0;
+    let bestMove = null;
+    let bestVal = -Infinity;
+    let reached = 0;
+
+    // transposition table: key -> {depth, val, flag, bestKey}
+    // flag: 0 exact, 1 lowerbound, 2 upperbound
+    const TT = new Map();
+
+    function search(bd2, turnPlayer, depth, alpha, beta){
+      if (performance.now() > deadline) return null; // time cutoff signal
+      nodes++;
+
+      const h = hashBoard(bd2, turnPlayer);
+      const tt = TT.get(h);
+      if (tt && tt.depth >= depth){
+        if (tt.flag === 0) return tt.val;
+        if (tt.flag === 1) alpha = Math.max(alpha, tt.val);
+        else if (tt.flag === 2) beta = Math.min(beta, tt.val);
+        if (alpha >= beta) return tt.val;
+      }
+
+      const moves = legalMovesForOn(bd2, turnPlayer);
+      const opp = other(turnPlayer);
+
+      // terminal: no moves for both
+      if (moves.size === 0){
+        const oppMoves = legalMovesForOn(bd2, opp);
+        if (oppMoves.size === 0){
+          // exact final disc diff
+          const {b,w} = countScore(bd2);
+          const diff = (player==='B') ? (b-w) : (w-b);
+          const finalVal = diff * 1000; // massive to dominate heuristics
+          TT.set(h, {depth, val: finalVal, flag:0});
+          return finalVal;
+        }
+        // pass
+        const val = search(bd2, opp, depth, alpha, beta);
+        if (val === null) return null;
+        TT.set(h, {depth, val, flag:0});
+        return val;
+      }
+
+      if (depth === 0){
+        const e = evalBoard(bd2, player);
+        TT.set(h, {depth, val:e, flag:0});
+        return e;
+      }
+
+      let a0 = alpha, b0 = beta;
+      let bestLocal = -Infinity;
+
+      const ordered = orderedMoves(moves);
+      for (const mv of ordered){
+        if (performance.now() > deadline) return null;
+
+        const nb = cloneBoard(bd2);
+        applyMove(nb, turnPlayer, mv.r, mv.c, mv.flips);
+
+        const val = search(nb, opp, depth-1, -beta, -alpha); // negamax
+        if (val === null) return null;
+
+        const v = -val;
+        if (v > bestLocal) bestLocal = v;
+
+        if (bestLocal > alpha) alpha = bestLocal;
+        if (alpha >= beta) break;
+      }
+
+      // store TT
+      let flag = 0;
+      if (bestLocal <= a0) flag = 2; // upperbound
+      else if (bestLocal >= b0) flag = 1; // lowerbound
+      TT.set(h, {depth, val: bestLocal, flag});
+      return bestLocal;
+    }
+
+    const rootMoves = orderedMoves(legalMovesForOn(bd, player));
+    if (rootMoves.length === 0) return {best:null, reached:0, nodes};
+
+    // iterative deepening
+    for (let depth=1; depth<=depthCap; depth++){
+      if (performance.now() > deadline) break;
+      let localBest = null;
+      let localBestVal = -Infinity;
+
+      // aspiration window could be added; keep stable
+      for (const mv of rootMoves){
+        if (performance.now() > deadline) break;
+
+        const nb = cloneBoard(bd);
+        applyMove(nb, player, mv.r, mv.c, mv.flips);
+
+        const val = search(nb, other(player), depth-1, -Infinity, Infinity);
+        if (val === null) break;
+        const v = -val; // negamax
+
+        if (v > localBestVal){
+          localBestVal = v;
+          localBest = mv;
+        }
+      }
+
+      if (localBest){
+        bestMove = localBest;
+        bestVal = localBestVal;
+        reached = depth;
+      } else {
+        break;
+      }
+    }
+
+    return {best: bestMove, reached, nodes, val: bestVal};
+  }
+
+  // --- Move flow ---
+  function onCell(r,c){
+    if (modeSel.value==='ai' && current==='W') return; // wait for AI
+    const moves = legalMovesFor(current);
+    const key = r+","+c;
+    if (!moves.has(key)){
+      toast("Not a legal move.");
+      return;
+    }
+    doMove(r,c, moves.get(key), false);
+  }
+
+  function doMove(r,c, flips, byAI){
+    pushHistory(`Move ${coordLabel(r,c)}`);
+    applyMove(board, current, r,c, flips);
+
+    const coords = [[r,c], ...flips];
+    log.push(`${current==='B'?'●':'○'} ${current==='B'?'Black':'White'} → ${coordLabel(r,c)} (+${flips.length})`);
+    showHints = false;
+
+    render();
+    animateFlip(coords);
+
+    current = other(current);
+    turnNo++;
+    passes = 0;
+
+    // if next player has no moves, auto pass
+    const nextMoves = legalMovesFor(current);
+    if (nextMoves.size === 0){
+      doPass();
+      return;
+    }
+
+    render();
+    if (!endIfOver()) maybeAIMove();
+  }
+
+  function doPass(){
+    pushHistory("Pass");
+    passes++;
+    log.push(`${current==='B'?'●':'○'} ${current==='B'?'Black':'White'} passes.`);
+    toast(`${current==='B'?'Black':'White'} passes.`);
+
+    current = other(current);
+    turnNo++;
+
+    render();
+    if (endIfOver()) return;
+
+    const moves = legalMovesFor(current);
+    if (moves.size === 0){
+      // second pass => likely game end
+      render();
+      endIfOver();
+      return;
+    }
+    if (modeSel.value==='ai') maybeAIMove();
+  }
+
+  function maybeAIMove(){
+    if (modeSel.value !== 'ai') return;
+    if (current !== 'W') return;
+
+    const moves = legalMovesFor('W');
+    if (moves.size === 0){
+      doPass();
+      return;
+    }
+
+    statusEl.textContent = "AI is reading the stars…";
+    const ms = parseInt(thinkRange.value, 10);
+    const cap = parseInt(depthRange.value, 10);
+
+    setTimeout(() => {
+      const snapshot = cloneBoard(board);
+      const result = minimaxRoot(snapshot, 'W', ms, cap);
+
+      if (!result.best){
+        doPass();
+        return;
+      }
+
+      aiStatsEl.textContent = `d${result.reached} / ${result.nodes} nodes`;
+      const {r,c,flips} = result.best;
+
+      // recompute flips from actual current position for safety
+      const m = legalMovesFor('W');
+      const key = r+","+c;
+      const f = m.get(key) || flips;
+      doMove(r,c,f,true);
+    }, 140);
+  }
+
+  // --- Reset / init ---
+  function reset(){
+    board = Array.from({length:N}, () => Array(N).fill(null));
+    board[3][3]='W'; board[3][4]='B';
+    board[4][3]='B'; board[4][4]='W';
+    current='B';
+    turnNo=1;
+    passes=0;
+    showHints=false;
+    history=[];
+    log=[];
+    aiStatsEl.textContent = "—";
+    pushHistory("Start");
+    render();
+    toast("Tip: Corners (black holes) are power. Don’t feed them.");
+  }
+
+  // UI wiring
+  hintBtn.addEventListener('click', () => { showHints = !showHints; render(); });
+  undoBtn.addEventListener('click', () => {
+    if (modeSel.value === 'ai'){
+      popHistory();
+      if (current === 'W') popHistory(); // give the human the move back
+    } else popHistory();
+    toast("Undone.");
+  });
+  restartBtn.addEventListener('click', reset);
+
+  modeSel.addEventListener('change', () => {
+    toast("Mode changed. Re-charting constellations…");
+    setTimeout(reset, 120);
+  });
+
+  thinkRange.addEventListener('input', () => {
+    thinkVal.textContent = `${thinkRange.value}ms`;
+  });
+  depthRange.addEventListener('input', () => {
+    depthVal.textContent = `${depthRange.value}`;
+  });
+
+  spinRange.addEventListener('input', () => {
+    spinVal.textContent = `${spinRange.value}s`;
+    // adjust animation duration live
+    spinGroup.style.animationDuration = `${spinRange.value}s`;
+  });
+
+  // Build board visuals once
+  drawConstellation();
+  drawBlackHoles();
+  drawHitTargets();
+
+  // set initial slider labels
+  thinkVal.textContent = `${thinkRange.value}ms`;
+  depthVal.textContent = `${depthRange.value}`;
+  spinVal.textContent = `${spinRange.value}s`;
+  spinGroup.style.animationDuration = `${spinRange.value}s`;
+
+  // Start
+  reset();
+  // If vs AI, AI is white, so human begins.
+})();
+</script>
+</body>
+</html>
