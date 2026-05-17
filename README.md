@@ -27,13 +27,13 @@ Interactive underwater submarine viewers/simulators with sea ambience, controls,
 
 ### 🐠 Open Goldfish Pond
 
-A calm WebGL pond scene using goldfish GLB models, natural scenery, smooth swimming, and simple controls.
+A calm WebGL pond scene using goldfish GLB models, natural scenery, smooth swimming, and simple controls, inspired by AQUAZONE ビジュアル・エディション 水中庭園 「金魚」.
 
 - **Open:** https://noah-nishihara.github.io/open_goldfish_pond.html
 
 ### 🐈 Neko95 Maze
 
-A Windows 95 3D Maze-inspired cat adventure with classic maze controls, charms, enemies, a Smiley exit, and screensaver mode.
+A Windows 95 3D Maze-inspired VAIO SAPARi cat adventure with classic maze controls, charms, enemies, a Smiley exit, and screensaver mode.
 
 - **Open:** https://noah-nishihara.github.io/neko95_maze_v1.html
 
@@ -70,7 +70,7 @@ These GLB files are stored in the `models/` folder and used by the viewers/simul
 
 ### Raw GitHub URLs for code
 
-Use these when a script needs to fetch the model directly from GitHub:
+Use these when a script needs to fetch the model directly:
 
 ```text
 https://raw.githubusercontent.com/noah-nishihara/noah-nishihara.github.io/main/models/4000class.glb
@@ -111,15 +111,4 @@ noah-nishihara.github.io/
 
 ---
 
-## Notes
 
-- GitHub Pages paths are case-sensitive. For example, `HANABI.html` must be written in uppercase.
-- After pushing changes, GitHub Pages may take a minute or two to refresh.
-- Most pages are standalone HTML files and can be opened directly from the public GitHub Pages URLs above.
-- Some pages rely on external JavaScript/CDN assets and linked GLB model files, so they work best when served through GitHub Pages rather than opened directly from the local filesystem.
-
----
-
-## Attribution
-
-Some 3D models and assets may have their own attribution or license requirements. Where applicable, attribution is included in the relevant viewer page.
