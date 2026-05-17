@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Open Goldfish Pond</title>
+<meta name="description" content="A calm interactive WebGL goldfish pond with reliable GLB loading progress, natural pond scenery, day/night lighting, and simple controls.">
+<style>
+:root{--p:rgba(6,20,26,.60);--l:rgba(178,220,214,.28);--t:#eef8f5;--m:#b4c7c1;--a:#86cbd4;--g:#8ccf9a}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06151d;color:var(--t);font-family:Segoe UI,system-ui,sans-serif}#app{position:fixed;inset:0}canvas{display:block}.panel{position:fixed;z-index:10;left:16px;top:16px;width:min(430px,calc(100vw - 32px));background:var(--p);border:1px solid var(--l);border-radius:18px;box-shadow:0 18px 55px rgba(0,0,0,.35);backdrop-filter:blur(12px);padding:14px}h1{font-size:18px;margin:0 0 6px}.sub,.small{font-size:12px;color:var(--m);line-height:1.45}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{border:1px solid var(--l);background:rgba(134,203,212,.13);color:var(--t);padding:9px 11px;border-radius:12px;cursor:pointer}button:hover{background:rgba(134,203,212,.23)}.slider{display:flex;gap:8px;align-items:center;width:100%;margin-top:10px}.slider input{flex:1}.badge{display:inline-block;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:2px 7px;color:#e0efec;background:rgba(255,255,255,.06);font-size:11px}.hide{display:none!important}#loading{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at 50% 30%,rgba(95,164,165,.25),rgba(0,0,0,.84) 58%,#000)}#loading .box{width:min(700px,calc(100vw - 32px));background:rgba(6,20,26,.92);border:1px solid var(--l);border-radius:22px;padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.65)}.progress{height:10px;background:rgba(255,255,255,.10);border-radius:99px;overflow:hidden;margin:16px 0}.progress div{height:100%;width:0;background:linear-gradient(90deg,var(--g),var(--a));transition:width .2s}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<noscript><div style="position:fixed;inset:0;display:grid;place-items:center;background:#06151d;color:#eef8f5;font-family:Segoe UI,system-ui,sans-serif;padding:24px;text-align:center">This goldfish pond needs JavaScript enabled to run.</div></noscript>
+<div id="app"></div>
+<div id="loading"><div class="box"><h1>Open Goldfish Pond <span class="badge">reliable GLB loading</span></h1><div class="small">Loading three goldfish GLB models with byte-level progress. Enjoy a calm natural pond with simple controls, smooth swimming, lily pads, plants, rocks, bubbles, and day/night lighting.</div><div class="progress"><div id="prog"></div></div><div id="loadMsg" class="small">Starting…</div></div></div>
+<section id="hud" class="panel"><h1>Open Goldfish Pond <span class="badge">natural pond</span></h1><div class="sub">A calm interactive goldfish pond with simple pond-loop movement, natural scenery, minimal controls, and reliable model-loading progress.</div><div class="row"><button id="addFish" aria-label="Add one goldfish">Add goldfish</button><button id="reset" aria-label="Reset the pond fish">Reset</button><button id="lights" aria-label="Toggle day and night lighting">Day/night</button><button id="screen" aria-label="Hide or show the interface">Hide UI</button></div><div class="slider"><span class="small">speed</span><input id="speed" type="range" min="0.10" max="0.90" step="0.05" value="0.42"><span id="speedT" class="small">0.42×</span></div><div id="status" class="small" style="margin-top:10px">Loading fish…</div></section>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+
+const MODEL_URLS=[
+ {key:'jikin',label:'Jikin',url:'https://raw.githubusercontent.com/noah-nishihara/noah-nishihara.github.io/main/models/jikin.glb'},
+ {key:'ryukin',label:'Ryukin',url:'https://raw.githubusercontent.com/noah-nishihara/noah-nishihara.github.io/main/models/ryukin.glb'},
+ {key:'tosakin',label:'Tosakin',url:'https://raw.githubusercontent.com/noah-nishihara/noah-nishihara.github.io/main/models/tosakin.glb'}
+];
+const R=(a=1,b=0)=>b+Math.random()*(a-b), C=(v,a,b)=>Math.max(a,Math.min(b,v));
+const B={x:360,y:110,z:260}, FIXED_SIZE=50;
+const app=document.getElementById('app'), loading=document.getElementById('loading'), prog=document.getElementById('prog'), loadMsg=document.getElementById('loadMsg'), status=document.getElementById('status');
+let W=innerWidth,H=innerHeight,models=[],fish=[],fishGroups=new Map(),mixers=[],timeScale=.42,day=true,last=performance.now(),bubbleMesh,particleMesh,causticMesh,topGlow,lilyGroup;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0a252c);scene.fog=new THREE.FogExp2(0x173a3b,.00095);
+const camera=new THREE.PerspectiveCamera(40,W/H,.1,3600);camera.position.set(0,155,650);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.36;app.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,0,0);controls.maxDistance=1250;controls.minDistance=140;controls.maxPolarAngle=Math.PI*.84;
+const _look=new THREE.Vector3();
+addEventListener('resize',()=>{W=innerWidth;H=innerHeight;camera.aspect=W/H;camera.updateProjectionMatrix();renderer.setSize(W,H)});
+// Reliable GLB loader for slow or partially blocked links.
+// Uses fetch() first so the loading screen can show real downloaded bytes before GLTFLoader parses the GLB.
+// It only times out while waiting for the first byte; once bytes flow, it keeps downloading.
+const FIRST_BYTE_TIMEOUT_MS=45000;
+function rawToJsDelivr(url){
+  try{
+    const u=new URL(url);
+    if(u.hostname!=='raw.githubusercontent.com')return null;
+    const parts=u.pathname.split('/').filter(Boolean);
+    if(parts.length<4)return null;
+    const owner=parts[0], repo=parts[1], branch=parts[2], file=parts.slice(3).join('/');
+    return 'https://cdn.jsdelivr.net/gh/'+owner+'/'+repo+'@'+branch+'/'+file;
+  }catch(e){return null}
+}
+function sources(m){
+  // GitHub raw first because jsDelivr may return HTTP 403 for some GLB assets.
+  const cdn=rawToJsDelivr(m.url);
+  return [m.url,cdn].filter((v,i,a)=>v&&a.indexOf(v)===i);
+}
+function parseGLB(loader,buffer,label){
+  return new Promise((resolve,reject)=>{
+    loader.parse(buffer,'',gltf=>resolve(gltf),err=>reject(err||new Error('Could not parse GLB: '+label)));
+  });
+}
+async function fetchArrayBufferWithProgress(url,label){
+  const controller=new AbortController();
+  const firstByteTimer=setTimeout(()=>controller.abort(),FIRST_BYTE_TIMEOUT_MS);
+  let response;
+  try{
+    loadMsg.textContent='Connecting to '+label+' …';
+    response=await fetch(url,{mode:'cors',cache:'force-cache',signal:controller.signal});
+  }catch(e){
+    clearTimeout(firstByteTimer);
+    throw new Error('Could not connect to '+label+' within '+Math.round(FIRST_BYTE_TIMEOUT_MS/1000)+'s');
+  }
+  if(!response.ok){clearTimeout(firstByteTimer);throw new Error('HTTP '+response.status+' for '+label)}
+  const total=Number(response.headers.get('content-length'))||0;
+  if(!response.body){
+    clearTimeout(firstByteTimer);
+    loadMsg.textContent='Downloading '+label+' … browser progress unavailable';
+    return await response.arrayBuffer();
+  }
+  const reader=response.body.getReader();
+  const chunks=[];
+  let received=0,firstChunk=false;
+  while(true){
+    const {done,value}=await reader.read();
+    if(done)break;
+    if(value&&value.length){
+      if(!firstChunk){firstChunk=true;clearTimeout(firstByteTimer)}
+      chunks.push(value);
+      received+=value.length;
+      const mb=Math.round(received/1024/1024*10)/10;
+      if(total){
+        const pct=Math.max(1,Math.min(99,Math.round(received/total*100)));
+        const totalMb=Math.round(total/1024/1024*10)/10;
+        loadMsg.textContent='Downloading '+label+' … '+pct+'% ('+mb+' / '+totalMb+' MB)';
+      }else{
+        loadMsg.textContent='Downloading '+label+' … '+mb+' MB';
+      }
+    }
+  }
+  clearTimeout(firstByteTimer);
+  const out=new Uint8Array(received);
+  let offset=0;
+  for(const c of chunks){out.set(c,offset);offset+=c.length}
+  return out.buffer;
+}
+async function loadGLTFReliable(loader,url,label){
+  const buffer=await fetchArrayBufferWithProgress(url,label);
+  loadMsg.textContent='Parsing '+label+' …';
+  return await parseGLB(loader,buffer,label);
+}
+function normalise(root,meta={}){root.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(root),size=new THREE.Vector3(),center=new THREE.Vector3();box.getSize(size);box.getCenter(center);const max=Math.max(size.x,size.y,size.z)||1,scale=.82/max;root.traverse(o=>{if(o.isMesh&&o.material){o.material=o.material.clone();if('roughness' in o.material)o.material.roughness=.50;if('metalness' in o.material)o.material.metalness=0;if(o.material.color)o.material.color.multiplyScalar(1.06)}});const fit=new THREE.Group();fit.add(root);fit.scale.setScalar(scale);fit.position.set(-center.x*scale,-center.y*scale,-center.z*scale);fit.rotation.y=Math.PI;const pivot=new THREE.Group();pivot.add(fit);pivot.userData.key=meta.key;return pivot}
+function fallbackFish(){const wrap=new THREE.Group(),g=new THREE.Group();const body=new THREE.Mesh(new THREE.SphereGeometry(.34,32,16),new THREE.MeshStandardMaterial({color:0xff9b2f,roughness:.48}));body.scale.set(1.8,.8,.62);g.add(body);const tail=new THREE.Mesh(new THREE.ConeGeometry(.25,.42,3),new THREE.MeshStandardMaterial({color:0xffc66a,roughness:.50}));tail.rotation.z=Math.PI/2;tail.position.x=-.55;g.add(tail);g.rotation.y=Math.PI/2;wrap.add(g);return wrap}
+async function loadModels(){
+  const loader=new GLTFLoader(),loaded=[];
+  for(let i=0;i<MODEL_URLS.length;i++){
+    const m=MODEL_URLS[i];
+    let ok=false;
+    prog.style.width=(8+i*28)+'%';
+    const urls=sources(m);
+    for(let attempt=0;attempt<urls.length;attempt++){
+      const url=urls[attempt];
+      if(ok)break;
+      const sourceLabel=url.includes('cdn.jsdelivr.net')?'jsDelivr CDN':(url.includes('raw.githubusercontent.com')?'GitHub raw':'model host');
+      const label=m.label+' / '+sourceLabel;
+      try{
+        loadMsg.textContent='Starting '+label+' …';
+        const gltf=await loadGLTFReliable(loader,url,label);
+        loaded.push({key:m.key,label:m.label,url,root:normalise(gltf.scene,m),animations:gltf.animations||[]});
+        ok=true;
+        prog.style.width=(18+i*28)+'%';
+      }catch(e){
+        console.warn('GLB source failed',m.label,url,e);
+        loadMsg.textContent=label+' failed; trying next source …';
+        await new Promise(r=>setTimeout(r,500));
+      }
+    }
+    if(!ok)console.warn('No GLB source loaded for',m.label);
+  }
+  if(!loaded.length)loaded.push({key:'fallback',label:'Fallback',url:null,root:fallbackFish(),animations:[]});
+  models=loaded;
+  window.aquaModels=models;
+}
+function modelProfile(f){const mdl=models[f.modelIndex%Math.max(models.length,1)]||models[0]||{},key=String(mdl.key||'').toLowerCase();if(key.includes('ryukin'))return{speed:.18,size:1.02,turn:.18,amp:.42,grace:.42,edge:.72};if(key.includes('jikin'))return{speed:.42,size:.90,turn:.36,amp:.66,grace:.62,edge:.58};if(key.includes('tosakin'))return{speed:.26,size:.96,turn:.25,amp:.54,grace:.50,edge:.66};return{speed:.32,size:.92,turn:.30,amp:.58,grace:.56,edge:.62}}
+function newFish(modelIndex=null){const i=modelIndex??Math.floor(R(Math.max(models.length,1))),a=R(Math.PI*2),r=R(230,90);return{id:crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2),modelIndex:i,pos:{x:Math.cos(a)*r,y:R(B.y*.26,-B.y*.23),z:Math.sin(a)*r},vel:{x:0,y:0,z:0},age:R(999),swim:null}}
+function ensureSwimPath(f,i){if(!f.swim){const p=modelProfile(f),a=(i+1)*2.399963229728653+R(.90,-.90);const edge=p.edge+R(.08,-.08);f.swim={phase:a,rx:R(B.x*.88,B.x*edge),rz:R(B.z*.88,B.z*edge),y:R(B.y*.27,-B.y*.22),ampY:R(9.0,2.2)*p.amp,speed:R(.72,.48)*p.speed,biasX:R(42,-42),biasZ:R(32,-32),turn:p.turn,plantPass:R(1)}}return f.swim}
+function swimCarrierPosition(f,i,t,dt){const s=ensureSwimPath(f,i),sec=t*.001*s.speed*timeScale,p=f.pos;const nx=Math.sin(sec*.080+s.phase)*s.rx+Math.sin(sec*.033+s.phase*1.7)*34+s.biasX,nz=Math.cos(sec*.072+s.phase)*s.rz+Math.sin(sec*.040+s.phase*.9)*29+s.biasZ,ny=s.y+Math.sin(sec*.150+s.phase)*s.ampY+Math.cos(sec*.067+s.phase*.4)*1.8;const old={x:p.x,y:p.y,z:p.z},k=C(dt/1000*.085*s.turn*timeScale,.0010,.0060);p.x=C(p.x+(nx-p.x)*k,-B.x*.96,B.x*.96);p.y=C(p.y+(ny-p.y)*k,-B.y*.50,B.y*.44);p.z=C(p.z+(nz-p.z)*k,-B.z*.96,B.z*.96);f.vel={x:p.x-old.x,y:p.y-old.y,z:p.z-old.z}}
+function cloneFish(f){const mdl=models[f.modelIndex%models.length]||models[0];const carrier=new THREE.Group();carrier.userData.isSwimCarrier=true;const visual=SkeletonUtils.clone(mdl.root);carrier.add(visual);if(mdl.animations&&mdl.animations.length){const mixer=new THREE.AnimationMixer(visual);mdl.animations.forEach(clip=>mixer.clipAction(clip,visual).play());mixers.push(mixer)}scene.add(carrier);fishGroups.set(f.id,carrier)}
+function clearFish(){fishGroups.forEach(g=>scene.remove(g));fishGroups.clear();mixers.length=0;fish=[]}
+function resetFish(n=10){clearFish();for(let i=0;i<n;i++){const f=newFish(i%models.length);fish.push(f);cloneFish(f)}}
+function addFish(){const f=newFish(fish.length%models.length);fish.push(f);cloneFish(f)}
+function buildWorld(){scene.add(new THREE.HemisphereLight(0xc7e1d5,0x152218,1.45));const sun=new THREE.DirectionalLight(0xffe8bf,2.85);sun.position.set(-110,150,120);scene.add(sun);const fill=new THREE.DirectionalLight(0x79b9b5,1.20);fill.position.set(130,70,-100);scene.add(fill);const rim=new THREE.PointLight(0x8cc9c8,2.4,900);rim.position.set(0,60,-210);scene.add(rim);topGlow=new THREE.PointLight(0xa6d6d0,2.25,800);topGlow.position.set(0,115,35);scene.add(topGlow);
+ const basin=new THREE.Mesh(new THREE.PlaneGeometry(1280,920,128,128),new THREE.MeshStandardMaterial({color:0x6d654c,roughness:.98,metalness:0}));basin.rotation.x=-Math.PI/2;basin.position.y=-B.y-1.8;scene.add(basin);
+ const shallowShelf=new THREE.Mesh(new THREE.RingGeometry(285,650,128,4),new THREE.MeshBasicMaterial({color:0x9c8f68,transparent:true,opacity:.20,side:THREE.DoubleSide,depthWrite:false}));shallowShelf.rotation.x=-Math.PI/2;shallowShelf.position.y=-B.y-1.65;shallowShelf.scale.z=.72;scene.add(shallowShelf);
+ const siltPatches=new THREE.Group();for(let i=0;i<46;i++){const patch=new THREE.Mesh(new THREE.CircleGeometry(R(42,14),24),new THREE.MeshBasicMaterial({color:new THREE.Color().setHSL(R(.13,.09),R(.18,.08),R(.46,.32)),transparent:true,opacity:R(.16,.06),depthWrite:false}));patch.rotation.x=-Math.PI/2;patch.position.set(R(520,-520),-B.y-1.55,R(360,-360));patch.scale.set(R(1.8,.6),R(1.2,.45),1);siltPatches.add(patch)}scene.add(siltPatches);
+ causticMesh=new THREE.Mesh(new THREE.PlaneGeometry(1290,930,1,1),new THREE.MeshBasicMaterial({color:0xb5d5c9,transparent:true,opacity:.018,depthWrite:false}));causticMesh.rotation.x=-Math.PI/2;causticMesh.position.y=-B.y-1.44;scene.add(causticMesh);
+ for(let i=0;i<560;i++){const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(R(1.9,.2),0),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(R(.105,.075),R(.18,.06),R(.36,.20)),roughness:.94,metalness:0}));rock.position.set(R(590,-590),-B.y-1.36,R(420,-420));rock.rotation.set(R(6.28),R(6.28),R(6.28));scene.add(rock)}
+ for(let i=0;i<105;i++)addPondPlant();for(let i=0;i<36;i++)addLilyCluster();for(let i=0;i<18;i++)addRockShelter();particles()}
+function addPondPlant(){const group=new THREE.Group(),edge=R(1),ang=R(Math.PI*2),rad=edge<.72?R(510,330):R(320,120),x=Math.cos(ang)*rad,z=Math.sin(ang)*rad*.72,h=R(24,6);const stems=Math.floor(R(12,4));for(let j=0;j<stems;j++){const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(0,0,0),new THREE.Vector3(R(1.2,-1.2),h*.35,R(.8,-.8)),new THREE.Vector3(R(2.8,-2.8),h,R(1.2,-1.2))]);group.add(new THREE.Mesh(new THREE.TubeGeometry(curve,14,R(.15,.07),7,false),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(R(.34,.25),R(.36,.18),R(.32,.20)),roughness:.86,metalness:0})))}group.position.set(x,-B.y-1.50,z);scene.add(group)}
+function addLilyCluster(){const group=new THREE.Group(),ang=R(Math.PI*2),rad=R(530,210),x=Math.cos(ang)*rad,z=Math.sin(ang)*rad*.72,y=R(B.y*.42,B.y*.30);const pads=Math.floor(R(9,3));for(let i=0;i<pads;i++){const pad=new THREE.Mesh(new THREE.CircleGeometry(R(10,5),28,0,Math.PI*1.78),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(R(.31,.24),R(.42,.24),R(.30,.20)),roughness:.82,metalness:0,side:THREE.DoubleSide}));pad.rotation.x=-Math.PI/2;pad.rotation.z=R(Math.PI*2);pad.position.set(R(26,-26),R(1,-1),R(18,-18));pad.scale.set(R(1.45,.75),R(1.1,.75),1);group.add(pad);if(Math.random()<.18){const flower=new THREE.Mesh(new THREE.SphereGeometry(R(1.2,.65),12,8),new THREE.MeshStandardMaterial({color:0xe2c6bf,roughness:.75}));flower.position.copy(pad.position);flower.position.y+=1.0;group.add(flower)}}group.position.set(x,y,z);scene.add(group)}
+function addRockShelter(){const group=new THREE.Group(),ang=R(Math.PI*2),rad=R(480,180);for(let i=0;i<Math.floor(R(8,4));i++){const stone=new THREE.Mesh(new THREE.DodecahedronGeometry(R(6,2.5),0),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(R(.105,.075),R(.16,.06),R(.32,.18)),roughness:.95}));stone.position.set(R(16,-16),R(4,0),R(12,-12));stone.scale.y=R(.75,.35);stone.rotation.set(R(6.28),R(6.28),R(6.28));group.add(stone)}group.position.set(Math.cos(ang)*rad,-B.y-1.0,Math.sin(ang)*rad*.72);scene.add(group)}
+function particles(){let n=5200,geo=new THREE.BufferGeometry(),pos=new Float32Array(n*3);for(let i=0;i<n;i++){pos[i*3]=R(B.x*1.25,-B.x*1.25);pos[i*3+1]=R(B.y,-B.y);pos[i*3+2]=R(B.z*1.25,-B.z*1.25)}geo.setAttribute('position',new THREE.BufferAttribute(pos,3));particleMesh=new THREE.Points(geo,new THREE.PointsMaterial({size:.13,color:0xc9dddd,transparent:true,opacity:.26}));scene.add(particleMesh);let bgeo=new THREE.BufferGeometry(),bpos=new Float32Array(900*3);for(let i=0;i<900;i++){bpos[i*3]=R(B.x,-B.x);bpos[i*3+1]=R(B.y,-B.y);bpos[i*3+2]=R(B.z,-B.z)}bgeo.setAttribute('position',new THREE.BufferAttribute(bpos,3));bubbleMesh=new THREE.Points(bgeo,new THREE.PointsMaterial({size:.28,color:0xe9ffff,transparent:true,opacity:.30}));scene.add(bubbleMesh)}
+function updateParticles(t,dt){let bp=bubbleMesh.geometry.attributes.position.array;for(let i=0;i<bp.length/3;i++){bp[i*3+1]+=.0016*dt;if(bp[i*3+1]>B.y){bp[i*3]=R(B.x,-B.x);bp[i*3+1]=-B.y;bp[i*3+2]=R(B.z,-B.z)}bp[i*3]+=Math.sin(t*.0006+i)*.0012*dt}bubbleMesh.geometry.attributes.position.needsUpdate=true;let pp=particleMesh.geometry.attributes.position.array;for(let i=0;i<pp.length/3;i++){pp[i*3]+=Math.sin(t*.00035+i)*.00038*dt;pp[i*3+1]+=Math.cos(t*.0003+i)*.00020*dt}particleMesh.geometry.attributes.position.needsUpdate=true;if(causticMesh){causticMesh.material.opacity=.016+Math.sin(t*.0012)*.007;causticMesh.rotation.z=Math.sin(t*.00022)*.035}if(topGlow)topGlow.intensity=2.0+Math.sin(t*.001)*.28}
+function update(t){const dt=Math.min(45,t-last);last=t;mixers.forEach(m=>m.update(dt/1000*timeScale));for(let i=0;i<fish.length;i++){const f=fish[i],g=fishGroups.get(f.id);if(!g)continue;const prof=modelProfile(f);swimCarrierPosition(f,i,t,dt);g.position.set(f.pos.x,f.pos.y,f.pos.z);const sp=Math.hypot(f.vel.x,f.vel.y,f.vel.z);if(sp>.00001){_look.set(f.pos.x-f.vel.x*120,f.pos.y-f.vel.y*120,f.pos.z-f.vel.z*120);g.lookAt(_look)}g.rotation.z+=Math.sin(t*.0017+f.age)*.009*prof.grace;g.rotation.y+=Math.sin(t*.0012+f.age)*.004*prof.grace;g.scale.setScalar(FIXED_SIZE*prof.size)}updateParticles(t,dt);status.textContent=`Fish: ${fish.length} · Goldfish models: ${models.length}/3 · natural pond · speed ${timeScale.toFixed(2)}×`;controls.update();renderer.setClearColor(day?0x0a2930:0x061219,1);renderer.render(scene,camera);requestAnimationFrame(update)}
+function toggleLights(){day=!day;scene.fog.color.set(day?0x173a3b:0x071719);scene.fog.density=day?.00095:.0022;renderer.toneMappingExposure=day?1.36:1.05}
+document.getElementById('addFish').onclick=addFish;document.getElementById('reset').onclick=()=>resetFish(10);document.getElementById('lights').onclick=toggleLights;document.getElementById('screen').onclick=()=>document.getElementById('hud').classList.toggle('hide');document.getElementById('speed').oninput=e=>{timeScale=+e.target.value;document.getElementById('speedT').textContent=timeScale.toFixed(2)+'×'};
+await loadModels();prog.style.width='88%';loadMsg.textContent='Building natural pond …';buildWorld();resetFish(10);prog.style.width='100%';loadMsg.textContent='Ready';setTimeout(()=>loading.classList.add('hide'),650);requestAnimationFrame(update);
+</script>
+</body>
+</html>
