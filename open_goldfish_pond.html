@@ -8,13 +8,13 @@
 :root{--p:rgba(6,20,26,.60);--l:rgba(178,220,214,.28);--t:#eef8f5;--m:#b4c7c1;--a:#86cbd4;--g:#8ccf9a}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06151d;color:var(--t);font-family:Segoe UI,system-ui,sans-serif}#app{position:fixed;inset:0}canvas{display:block}.panel{position:fixed;z-index:10;left:16px;top:16px;width:min(430px,calc(100vw - 32px));background:var(--p);border:1px solid var(--l);border-radius:18px;box-shadow:0 18px 55px rgba(0,0,0,.35);backdrop-filter:blur(12px);padding:14px}h1{font-size:18px;margin:0 0 6px}.sub,.small{font-size:12px;color:var(--m);line-height:1.45}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{border:1px solid var(--l);background:rgba(134,203,212,.13);color:var(--t);padding:9px 11px;border-radius:12px;cursor:pointer}button:hover{background:rgba(134,203,212,.23)}.slider{display:flex;gap:8px;align-items:center;width:100%;margin-top:10px}.slider input{flex:1}.badge{display:inline-block;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:2px 7px;color:#e0efec;background:rgba(255,255,255,.06);font-size:11px}.hide{display:none!important}#loading{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at 50% 30%,rgba(95,164,165,.25),rgba(0,0,0,.84) 58%,#000)}#loading .box{width:min(700px,calc(100vw - 32px));background:rgba(6,20,26,.92);border:1px solid var(--l);border-radius:22px;padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.65)}.progress{height:10px;background:rgba(255,255,255,.10);border-radius:99px;overflow:hidden;margin:16px 0}.progress div{height:100%;width:0;background:linear-gradient(90deg,var(--g),var(--a));transition:width .2s}
 </style>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"}}</script>
 </head>
 <body>
 <noscript><div style="position:fixed;inset:0;display:grid;place-items:center;background:#06151d;color:#eef8f5;font-family:Segoe UI,system-ui,sans-serif;padding:24px;text-align:center">This goldfish pond needs JavaScript enabled to run.</div></noscript>
 <div id="app"></div>
-<div id="loading"><div class="box"><h1>Open Goldfish Pond <span class="badge">reliable GLB loading</span></h1><div class="small">Loading three goldfish GLB models with byte-level progress. Enjoy a calm natural pond with simple controls, smooth swimming, lily pads, plants, rocks, bubbles, and day/night lighting.</div><div class="progress"><div id="prog"></div></div><div id="loadMsg" class="small">Starting…</div></div></div>
-<section id="hud" class="panel"><h1>Open Goldfish Pond <span class="badge">natural pond</span></h1><div class="sub">A calm interactive goldfish pond with simple pond-loop movement, natural scenery, minimal controls, and reliable model-loading progress.</div><div class="row"><button id="addFish" aria-label="Add one goldfish">Add goldfish</button><button id="reset" aria-label="Reset the pond fish">Reset</button><button id="lights" aria-label="Toggle day and night lighting">Day/night</button><button id="screen" aria-label="Hide or show the interface">Hide UI</button></div><div class="slider"><span class="small">speed</span><input id="speed" type="range" min="0.10" max="0.90" step="0.05" value="0.42"><span id="speedT" class="small">0.42×</span></div><div id="status" class="small" style="margin-top:10px">Loading fish…</div></section>
+<div id="loading"><div class="box"><h1>Open Goldfish Pond <span class="badge">reliable GLB loading</span></h1><div class="small">Loading three goldfish GLB models with byte-level progress. Enjoy a calm natural pond with simple controls, refined natural 3D swimming, lily pads, plants, rocks, bubbles, and day/night lighting.</div><div class="progress"><div id="prog"></div></div><div id="loadMsg" class="small">Starting…</div></div></div>
+<section id="hud" class="panel"><h1>Open Goldfish Pond <span class="badge">natural pond</span></h1><div class="sub">A calm interactive goldfish pond with refined diagonal roaming, natural depth changes, natural scenery, minimal controls, and reliable model-loading progress.</div><div class="row"><button id="addFish" aria-label="Add one goldfish">Add goldfish</button><button id="reset" aria-label="Reset the pond fish">Reset</button><button id="lights" aria-label="Toggle day and night lighting">Day/night</button><button id="screen" aria-label="Hide or show the interface">Hide UI</button></div><div class="slider"><span class="small">speed</span><input id="speed" type="range" min="0.10" max="1.00" step="0.05" value="0.48"><span id="speedT" class="small">0.48×</span></div><div id="status" class="small" style="margin-top:10px">Loading fish…</div></section>
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -29,7 +29,7 @@ const MODEL_URLS=[
 const R=(a=1,b=0)=>b+Math.random()*(a-b), C=(v,a,b)=>Math.max(a,Math.min(b,v));
 const B={x:360,y:110,z:260}, FIXED_SIZE=50;
 const app=document.getElementById('app'), loading=document.getElementById('loading'), prog=document.getElementById('prog'), loadMsg=document.getElementById('loadMsg'), status=document.getElementById('status');
-let W=innerWidth,H=innerHeight,models=[],fish=[],fishGroups=new Map(),mixers=[],timeScale=.42,day=true,last=performance.now(),bubbleMesh,particleMesh,causticMesh,topGlow,lilyGroup;
+let W=innerWidth,H=innerHeight,models=[],fish=[],fishGroups=new Map(),mixers=[],timeScale=.48,day=true,last=performance.now(),bubbleMesh,particleMesh,causticMesh,topGlow,lilyGroup;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x0a252c);scene.fog=new THREE.FogExp2(0x173a3b,.00095);
 const camera=new THREE.PerspectiveCamera(40,W/H,.1,3600);camera.position.set(0,155,650);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.36;app.appendChild(renderer.domElement);
@@ -51,7 +51,7 @@ function rawToJsDelivr(url){
   }catch(e){return null}
 }
 function sources(m){
-  // GitHub raw first because jsDelivr may return HTTP 403 for some GLB assets.
+  // GitHub raw first, then direct jsDelivr CDN fallback.
   const cdn=rawToJsDelivr(m.url);
   return [m.url,cdn].filter((v,i,a)=>v&&a.indexOf(v)===i);
 }
@@ -141,10 +141,67 @@ async function loadModels(){
   models=loaded;
   window.aquaModels=models;
 }
-function modelProfile(f){const mdl=models[f.modelIndex%Math.max(models.length,1)]||models[0]||{},key=String(mdl.key||'').toLowerCase();if(key.includes('ryukin'))return{speed:.18,size:1.02,turn:.18,amp:.42,grace:.42,edge:.72};if(key.includes('jikin'))return{speed:.42,size:.90,turn:.36,amp:.66,grace:.62,edge:.58};if(key.includes('tosakin'))return{speed:.26,size:.96,turn:.25,amp:.54,grace:.50,edge:.66};return{speed:.32,size:.92,turn:.30,amp:.58,grace:.56,edge:.62}}
+function modelProfile(f){
+ const mdl=models[f.modelIndex%Math.max(models.length,1)]||models[0]||{},key=String(mdl.key||'').toLowerCase();
+ // Refined movement profiles: each breed keeps a different pace and turning style.
+ if(key.includes('ryukin'))return{speed:.46,size:1.02,turn:.42,amp:.46,grace:.58,edge:.72,tail:.85,surge:.30};
+ if(key.includes('jikin'))return{speed:.82,size:.90,turn:.68,amp:.74,grace:.76,edge:.58,tail:1.25,surge:.48};
+ if(key.includes('tosakin'))return{speed:.62,size:.96,turn:.52,amp:.62,grace:.68,edge:.66,tail:1.05,surge:.38};
+ return{speed:.62,size:.92,turn:.55,amp:.62,grace:.65,edge:.62,tail:1.0,surge:.38}
+}
 function newFish(modelIndex=null){const i=modelIndex??Math.floor(R(Math.max(models.length,1))),a=R(Math.PI*2),r=R(230,90);return{id:crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2),modelIndex:i,pos:{x:Math.cos(a)*r,y:R(B.y*.26,-B.y*.23),z:Math.sin(a)*r},vel:{x:0,y:0,z:0},age:R(999),swim:null}}
-function ensureSwimPath(f,i){if(!f.swim){const p=modelProfile(f),a=(i+1)*2.399963229728653+R(.90,-.90);const edge=p.edge+R(.08,-.08);f.swim={phase:a,rx:R(B.x*.88,B.x*edge),rz:R(B.z*.88,B.z*edge),y:R(B.y*.27,-B.y*.22),ampY:R(9.0,2.2)*p.amp,speed:R(.72,.48)*p.speed,biasX:R(42,-42),biasZ:R(32,-32),turn:p.turn,plantPass:R(1)}}return f.swim}
-function swimCarrierPosition(f,i,t,dt){const s=ensureSwimPath(f,i),sec=t*.001*s.speed*timeScale,p=f.pos;const nx=Math.sin(sec*.080+s.phase)*s.rx+Math.sin(sec*.033+s.phase*1.7)*34+s.biasX,nz=Math.cos(sec*.072+s.phase)*s.rz+Math.sin(sec*.040+s.phase*.9)*29+s.biasZ,ny=s.y+Math.sin(sec*.150+s.phase)*s.ampY+Math.cos(sec*.067+s.phase*.4)*1.8;const old={x:p.x,y:p.y,z:p.z},k=C(dt/1000*.085*s.turn*timeScale,.0010,.0060);p.x=C(p.x+(nx-p.x)*k,-B.x*.96,B.x*.96);p.y=C(p.y+(ny-p.y)*k,-B.y*.50,B.y*.44);p.z=C(p.z+(nz-p.z)*k,-B.z*.96,B.z*.96);f.vel={x:p.x-old.x,y:p.y-old.y,z:p.z-old.z}}
+function ensureSwimPath(f,i){
+ if(!f.swim){
+  const p=modelProfile(f),a=(i+1)*2.399963229728653+R(.90,-.90),edge=p.edge+R(.08,-.08);
+  f.swim={
+   phase:a,
+   // Broad but controlled horizontal pond use.
+   rx:R(B.x*.94,B.x*(edge+.04)),
+   rz:R(B.z*.94,B.z*(edge+.04)),
+   // Base depth layer plus slow depth range for natural climbs/descents.
+   y:R(B.y*.24,-B.y*.26),
+   depthRange:R(22,10)*p.amp,
+   microY:R(3.8,1.4)*p.amp,
+   speed:R(1.05,.78)*p.speed,
+   biasX:R(54,-54),
+   biasZ:R(42,-42),
+   turn:p.turn,
+   plantPass:R(1),
+   bank:0,
+   pitch:0
+  }
+ }
+ return f.swim
+}
+function swimCarrierPosition(f,i,t,dt){
+ const s=ensureSwimPath(f,i),prof=modelProfile(f),seconds=t*.001,pathBase=seconds*s.speed*timeScale;
+ // Subtle propulsion variation: enough to feel alive, not motorised.
+ const surge=1+Math.sin(seconds*(.95+prof.tail*.22)+s.phase)*prof.surge*.09;
+ const path=pathBase*surge,p=f.pos;
+ // Long horizontal route.
+ const loopX=Math.sin(path*.30+s.phase)*s.rx;
+ const loopZ=Math.cos(path*.275+s.phase)*s.rz;
+ // Slow roaming offset prevents rail-like loops.
+ const roamX=Math.sin(path*.052+s.phase*2.1)*44;
+ const roamZ=Math.cos(path*.047+s.phase*1.8)*36;
+ // Gentle diagonal drift gives natural 3D travel.
+ const diagonalX=Math.sin(path*.145+s.phase*.7)*34;
+ const diagonalZ=Math.sin(path*.132+s.phase*1.3)*30;
+ const nx=loopX+roamX+diagonalX+s.biasX;
+ const nz=loopZ+roamZ+diagonalZ+s.biasZ;
+ // Natural depth movement: slow climb/descent + slower layer shift + tiny micro motion.
+ const depthLong=Math.sin(path*.155+s.phase*1.4)*s.depthRange;
+ const depthLayer=Math.sin(path*.045+s.phase*2.6)*s.depthRange*.65;
+ const depthMicro=Math.sin(path*.52+s.phase)*s.microY;
+ const ny=s.y+depthLong+depthLayer+depthMicro;
+ const old={x:p.x,y:p.y,z:p.z};
+ // Smooth but responsive: avoids both bobbing and lazy sliding.
+ const response=C(dt/1000*.76*s.turn*timeScale,.0048,.020);
+ p.x=C(p.x+(nx-p.x)*response,-B.x*.97,B.x*.97);
+ p.y=C(p.y+(ny-p.y)*response,-B.y*.58,B.y*.50);
+ p.z=C(p.z+(nz-p.z)*response,-B.z*.97,B.z*.97);
+ f.vel={x:p.x-old.x,y:p.y-old.y,z:p.z-old.z}
+}
 function cloneFish(f){const mdl=models[f.modelIndex%models.length]||models[0];const carrier=new THREE.Group();carrier.userData.isSwimCarrier=true;const visual=SkeletonUtils.clone(mdl.root);carrier.add(visual);if(mdl.animations&&mdl.animations.length){const mixer=new THREE.AnimationMixer(visual);mdl.animations.forEach(clip=>mixer.clipAction(clip,visual).play());mixers.push(mixer)}scene.add(carrier);fishGroups.set(f.id,carrier)}
 function clearFish(){fishGroups.forEach(g=>scene.remove(g));fishGroups.clear();mixers.length=0;fish=[]}
 function resetFish(n=10){clearFish();for(let i=0;i<n;i++){const f=newFish(i%models.length);fish.push(f);cloneFish(f)}}
@@ -161,10 +218,35 @@ function addLilyCluster(){const group=new THREE.Group(),ang=R(Math.PI*2),rad=R(5
 function addRockShelter(){const group=new THREE.Group(),ang=R(Math.PI*2),rad=R(480,180);for(let i=0;i<Math.floor(R(8,4));i++){const stone=new THREE.Mesh(new THREE.DodecahedronGeometry(R(6,2.5),0),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(R(.105,.075),R(.16,.06),R(.32,.18)),roughness:.95}));stone.position.set(R(16,-16),R(4,0),R(12,-12));stone.scale.y=R(.75,.35);stone.rotation.set(R(6.28),R(6.28),R(6.28));group.add(stone)}group.position.set(Math.cos(ang)*rad,-B.y-1.0,Math.sin(ang)*rad*.72);scene.add(group)}
 function particles(){let n=5200,geo=new THREE.BufferGeometry(),pos=new Float32Array(n*3);for(let i=0;i<n;i++){pos[i*3]=R(B.x*1.25,-B.x*1.25);pos[i*3+1]=R(B.y,-B.y);pos[i*3+2]=R(B.z*1.25,-B.z*1.25)}geo.setAttribute('position',new THREE.BufferAttribute(pos,3));particleMesh=new THREE.Points(geo,new THREE.PointsMaterial({size:.13,color:0xc9dddd,transparent:true,opacity:.26}));scene.add(particleMesh);let bgeo=new THREE.BufferGeometry(),bpos=new Float32Array(900*3);for(let i=0;i<900;i++){bpos[i*3]=R(B.x,-B.x);bpos[i*3+1]=R(B.y,-B.y);bpos[i*3+2]=R(B.z,-B.z)}bgeo.setAttribute('position',new THREE.BufferAttribute(bpos,3));bubbleMesh=new THREE.Points(bgeo,new THREE.PointsMaterial({size:.28,color:0xe9ffff,transparent:true,opacity:.30}));scene.add(bubbleMesh)}
 function updateParticles(t,dt){let bp=bubbleMesh.geometry.attributes.position.array;for(let i=0;i<bp.length/3;i++){bp[i*3+1]+=.0016*dt;if(bp[i*3+1]>B.y){bp[i*3]=R(B.x,-B.x);bp[i*3+1]=-B.y;bp[i*3+2]=R(B.z,-B.z)}bp[i*3]+=Math.sin(t*.0006+i)*.0012*dt}bubbleMesh.geometry.attributes.position.needsUpdate=true;let pp=particleMesh.geometry.attributes.position.array;for(let i=0;i<pp.length/3;i++){pp[i*3]+=Math.sin(t*.00035+i)*.00038*dt;pp[i*3+1]+=Math.cos(t*.0003+i)*.00020*dt}particleMesh.geometry.attributes.position.needsUpdate=true;if(causticMesh){causticMesh.material.opacity=.016+Math.sin(t*.0012)*.007;causticMesh.rotation.z=Math.sin(t*.00022)*.035}if(topGlow)topGlow.intensity=2.0+Math.sin(t*.001)*.28}
-function update(t){const dt=Math.min(45,t-last);last=t;mixers.forEach(m=>m.update(dt/1000*timeScale));for(let i=0;i<fish.length;i++){const f=fish[i],g=fishGroups.get(f.id);if(!g)continue;const prof=modelProfile(f);swimCarrierPosition(f,i,t,dt);g.position.set(f.pos.x,f.pos.y,f.pos.z);const sp=Math.hypot(f.vel.x,f.vel.y,f.vel.z);if(sp>.00001){_look.set(f.pos.x-f.vel.x*120,f.pos.y-f.vel.y*120,f.pos.z-f.vel.z*120);g.lookAt(_look)}g.rotation.z+=Math.sin(t*.0017+f.age)*.009*prof.grace;g.rotation.y+=Math.sin(t*.0012+f.age)*.004*prof.grace;g.scale.setScalar(FIXED_SIZE*prof.size)}updateParticles(t,dt);status.textContent=`Fish: ${fish.length} · Goldfish models: ${models.length}/3 · natural pond · speed ${timeScale.toFixed(2)}×`;controls.update();renderer.setClearColor(day?0x0a2930:0x061219,1);renderer.render(scene,camera);requestAnimationFrame(update)}
+function update(t){
+ const dt=Math.min(45,t-last);last=t;mixers.forEach(m=>m.update(dt/1000*timeScale));
+ for(let i=0;i<fish.length;i++){
+  const f=fish[i],g=fishGroups.get(f.id);if(!g)continue;
+  const prof=modelProfile(f);swimCarrierPosition(f,i,t,dt);g.position.set(f.pos.x,f.pos.y,f.pos.z);
+  const sp=Math.hypot(f.vel.x,f.vel.y,f.vel.z);
+  if(sp>.00001){
+   // Corrected model axis: look against velocity so these GLBs visually swim forward.
+   _look.set(f.pos.x-f.vel.x*180,f.pos.y-f.vel.y*90,f.pos.z-f.vel.z*180);
+   g.lookAt(_look)
+  }
+  const motion=C(sp*18,0,1);
+  const swimBeat=Math.sin(t*.0058*prof.tail*timeScale+f.age);
+  const swimBeat2=Math.sin(t*.0029*prof.tail*timeScale+f.age*1.7);
+  // Pitch gently follows vertical motion: nose up when climbing, down when descending.
+  const verticalTilt=C(f.vel.y*1.8,-.16,.16);
+  const bank=Math.sin(t*.0014+f.age)*.006*prof.grace;
+  g.rotation.x+=verticalTilt*.18*motion;
+  g.rotation.z+=swimBeat*.0075*prof.grace*motion+bank;
+  g.rotation.y+=swimBeat2*.0045*prof.grace*motion;
+  const pulse=1+Math.sin(t*.0062*prof.tail*timeScale+f.age)*.004*prof.grace*motion;
+  g.scale.setScalar(FIXED_SIZE*prof.size*pulse)
+ }
+ updateParticles(t,dt);status.textContent=`Fish: ${fish.length} · Goldfish models: ${models.length}/3 · refined natural 3D swim · speed ${timeScale.toFixed(2)}×`;controls.update();renderer.setClearColor(day?0x0a2930:0x061219,1);renderer.render(scene,camera);requestAnimationFrame(update)
+}
 function toggleLights(){day=!day;scene.fog.color.set(day?0x173a3b:0x071719);scene.fog.density=day?.00095:.0022;renderer.toneMappingExposure=day?1.36:1.05}
 document.getElementById('addFish').onclick=addFish;document.getElementById('reset').onclick=()=>resetFish(10);document.getElementById('lights').onclick=toggleLights;document.getElementById('screen').onclick=()=>document.getElementById('hud').classList.toggle('hide');document.getElementById('speed').oninput=e=>{timeScale=+e.target.value;document.getElementById('speedT').textContent=timeScale.toFixed(2)+'×'};
 await loadModels();prog.style.width='88%';loadMsg.textContent='Building natural pond …';buildWorld();resetFish(10);prog.style.width='100%';loadMsg.textContent='Ready';setTimeout(()=>loading.classList.add('hide'),650);requestAnimationFrame(update);
 </script>
 </body>
 </html>
+
