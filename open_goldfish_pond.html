@@ -13,8 +13,8 @@
 <body>
 <noscript><div style="position:fixed;inset:0;display:grid;place-items:center;background:#06151d;color:#eef8f5;font-family:Segoe UI,system-ui,sans-serif;padding:24px;text-align:center">This goldfish pond needs JavaScript enabled to run.</div></noscript>
 <div id="app"></div>
-<div id="loading"><div class="box"><h1>Open Goldfish Pond <span class="badge">reliable GLB loading</span></h1><div class="small">Loading three goldfish GLB models with byte-level progress. Enjoy a calm natural pond with simple controls, refined natural 3D swimming, lily pads, plants, rocks, bubbles, and day/night lighting.</div><div class="progress"><div id="prog"></div></div><div id="loadMsg" class="small">Starting…</div></div></div>
-<section id="hud" class="panel"><h1>Open Goldfish Pond <span class="badge">natural pond</span></h1><div class="sub">A calm interactive goldfish pond with refined diagonal roaming, natural depth changes, natural scenery, minimal controls, and reliable model-loading progress.</div><div class="row"><button id="addFish" aria-label="Add one goldfish">Add goldfish</button><button id="reset" aria-label="Reset the pond fish">Reset</button><button id="lights" aria-label="Toggle day and night lighting">Day/night</button><button id="screen" aria-label="Hide or show the interface">Hide UI</button></div><div class="slider"><span class="small">speed</span><input id="speed" type="range" min="0.10" max="1.00" step="0.05" value="0.48"><span id="speedT" class="small">0.48×</span></div><div id="status" class="small" style="margin-top:10px">Loading fish…</div></section>
+<div id="loading"><div class="box"><h1>Open Goldfish Pond <span class="badge">reliable GLB loading</span></h1><div class="small">Loading three goldfish GLB models with byte-level progress. Enjoy a calm natural pond with simple controls, wide-ranging behaviour-based swimming with below-surface limits, sand-picking bottom behaviour, corrected forward orientation, varied personalities, lily pads, plants, rocks, bubbles, and day/night lighting.</div><div class="progress"><div id="prog"></div></div><div id="loadMsg" class="small">Starting…</div></div></div>
+<section id="hud" class="panel"><h1>Open Goldfish Pond <span class="badge">natural pond</span></h1><div class="sub">A calm interactive goldfish pond with varied fish personalities, wide edge-to-edge roaming, below-surface limits, bottom sand-picking behaviour, natural scenery, minimal controls, and reliable model-loading progress.</div><div class="row"><button id="addFish" aria-label="Add one goldfish">Add goldfish</button><button id="reset" aria-label="Reset the pond fish">Reset</button><button id="lights" aria-label="Toggle day and night lighting">Day/night</button><button id="screen" aria-label="Hide or show the interface">Hide UI</button></div><div class="slider"><span class="small">speed</span><input id="speed" type="range" min="0.10" max="1.00" step="0.05" value="0.48"><span id="speedT" class="small">0.48×</span></div><div id="status" class="small" style="margin-top:10px">Loading fish…</div></section>
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -34,7 +34,7 @@ const scene=new THREE.Scene();scene.background=new THREE.Color(0x0a252c);scene.f
 const camera=new THREE.PerspectiveCamera(40,W/H,.1,3600);camera.position.set(0,155,650);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.36;app.appendChild(renderer.domElement);
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,0,0);controls.maxDistance=1250;controls.minDistance=140;controls.maxPolarAngle=Math.PI*.84;
-const _look=new THREE.Vector3();
+const _look=new THREE.Vector3(), _up=new THREE.Vector3(0,1,0), _lookMat=new THREE.Matrix4(), _desiredQuat=new THREE.Quaternion();
 addEventListener('resize',()=>{W=innerWidth;H=innerHeight;camera.aspect=W/H;camera.updateProjectionMatrix();renderer.setSize(W,H)});
 // Reliable GLB loader for slow or partially blocked links.
 // Uses fetch() first so the loading screen can show real downloaded bytes before GLTFLoader parses the GLB.
@@ -51,7 +51,7 @@ function rawToJsDelivr(url){
   }catch(e){return null}
 }
 function sources(m){
-  // GitHub raw first, then direct jsDelivr CDN fallback.
+  // GitHub raw first, then direct jsDelivr CDN fallback. Keep these URLs unwrapped; Mimecast-wrapped URLs break fallback detection.
   const cdn=rawToJsDelivr(m.url);
   return [m.url,cdn].filter((v,i,a)=>v&&a.indexOf(v)===i);
 }
@@ -149,59 +149,54 @@ function modelProfile(f){
  if(key.includes('tosakin'))return{speed:.62,size:.96,turn:.52,amp:.62,grace:.68,edge:.66,tail:1.05,surge:.38};
  return{speed:.62,size:.92,turn:.55,amp:.62,grace:.65,edge:.62,tail:1.0,surge:.38}
 }
-function newFish(modelIndex=null){const i=modelIndex??Math.floor(R(Math.max(models.length,1))),a=R(Math.PI*2),r=R(230,90);return{id:crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2),modelIndex:i,pos:{x:Math.cos(a)*r,y:R(B.y*.26,-B.y*.23),z:Math.sin(a)*r},vel:{x:0,y:0,z:0},age:R(999),swim:null}}
+function newFish(modelIndex=null){const i=modelIndex??Math.floor(R(Math.max(models.length,1))),a=R(Math.PI*2),r=R(350,155),h=a+R(.9,-.9);return{id:crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2),modelIndex:i,pos:{x:C(Math.cos(a)*r,-B.x*.94,B.x*.94),y:R(B.y*.18,-B.y*.38),z:C(Math.sin(a)*r*.72,-B.z*.94,B.z*.94)},vel:{x:0,y:0,z:0},motionVel:{x:Math.cos(h)*R(24,7),y:R(4,-6),z:Math.sin(h)*R(24,7)},heading:{x:Math.cos(h),y:R(.06,-.10),z:Math.sin(h)},age:R(999),swim:null}}
+function normaliseVec(v){const m=Math.hypot(v.x,v.y,v.z)||1;v.x/=m;v.y/=m;v.z/=m;return v}
+function normaliseHeading(f){if(!f.heading)f.heading={x:1,y:0,z:0};return normaliseVec(f.heading)}
+function waterTop(){return B.y*.26}
+function sandLevel(){return -B.y*.82} // fish centre near this level appears close to the pond floor without clipping through it
+function pickBehaviour(i){const roll=R(1),slot=i%7;if(slot===0||roll<.13)return'layerCruiser';if(slot===1||roll<.28)return'depthForager';if(slot===2||roll<.40)return'surfaceSkimmer';if(slot===3||roll<.55)return'bottomGrazer';if(slot===4||roll<.68)return'fastPatrol';if(slot===5||roll<.83)return'slowDrifter';return'roamer'}
+function behaviourSpec(kind,prof){
+ const specs={
+  layerCruiser:{speed:.74,outer:1.02,inner:.58,vertical:.08,targetTime:[15,8],radius:[66,38],wander:.12,depth:'mid',hover:.10,pick:.00},
+  depthForager:{speed:.82,outer:1.01,inner:.46,vertical:.86,targetTime:[10,5],radius:[44,22],wander:.27,depth:'cycle',hover:.14,pick:.34},
+  surfaceSkimmer:{speed:.60,outer:1.03,inner:.64,vertical:.14,targetTime:[18,9],radius:[78,44],wander:.15,depth:'upper',hover:.18,pick:.00},
+  bottomGrazer:{speed:.48,outer:1.00,inner:.42,vertical:.44,targetTime:[18,8],radius:[62,28],wander:.18,depth:'sand',hover:.30,pick:.62},
+  fastPatrol:{speed:1.20,outer:1.04,inner:.70,vertical:.26,targetTime:[8,4],radius:[54,28],wander:.21,depth:'mixed',hover:.04,pick:.02},
+  slowDrifter:{speed:.40,outer:.98,inner:.42,vertical:.12,targetTime:[24,13],radius:[100,58],wander:.19,depth:'same',hover:.26,pick:.04},
+  roamer:{speed:.88,outer:1.03,inner:.44,vertical:.42,targetTime:[11,5.5],radius:[60,30],wander:.29,depth:'mixed',hover:.12,pick:.08}
+ };const s=specs[kind]||specs.roamer;return{kind,speed:s.speed*prof.speed,outer:s.outer,inner:s.inner,vertical:s.vertical,targetTime:s.targetTime,radius:s.radius,wander:s.wander*prof.grace,depth:s.depth,hover:s.hover,pick:s.pick}}
+function chooseDepthFor(spec,currentY,mode=null){
+ const top=waterTop(),sand=sandLevel();
+ if(mode==='upper')return R(top-8,top-30);if(mode==='lower')return R(-B.y*.32,sand+8);if(mode==='sand')return R(sand+7,sand+20);if(mode==='mid')return R(B.y*.06,-B.y*.34);if(mode==='same')return C(currentY+R(8,-8),-B.y*.50,top-12);
+ if(spec.depth==='upper')return R(top-8,top-34);if(spec.depth==='lower')return R(-B.y*.34,sand+10);if(spec.depth==='sand')return R(sand+6,sand+22);if(spec.depth==='same')return C(currentY+R(8,-8),-B.y*.50,top-12);
+ if(spec.depth==='cycle'){const r=R(1);if(r<.36)return R(sand+6,sand+24);if(r<.64)return R(top-10,top-36);return R(B.y*.04,-B.y*.36)}
+ if(spec.depth==='mixed'){const r=R(1);if(r<.20)return R(top-10,top-36);if(r>.62)return R(-B.y*.28,sand+14);return R(B.y*.04,-B.y*.36)}
+ return R(B.y*.04,-B.y*.36)}
+function randomPondTarget(f,i,mode=null){
+ const prof=modelProfile(f),kind=f.swim?f.swim.kind:pickBehaviour(i),spec=f.swim?f.swim.spec:behaviourSpec(kind,prof),edgeBias=Math.random()<.34;
+ const inner=edgeBias?Math.max(spec.inner,.76):spec.inner,outer=spec.outer,ang=R(Math.PI*2),rad=Math.sqrt(R(outer*outer,inner*inner)),phase=(i+1)*2.399963229728653+f.age*.011,edgeJitter=kind==='fastPatrol'?R(38,-38):R(62,-62);
+ const x=Math.cos(ang)*rad*B.x*.995+Math.sin(phase)*edgeJitter,z=Math.sin(ang)*rad*B.z*.995+Math.cos(phase*1.17)*edgeJitter*.72,y=chooseDepthFor(spec,f.pos?f.pos.y:0,mode);
+ return{x:C(x,-B.x*.995,B.x*.995),y:C(y,sandLevel()+4,waterTop()-4),z:C(z,-B.z*.995,B.z*.995)}}
 function ensureSwimPath(f,i){
- if(!f.swim){
-  const p=modelProfile(f),a=(i+1)*2.399963229728653+R(.90,-.90),edge=p.edge+R(.08,-.08);
-  f.swim={
-   phase:a,
-   // Broad but controlled horizontal pond use.
-   rx:R(B.x*.94,B.x*(edge+.04)),
-   rz:R(B.z*.94,B.z*(edge+.04)),
-   // Base depth layer plus slow depth range for natural climbs/descents.
-   y:R(B.y*.24,-B.y*.26),
-   depthRange:R(22,10)*p.amp,
-   microY:R(3.8,1.4)*p.amp,
-   speed:R(1.05,.78)*p.speed,
-   biasX:R(54,-54),
-   biasZ:R(42,-42),
-   turn:p.turn,
-   plantPass:R(1),
-   bank:0,
-   pitch:0
-  }
- }
- return f.swim
-}
+ if(!f.swim){const prof=modelProfile(f),kind=pickBehaviour(i),spec=behaviourSpec(kind,prof);normaliseHeading(f);if(!f.motionVel)f.motionVel={x:f.heading.x*18,y:f.heading.y*7,z:f.heading.z*18};f.swim={kind,spec,target:null,targetTimer:R(spec.targetTime[0],spec.targetTime[1]),targetRadius:R(spec.radius[0],spec.radius[1]),cruise:R(90,54)*spec.speed,burst:R(1.34,.96),accel:R(2.7,1.55)*prof.turn,turnRate:R(3.0,1.8)*prof.turn,wanderPhase:R(999),wanderStrength:spec.wander,depthIntent:R(1),depthCountdown:kind==='depthForager'?R(3,1):R(8,3),hoverTimer:R(0),pickTimer:R(0),avoidMargin:R(1.02,.94),layerY:C(f.pos.y,-B.y*.42,waterTop()-12)};f.swim.target=randomPondTarget(f,i,kind==='surfaceSkimmer'?'upper':kind==='bottomGrazer'?'sand':kind==='layerCruiser'?'mid':null)}return f.swim}
+function chooseNextTarget(f,i,s,reason='roam'){
+ s.depthCountdown-=1;let mode=null;if(reason==='ceiling')mode='lower';else if(reason==='floor')mode='upper';else if(s.kind==='layerCruiser')mode='mid';else if(s.kind==='surfaceSkimmer')mode=Math.random()<.86?'upper':'mid';else if(s.kind==='bottomGrazer')mode=Math.random()<.78?'sand':'lower';else if(s.kind==='depthForager'&&s.depthCountdown<=0){mode=s.depthIntent<.45?'upper':s.depthIntent<.78?'sand':'lower';s.depthIntent=R(1);s.depthCountdown=R(4,2)}else if(s.kind==='slowDrifter')mode='same';
+ s.target=randomPondTarget(f,i,mode);s.targetTimer=R(s.spec.targetTime[0],s.spec.targetTime[1]);s.targetRadius=R(s.spec.radius[0],s.spec.radius[1]);s.burst=s.kind==='fastPatrol'?R(1.55,1.08):R(1.30,.94);s.hoverTimer=Math.random()<s.spec.hover?R(2.0,.45):0;s.pickTimer=(mode==='sand'||(Math.random()<s.spec.pick&&s.kind!=='surfaceSkimmer'))?R(2.2,.7):0}
 function swimCarrierPosition(f,i,t,dt){
- const s=ensureSwimPath(f,i),prof=modelProfile(f),seconds=t*.001,pathBase=seconds*s.speed*timeScale;
- // Subtle propulsion variation: enough to feel alive, not motorised.
- const surge=1+Math.sin(seconds*(.95+prof.tail*.22)+s.phase)*prof.surge*.09;
- const path=pathBase*surge,p=f.pos;
- // Long horizontal route.
- const loopX=Math.sin(path*.30+s.phase)*s.rx;
- const loopZ=Math.cos(path*.275+s.phase)*s.rz;
- // Slow roaming offset prevents rail-like loops.
- const roamX=Math.sin(path*.052+s.phase*2.1)*44;
- const roamZ=Math.cos(path*.047+s.phase*1.8)*36;
- // Gentle diagonal drift gives natural 3D travel.
- const diagonalX=Math.sin(path*.145+s.phase*.7)*34;
- const diagonalZ=Math.sin(path*.132+s.phase*1.3)*30;
- const nx=loopX+roamX+diagonalX+s.biasX;
- const nz=loopZ+roamZ+diagonalZ+s.biasZ;
- // Natural depth movement: slow climb/descent + slower layer shift + tiny micro motion.
- const depthLong=Math.sin(path*.155+s.phase*1.4)*s.depthRange;
- const depthLayer=Math.sin(path*.045+s.phase*2.6)*s.depthRange*.65;
- const depthMicro=Math.sin(path*.52+s.phase)*s.microY;
- const ny=s.y+depthLong+depthLayer+depthMicro;
- const old={x:p.x,y:p.y,z:p.z};
- // Smooth but responsive: avoids both bobbing and lazy sliding.
- const response=C(dt/1000*.76*s.turn*timeScale,.0048,.020);
- p.x=C(p.x+(nx-p.x)*response,-B.x*.97,B.x*.97);
- p.y=C(p.y+(ny-p.y)*response,-B.y*.58,B.y*.50);
- p.z=C(p.z+(nz-p.z)*response,-B.z*.97,B.z*.97);
- f.vel={x:p.x-old.x,y:p.y-old.y,z:p.z-old.z}
-}
+ const s=ensureSwimPath(f,i),prof=modelProfile(f),p=f.pos,old={x:p.x,y:p.y,z:p.z},seconds=t*.001,step=Math.min(dt*.001,.045),speedScale=.50+timeScale*.98;normaliseHeading(f);s.targetTimer-=step;if(s.hoverTimer>0)s.hoverTimer-=step;if(s.pickTimer>0)s.pickTimer-=step;
+ let to={x:s.target.x-p.x,y:s.target.y-p.y,z:s.target.z-p.z},dist=Math.hypot(to.x,to.y,to.z)||1;if(dist<s.targetRadius||s.targetTimer<=0)chooseNextTarget(f,i,s,dist<s.targetRadius?'arrived':'timer');to={x:s.target.x-p.x,y:s.target.y-p.y,z:s.target.z-p.z};dist=Math.hypot(to.x,to.y,to.z)||1;let desired={x:to.x/dist,y:to.y/dist,z:to.z/dist};
+ for(let j=0;j<fish.length;j++)if(j!==i){const o=fish[j],dx=p.x-o.pos.x,dy=p.y-o.pos.y,dz=p.z-o.pos.z,d2=dx*dx+dy*dy+dz*dz;if(d2>0&&d2<58*58){const inv=(1-Math.sqrt(d2)/58)*.58;desired.x+=dx*inv/58;desired.y+=dy*inv/96;desired.z+=dz*inv/58}}
+ const nx=p.x/(B.x*s.avoidMargin),nz=p.z/(B.z*s.avoidMargin),edge=Math.hypot(nx,nz);if(edge>1){desired.x+=-nx*(edge-1)*2.1;desired.z+=-nz*(edge-1)*2.1;if(edge>1.12)chooseNextTarget(f,i,s,'edge')}
+ const top=waterTop(),sand=sandLevel();if(p.y>top-5){desired.y-=1.85;chooseNextTarget(f,i,s,'ceiling')}if(p.y<sand+5){desired.y+=.95;chooseNextTarget(f,i,s,'floor')}
+ const w=s.wanderStrength;desired.x+=Math.sin(seconds*(s.kind==='fastPatrol'?1.05:.61)+s.wanderPhase)*w;desired.z+=Math.cos(seconds*(s.kind==='fastPatrol'?.93:.57)+s.wanderPhase*1.29)*w;desired.y+=Math.sin(seconds*(s.kind==='depthForager'?.56:.31)+s.wanderPhase*.71)*w*s.spec.vertical;
+ if(s.kind==='layerCruiser'||s.kind==='slowDrifter')desired.y+=(s.layerY-p.y)*.018;if(s.pickTimer>0){desired.y+=(sand+10-p.y)*.045;desired.x+=Math.sin(seconds*7.0+s.wanderPhase)*.045;desired.z+=Math.cos(seconds*6.3+s.wanderPhase)*.045}
+ normaliseVec(desired);desired.y=C(desired.y,-.42*s.spec.vertical-.055,.42*s.spec.vertical+.020);normaliseVec(desired);
+ const picking=s.pickTimer>0&&p.y<sand+24,alignment=C((f.heading.x*desired.x+f.heading.y*desired.y+f.heading.z*desired.z+1)*.5,.40,1),nearSlow=C(dist/145,.44,1),hover=s.hoverTimer>0?.34:1,pickSlow=picking?.26:1,surge=1+Math.sin(seconds*(1.10+prof.tail*.21)+s.wanderPhase)*prof.surge*(s.kind==='fastPatrol'?.18:.12);
+ const wantedSpeed=s.cruise*s.burst*speedScale*alignment*nearSlow*hover*pickSlow*surge,desiredVel={x:desired.x*wantedSpeed,y:desired.y*wantedSpeed,z:desired.z*wantedSpeed},accelStep=C(s.accel*step,.016,.15);f.motionVel.x+=(desiredVel.x-f.motionVel.x)*accelStep;f.motionVel.y+=(desiredVel.y-f.motionVel.y)*accelStep*.78;f.motionVel.z+=(desiredVel.z-f.motionVel.z)*accelStep;
+ const horiz=Math.hypot(f.motionVel.x,f.motionVel.z)||1,maxY=Math.max(5,horiz*(.12+.30*s.spec.vertical));f.motionVel.y=C(f.motionVel.y,-maxY,maxY);if(p.y>top-14&&f.motionVel.y>0)f.motionVel.y*=.38;if(picking)f.motionVel.y+=(sand+10-p.y)*step*2.2;
+ p.x+=f.motionVel.x*step;p.y+=f.motionVel.y*step;p.z+=f.motionVel.z*step;const cx=C(p.x,-B.x*1.00,B.x*1.00),cy=C(p.y,sand,top),cz=C(p.z,-B.z*1.00,B.z*1.00);if(cx!==p.x){f.motionVel.x*=-.22;chooseNextTarget(f,i,s,'xClamp')}p.x=cx;if(cy!==p.y){f.motionVel.y=cy===top?-Math.abs(f.motionVel.y)*.30:Math.abs(f.motionVel.y)*.18;chooseNextTarget(f,i,s,cy>0?'ceiling':'floor')}p.y=cy;if(cz!==p.z){f.motionVel.z*=-.22;chooseNextTarget(f,i,s,'zClamp')}p.z=cz;
+ const vm=Math.hypot(f.motionVel.x,f.motionVel.y,f.motionVel.z);if(vm>.01){const vdir={x:f.motionVel.x/vm,y:f.motionVel.y/vm,z:f.motionVel.z/vm},turnStep=C(s.turnRate*step,.016,.082);f.heading.x+=(vdir.x-f.heading.x)*turnStep;f.heading.y+=(vdir.y-f.heading.y)*turnStep*.80;f.heading.z+=(vdir.z-f.heading.z)*turnStep;if(picking)f.heading.y+=( -.22-f.heading.y)*.035;f.heading.y=C(f.heading.y,-.42,.30);normaliseHeading(f)}
+ f.vel={x:p.x-old.x,y:p.y-old.y,z:p.z-old.z}}
 function cloneFish(f){const mdl=models[f.modelIndex%models.length]||models[0];const carrier=new THREE.Group();carrier.userData.isSwimCarrier=true;const visual=SkeletonUtils.clone(mdl.root);carrier.add(visual);if(mdl.animations&&mdl.animations.length){const mixer=new THREE.AnimationMixer(visual);mdl.animations.forEach(clip=>mixer.clipAction(clip,visual).play());mixers.push(mixer)}scene.add(carrier);fishGroups.set(f.id,carrier)}
 function clearFish(){fishGroups.forEach(g=>scene.remove(g));fishGroups.clear();mixers.length=0;fish=[]}
 function resetFish(n=10){clearFish();for(let i=0;i<n;i++){const f=newFish(i%models.length);fish.push(f);cloneFish(f)}}
@@ -225,23 +220,25 @@ function update(t){
   const prof=modelProfile(f);swimCarrierPosition(f,i,t,dt);g.position.set(f.pos.x,f.pos.y,f.pos.z);
   const sp=Math.hypot(f.vel.x,f.vel.y,f.vel.z);
   if(sp>.00001){
-   // Corrected model axis: look against velocity so these GLBs visually swim forward.
-   _look.set(f.pos.x-f.vel.x*180,f.pos.y-f.vel.y*90,f.pos.z-f.vel.z*180);
-   g.lookAt(_look)
+   normaliseHeading(f);
+   _look.set(f.pos.x+f.heading.x*180,f.pos.y+f.heading.y*120,f.pos.z+f.heading.z*180);
+   _lookMat.lookAt(g.position,_look,_up);
+   _desiredQuat.setFromRotationMatrix(_lookMat);
+   g.quaternion.slerp(_desiredQuat,C(dt*.001*(2.25+prof.turn*1.2),0,.088));
   }
-  const motion=C(sp*18,0,1);
-  const swimBeat=Math.sin(t*.0058*prof.tail*timeScale+f.age);
-  const swimBeat2=Math.sin(t*.0029*prof.tail*timeScale+f.age*1.7);
-  // Pitch gently follows vertical motion: nose up when climbing, down when descending.
-  const verticalTilt=C(f.vel.y*1.8,-.16,.16);
-  const bank=Math.sin(t*.0014+f.age)*.006*prof.grace;
-  g.rotation.x+=verticalTilt*.18*motion;
-  g.rotation.z+=swimBeat*.0075*prof.grace*motion+bank;
+  const motion=C(sp*42,0,1);
+  const swimBeat=Math.sin(t*.0072*prof.tail*timeScale+f.age);
+  const swimBeat2=Math.sin(t*.0035*prof.tail*timeScale+f.age*1.7);
+  const verticalTilt=C((f.heading?f.heading.y:0)*.70,-.24,.22);
+  const turnBank=C((f.vel.x*(f.heading?f.heading.z:0)-f.vel.z*(f.heading?f.heading.x:0))*.13,-.026,.026);
+  const bank=Math.sin(t*.0018+f.age)*.0055*prof.grace+turnBank;
+  g.rotation.x+=verticalTilt*.14*motion;
+  g.rotation.z+=swimBeat*.0082*prof.grace*motion+bank;
   g.rotation.y+=swimBeat2*.0045*prof.grace*motion;
-  const pulse=1+Math.sin(t*.0062*prof.tail*timeScale+f.age)*.004*prof.grace*motion;
+  const pulse=1+Math.sin(t*.0074*prof.tail*timeScale+f.age)*.0048*prof.grace*motion;
   g.scale.setScalar(FIXED_SIZE*prof.size*pulse)
  }
- updateParticles(t,dt);status.textContent=`Fish: ${fish.length} · Goldfish models: ${models.length}/3 · refined natural 3D swim · speed ${timeScale.toFixed(2)}×`;controls.update();renderer.setClearColor(day?0x0a2930:0x061219,1);renderer.render(scene,camera);requestAnimationFrame(update)
+ updateParticles(t,dt);status.textContent=`Fish: ${fish.length} · Goldfish models: ${models.length}/3 · wide varied roam · sand picking · speed ${timeScale.toFixed(2)}×`;controls.update();renderer.setClearColor(day?0x0a2930:0x061219,1);renderer.render(scene,camera);requestAnimationFrame(update)
 }
 function toggleLights(){day=!day;scene.fog.color.set(day?0x173a3b:0x071719);scene.fog.density=day?.00095:.0022;renderer.toneMappingExposure=day?1.36:1.05}
 document.getElementById('addFish').onclick=addFish;document.getElementById('reset').onclick=()=>resetFish(10);document.getElementById('lights').onclick=toggleLights;document.getElementById('screen').onclick=()=>document.getElementById('hud').classList.toggle('hide');document.getElementById('speed').oninput=e=>{timeScale=+e.target.value;document.getElementById('speedT').textContent=timeScale.toFixed(2)+'×'};
