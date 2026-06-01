@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I Did Not Laugh — Paris Nesbit KC and the problem of difficult liberty</title>
+  <meta name="description" content="A reading of a book launch as legal and social document. Paris Nesbit KC, coercive psychiatry, and the things professional rooms know but do not say.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1612;
+      --ink-light: #4a4440;
+      --ink-faint: #8a8480;
+      --paper: #f7f4ef;
+      --paper-dark: #ede9e2;
+      --rule: #c8c0b4;
+      --accent: #8b2020;
+    }
+
+    html { font-size: 18px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'EB Garamond', Georgia, serif;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    header {
+      border-bottom: 1px solid var(--rule);
+      padding: 2.5rem 0 0;
+      margin-bottom: 0;
+    }
+
+    .header-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .pub-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      display: block;
+      margin-bottom: 2rem;
+    }
+
+    .pub-name a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .pub-name a:hover { color: var(--accent); }
+
+    /* ── TITLE BLOCK ────────────────────────────────────── */
+    .title-block {
+      padding-bottom: 2.5rem;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2.6rem, 6vw, 3.8rem);
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--ink-light);
+      line-height: 1.5;
+      margin-bottom: 1.8rem;
+    }
+
+    .byline-row {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+      color: var(--ink-faint);
+      font-family: 'Cormorant Garamond', serif;
+      text-transform: uppercase;
+      padding-bottom: 0;
+    }
+
+    .byline-dot {
+      width: 3px;
+      height: 3px;
+      background: var(--rule);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── MAIN ───────────────────────────────────────────── */
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 3.5rem 2rem 6rem;
+    }
+
+    /* ── PART HEADINGS ──────────────────────────────────── */
+    .part-head {
+      margin: 4rem 0 2rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .part-label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+
+    .part-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: clamp(1.5rem, 3.5vw, 2rem);
+      line-height: 1.15;
+      color: var(--ink);
+    }
+
+    /* ── SECTION HEADINGS ───────────────────────────────── */
+    h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-style: italic;
+      font-size: 1.3rem;
+      color: var(--ink);
+      margin: 3rem 0 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    /* ── BODY TEXT ──────────────────────────────────────── */
+    p {
+      font-size: 1rem;
+      margin-bottom: 1.3rem;
+      color: var(--ink);
+      hyphens: auto;
+    }
+
+    /* ── BLOCKQUOTE ─────────────────────────────────────── */
+    blockquote {
+      margin: 2rem 0 2rem 1.5rem;
+      padding: 0 0 0 1.5rem;
+      border-left: 2px solid var(--accent);
+    }
+
+    blockquote p {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.15rem;
+      line-height: 1.65;
+      color: var(--ink-light);
+      margin-bottom: 0;
+    }
+
+    /* ── SEPARATOR ──────────────────────────────────────── */
+    .sep {
+      display: flex;
+      justify-content: center;
+      margin: 2.5rem 0;
+      gap: 0.5rem;
+    }
+
+    .sep span {
+      display: block;
+      width: 4px;
+      height: 4px;
+      background: var(--rule);
+      border-radius: 50%;
+    }
+
+    /* ── STANDALONE LINES ───────────────────────────────── */
+    .standalone {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--ink-light);
+      margin: 1.8rem 0;
+    }
+/* ── FOOTER ─────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--rule);
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    footer p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin: 0;
+    }
+
+    /* ── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 600px) {
+      html { font-size: 16px; }
+      main, .header-inner { padding-left: 1.4rem; padding-right: 1.4rem; }
+    }
+
+    /* ── FADE IN ─────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    header, main { animation: fadeUp 0.7s ease both; }
+    main { animation-delay: 0.15s; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <span class="pub-name"><a href="#">Difficult Liberty</a></span>
+    <div class="title-block">
+      <h1>I Did Not Laugh</h1>
+      <p class="subtitle">Paris Nesbit KC and the problem of difficult liberty</p>
+      <div class="byline-row">
+        <span>Essay</span>
+        <span class="byline-dot"></span>
+        <span>2026</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ══ PART ONE ══════════════════════════════════════════ -->
+  <div class="part-head">
+    <span class="part-label">Part One</span>
+    <span class="part-title">The Lock Beneath the Laughter</span>
+  </div>
+
+  <p>I went to the launch of a biography of Paris Nesbit KC expecting legal history. A South Australian barrister from another century, brilliant and unstable, his life touching law, politics, mental illness, courts and confinement.</p>
+  <p>I left thinking about laughter.</p>
+  <p>There was a lot of it. Some was ordinary event laughter, some lawyer humour, some from the texture of Nesbit's life: the snuff-taking, the theatrical advocacy, the impossible litigation, the denunciations, the certificates challenged on technical grounds. The stories had comic appeal. Nesbit was not a clean victim. He was brilliant, unwell, often impossible, sometimes frightening, sometimes ridiculous. Anyone in the room could understand why people laughed.</p>
+  <p>I did not laugh. Or not much.</p>
+  <p>I kept hearing what sat beneath the anecdote: certification, confinement, the old machinery of lunacy law, and the newer machinery that no longer uses that language.</p>
+  <p>At one point Michael Kirby noticed the same problem. The laughter around Nesbit's behaviour, he said, was itself a measure of the difficulty of facing these issues. Not because the laughter was cruel — much of it was warm, some nervous, some merely social. But it was doing something: managing a discomfort that would otherwise have been harder to sit with in a room full of intelligent, legally sophisticated people who had not come to be disturbed.</p>
+  <p>The comedy kept rescuing the audience from the brutality of what it already knew.</p>
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>The room as social document</h2>
+
+  <p>The book launch is a record of a profession trying to honour a man it would also have certified.</p>
+  <p>The event begins inside respectability: the Law Society, the Bar Association, lawyers and psychiatrists, drinks and nibbles. Nesbit is brought back under institutional sponsorship, then framed immediately through contradiction. Genius and lunatic. Champion of the underdog and public menace.</p>
+  <p>The speakers — Kirby, the forensic psychiatrist Dr William Brereton, and the author — are not simple figures. Kirby takes the history of lunacy law seriously: asylums, manacles, certification, the legal machinery through which people classified as mentally unsound could lose their liberty. Dr Brereton does not present the current forensic system as clean. He speaks about seclusion, poorly resourced facilities, prisoners who should be in hospital and forensic patients left in prison. The author describes Nesbit with decades of genuine care.</p>
+  <p>This is not a room laughing at madness from a safe distance. But almost automatically, the conversation returns to management: how would Nesbit be handled today? Fitness to plead? Forensic patient? Community licence with conditions?</p>
+  <p>These were practical questions, not slogans. That is why they were difficult.</p>
+  <p>The speakers can imagine better procedure, kinder psychiatry, more patient judges. What they struggle to imagine is the abolition of the coercive jurisdiction itself. That limit is not produced by cruelty. It is produced by care, professional loyalty, the fear of having no answer, and the quiet confidence that somebody must be authorised to decide when another person's liberty has become too difficult. Humane professional cultures metabolise discomfort without surrendering power. The book launch was a demonstration of exactly this.</p>
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>Classification and the downgrading of voice</h2>
+
+  <p>Paris Nesbit was not simply acted upon. He answered back. He challenged certificates, doctors, paperwork, courts and confinement — obsessively, sometimes destructively, perhaps partly because he was unwell. Dr Brereton states that Nesbit plainly suffered from severe bipolar affective disorder, with manic, hypomanic, psychotic and depressive episodes. That diagnosis is not disputed here. It does not automatically justify every detention, or every institutional interpretation of his resistance.</p>
+  <p>The book launch repeatedly risks treating that legal resistance as merely another symptom.</p>
+  <p>This is the hinge. The same verbal force that makes Nesbit admirable as an advocate becomes troubling when directed against the system confining him. His brilliance is praised when it belongs to the court. It becomes vexatious when it attacks the certificate. The room can admire Nesbit as an advocate until he advocates for himself.</p>
+  <p>This is still one of the deepest structural problems in mental health law. Once a person is labelled mentally ill, all opposition can be folded back into the diagnosis. If the detained person accepts confinement, that is insight. If they resist, that is lack of insight. If they litigate, they are vexatious. If they find defects in paperwork, their legal skill becomes cleverness in the service of pathology. If they are angry, the anger itself becomes evidence that the detention was needed.</p>
+  <p>The admission record from Parkside captures this with particular force. The certifying doctor noted: 'lordly arrogance', 'constantly boasting of superior intelligence', 'loss of reasonable self-control.' The acting medical officer added: 'accuses Dr Giles of having written a false certificate. Very rude and insulting. Shows no power of self-restraint.' The complaint about the certificate — a legal objection — appears in the medical record as evidence of disorder rather than an allegation to be examined.</p>
+
+  <p class="standalone">A person can be unwell and still be right about a defect in process. A person can be manic and still be unlawfully detained.</p>
+
+  <p>Mental health law's most dangerous move is not that it names madness. It is that, having named it, it treats refusal as confirmation.</p>
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>'Our Paris': status and the equity question</h2>
+
+  <p>Reflecting on how the Supreme Court of South Australia repeatedly discharged Nesbit from custody, Kirby described judges appearing to say to themselves: this is just our Paris. He is our problem. Generally not a problem, but a brilliant advocate.</p>
+  <p>The phrase is affectionate. But it marks a limit.</p>
+  <p>Nesbit had almost every informal protection available. Status, legal skill, professional contacts, judges who knew him, colleagues who could still see the advocate beneath the illness. None of that made the lock disappear. He was still certified. Still detained. His resistance still at risk of being heard as symptom rather than legal objection.</p>
+  <p>That is why his privilege does not weaken the critique. It sharpens it. If a brilliant KC with all of those protections could still become legally fragile once classified as mentally ill, what happens to the person without them? That person may not become a difficult legal subject. They may simply become a file.</p>
+  <p>The author noted that Sir James Boucaut used technicalities to frustrate Nesbit's legal efforts — apparently to save him from himself — as splendid examples of the profession looking after its own. Heard from a different position, that phrase names something else: professional custody. The profession shelters Nesbit but also contains him. It protects him partly by preventing him from being fully heard.</p>
+  <p>In detention law, a technicality is not a loophole. It may be the door.</p>
+  <p>Informal safeguards are real and unequal. They depend on being recognisable to people with power — on class, profession, speech, reputation. A person without legal language may not be treated as raising a technical objection. A person without reputation may not be remembered as complex. They may be assessed, processed, detained, released, and forgotten.</p>
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>Emergency is not jurisdiction</h2>
+
+  <p>At the book launch, Kirby and Dr Brereton each addressed what would happen to someone like Nesbit today. Their answers were careful: fitness to plead, forensic patient status, community licence, treatment engagement. Not the answers of people who wanted to lock him up carelessly. Answers from people navigating a genuinely hard problem.</p>
+  <p>The hard version of that problem goes like this: a family is frightened and exhausted; clinicians believe serious harm may occur; and without any lawful power, coercion becomes informal, panicked, police-led, or hidden. The absence of law does not abolish coercion. It may simply make coercion invisible.</p>
+  <p>That is why emergency may sometimes require a legal response. But there is a distinction mental health law has consistently failed to maintain: between <em>emergency interruption</em> and <em>psychiatric jurisdiction</em>.</p>
+  <p>Emergency interruption is a brief, accountable act to prevent imminent serious harm. Someone is about to walk into traffic. The law may need a narrow holding power — not because the person has ceased to be a legal subject, but because the situation demands immediate response.</p>
+  <p>Psychiatric jurisdiction is different. It is the continuing legal status that may follow: detention, compulsory treatment, surveillance, assessments of insight, review hearings, files, records, and the gradual reorganisation of a person's credibility around diagnosis. Not just the power to interrupt conduct, but to govern the person.</p>
+  <p>Those two things should not collapse into one another. A temporary doorstop becomes a ward. A crisis becomes a status. A refusal becomes a symptom.</p>
+
+  <blockquote>
+    <p>The law may need to answer the moment of catastrophe. It should not build a regime from it.</p>
+  </blockquote>
+
+  <p>None of this requires making Nesbit innocent. Innocence is too fragile a foundation for rights. The harder claim is that even the unwell, disruptive, frightening, wrong person remains a legal subject. His conduct was at times alarming. He also suffered coercion. Both are true. If liberty only protects the coherent, polite and institutionally legible person, it is doing very little work.</p>
+
+
+  <!-- ══ PART TWO ══════════════════════════════════════════ -->
+  <div class="part-head">
+    <span class="part-label">Part Two</span>
+    <span class="part-title">All That Had to Go</span>
+  </div>
+
+  <p>Near the end of his speech, Dr Brereton made a confession. He had not had time, he said, to address what it means to be clinically insane versus legally insane. He had not addressed what it looks like to read about a life where severe mental illness ran its natural course without treatment. And he had not commented on the 1909 Royal Commission into the management of Glenside and the treatment of criminal lunatics.</p>
+
+  <blockquote>
+    <p>'All that had to go in favour of insulting lawyer jokes.'</p>
+  </blockquote>
+
+  <p>He said this cheerfully. The jokes had landed well, and drinks were waiting. But the confession is strange once you hold it. A forensic psychiatrist, speaking at an event about mental illness and the law, explaining that the Royal Commission, the clinical/legal insanity distinction, and the natural history of untreated illness were sacrificed to the occasion.</p>
+  <p>What the room needed — warmth, shared professional identity, the pleasure of gathering — was purchased with specific intellectual costs. Dr Brereton knew what they were. He named them. Then the evening continued.</p>
+  <p>Everyone in the room knew more than the evening contained. The question is what knowing is worth if it cannot cross that gap.</p>
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>The biographer's restraint</h2>  
+  <p>The author of the Nesbit biography had been living with his subject since 1974. Nesbit first appeared in a university study of South Australian silks and never really left: portraits, a business card, a cat named Paris, the long accumulation of affectionate detail.</p>  
+  <p>That kind of proximity produces real knowledge and care. It also explains the author's chosen restraint. His stated aim was to avoid judgment, except for the modest conclusion that Nesbit was temperamentally unsuited to be a judge. Kirby suggested, on the way to the event, that the book needed a chapter drawing the threads together — naming the wrongs, tracing the improvements, facing what remained. The author declined, preferring to leave that work to the reader.</p>  
+  <p>There is generosity in that refusal. There is also a limit. The book restores Nesbit's reputation without quite forcing a verdict on the system that confined him.</p>  
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>The person who already knows</h2>
+
+  <p>The most quietly extraordinary moment at the book launch comes during the Q&amp;A, when someone asks how the profession should take better care of colleagues experiencing depression. Dr Brereton gives the clinical answer: outside interests, family, a good GP, humour, sublimation. Sensible and standard. Then Kirby speaks.</p>
+  <p>He grew up, he says, as a gay boy and a gay man in a time and place where he was hated, where he had to keep things quiet, where homosexuality was on the list of psychiatric disorders and gay people were shamed in law and on the front pages of newspapers. That experience of being misclassified, criminalised and shamed makes him very cautious about judging others too quickly.</p>
+  <p>He is right that it should. Homosexuality remained a criminal offence in most Australian states well into his professional life, classified as a mental disorder by international psychiatric bodies until the 1970s. A man who experienced the state's power to classify a fundamental aspect of his identity as pathological is not speaking abstractly when he says wrong classification matters.</p>
+  <p>And yet.</p>
+  <p>What Kirby does with that knowledge is become a more patient judge. He advocates for courtesy toward difficult litigants, argues against shutting hopeless arguments down too quickly, says every person deserves some time. These are good instincts. They are the best that liberal judicial culture can offer. They are not a challenge to the classifying power itself.</p>
+  <p>Kirby does not say: because I know what it is to be called disordered for something that was simply who I am, I am wary of the machinery that decides who is disordered. He says: I am sensitive to those who have been misclassified, and I try to be patient. That sensitivity is genuine. A patient judge matters in individual cases. But patience is a disposition, not a program. What Kirby has done with the knowledge of wrong classification is become a better operator of the system, not a critic of the system's right to operate.</p>
+  <p>Knowing is the beginning. It is not the work. The gap between knowing and doing is not a knowledge problem. It is a power problem.</p>
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>What Nesbit said from inside</h2>
+
+  <p>During the speeches, Nesbit's own voice appears at length. Dr Brereton quotes from a letter written at Glenside in 1898:</p>
+
+  <blockquote>
+    <p>'My wretchedness is aggravated by numberless, petty, vexacious, and meaningless restrictions — acts of tyranny. Sometimes it seems to me that my captors were endeavouring to goad me into an act of resentment, to which, in the total absence of other evidence of insanity, they could point with triumph.'</p>
+  </blockquote>
+
+  <p>Dr Brereton quotes this with evident sympathy, noting the escalating pattern it describes: the more a detained person resists, the tighter the restrictions; the tighter the restrictions, the more they resist. A fair observation about institutional design.</p>
+  <p>What goes unremarked is that Nesbit, in 1898, had already performed the analysis that the book launch was attempting in 2026. He named the circularity from inside it. His captors were trying to goad him into behaviour that could then serve as evidence that confinement was justified. He saw it. He said it. He was in a locked ward when he wrote it.</p>
+  <p>At the launch, this is presented as a poignant illustration of the human cost of bad conditions. The analysis is absorbed into the clinical narrative — he was right about the dynamic; the response is to design better institutions — rather than being heard as what it also was: a person identifying a structural injustice from inside the structure.</p>
+  <p>His other statements receive similar treatment. He called his certifying doctors a 'wicked, venal, corrupt' fraternity — 'atheist materialists.' He said they darkened the air 'like a flock of vultures, eager to take life.' These are offered for entertainment, and the room laughed warmly. They are also the testimony of a person who believed he had been wrongly detained and had specific grievances about specific actors.</p>
+  <p>The laughter does not erase that. But it changes what those words are allowed to be in the room. They become colour, texture, personality — not evidence, not complaint. In the clinical frame governing the evening, they are the output of a manic episode, symptoms helping build the diagnostic picture.</p>
+  <p>The statements may have been produced partly by illness. They may also have been partly true. A person can be manic and still be mistreated. The clinical frame makes those possibilities mutually exclusive by default: once the speaker is diagnosed, what they say is evidence of diagnosis rather than evidence about the world.</p>
+  <p>Nesbit said this from inside the ward in 1898. The book launch proved his point while celebrating his memory.</p>
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>The conversation after</h2>  
+  <p>After the formal proceedings, I found myself in a conversation with a senior member of the profession. I said, too quickly, that I was not sure Nesbit's cases justified so large a book: they were not, in the ordinary sense, major precedents. What I was really registering was less a bibliographic point than a discomfort — the distance between Nesbit's evident gifts and the disorder, humiliation and professional damage that marked parts of his life.</p>  
+  <p>The senior person answered with care rather than correction: he was ill. His conduct had to be read through that illness, not simply as a sequence of free and culpable choices.</p>  
+  <p>That was a humane response, and an important one. It resisted the easy moralism that turns a difficult life into a character flaw. But the exchange also clarified the problem the evening had been circling. Sympathy for Nesbit often arrives through illness, while criticism of him arrives through agency. The harder task is to hold both at once: to see a person who was unwell, sometimes impossible, sometimes harmed by institutions, and still not reducible either to diagnosis or blame.</p>  
+  <p>What mattered about the conversation was not that either of us was wrong. It was that even a generous exchange tended to move between the available categories: illness as exculpation, conduct as failure, reputation as recovery. The biography’s real achievement is that it makes reduction difficult. Nesbit appears not as a case, a diagnosis, a cautionary tale, or a recovered eccentric, but as all of these things at once and more. He was ill and he acted. He was brilliant and damaging. He suffered coercion and remained legally articulate. That is the sentence the law and the profession find difficult to write.</p>  
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>The exit problem</h2>
+
+  <p>A later contribution to the Q&amp;A quietly names the problem the evening keeps approaching: how hard it can be to leave a protective jurisdiction once it has organised its record around your incapacity. A lawyer working in administration and guardianship order reviews describes something they find fascinating in a sad way: people who have lived for decades without contact with welfare or health systems, who enter those systems in their fifth or sixth decade, and who then cannot prove sufficient competence to leave. The system classifies them. And then, despite having lived independently for decades before, they cannot demonstrate the competence that the system's own measures require.</p>
+  <p>This is the exit problem named from professional practice. It is not theoretical.</p>
+  <p class="standalone">The archive of incapacity is often better organised than the archive of ordinary competence.</p>
+  <p>Nesbit's own pattern was a version of this. He would be detained, challenge his detention, find a defect in the paperwork, and be released — not because the system acknowledged a wrong, but because the paperwork failed. He would return to practice. Become ill again. Be detained again. The cycle ran across thirty years. The paperwork errors that released him were not vindications. They were technicalities. The system remained.</p>
+  <p>Today's people entering the system in their fifth decade do not have a professional network or legal skill to draw on. They had a crisis, or a condition that became visible when they could no longer manage it alone. The system classified them, measured them, and found they could not meet the measurement — which is what happens when someone classified as lacking competence is asked to demonstrate competence to the people who made the classification.</p>
+  <p>This did not attract much discussion at the book launch. The conversation moved on. Drinks were waiting.</p>
+  <p>That too is part of what had to go.</p>
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <h2>What knowing requires</h2>
+
+  <p>The evening was conducted by people who knew.</p>
+  <p>Kirby knew the history of lunacy law and the violence it licensed. He knew what it felt like to be classified as disordered for something that was simply who he was. Dr Brereton knew the current forensic system is failing — that James Nash House, where South Australia's most severely unwell people are admitted, is poorly designed and bleak; that forensic patients found not criminally responsible are languishing in prison; that by the measure of how a society treats its most vulnerable, South Australia is currently failing. The author knew, in the intimate detail of fifty years, the specific costs of what was done to Nesbit: the certifications, the confinements, the legal resistance dismissed as symptom. He knew that Josiah Symon, Nesbit's contemporary and joint leader of the South Australian bar, had said that Nesbit was always sane on matters of law.</p>
+  <p>What none of this knowing produced was a claim.</p>
+  <p>It produced sympathy, scholarship, clinical insight, professional sensitivity. It did not produce an argument that the classifying power itself was the problem. That the people who enter the system in their fifth decade and cannot get out are not an anomaly but a product. That Nesbit's own analysis — that his captors were trying to goad him into an act of resentment to which they could then point as evidence of insanity — was not merely a symptom of illness but a description of how the system works.</p>
+  <p>Knowing that something is wrong is not the same as saying so in a form that commits you. Dr Brereton was committed to the view that current services are underfunded and conditions are shameful — a view he could hold without recommending the coercive jurisdiction be dismantled. Kirby was committed to the view that judicial patience matters — compatible with the continuation of every existing legal power. The author was committed to the view that Nesbit deserved recovery — compatible with the view that the detentions were legally correct.</p>
+  <p>What would it have required to say more? Not more knowledge. More exposure. The claim that the classifying power itself is the problem carries a cost that sympathy and scholarship do not. It requires being willing to have no answer when the hard case arrives.</p>
+  <p>Dr Brereton was right. The Royal Commission mattered. The clinical/legal insanity distinction mattered. The natural history of untreated illness mattered. The lawyer jokes were good. The room was warm. The drinks were cold. The cost was specific, and he named it, and then the evening continued.</p>
+
+  <div class="sep"><span></span><span></span><span></span></div>
+
+  <p>Nesbit said from inside the ward in 1898 that his captors were trying to goad him into an act of resentment to which they could then point as proof that confinement was needed. He saw the circularity from inside it. One hundred and twenty-eight years later, a room of intelligent, careful people gathered to recover him. They laughed at his voice when it was entertaining. They mourned the conditions he suffered. They acknowledged the system had failed him. They agreed he was brilliant.</p>
+  <p>And then they tried to work out how to manage someone like him today.</p>
+</main>
+
+<footer>
+  <p>Difficult Liberty</p>
+</footer>
+
+</body>
+</html>
